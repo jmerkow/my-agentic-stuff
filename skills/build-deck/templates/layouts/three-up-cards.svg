@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- LAYOUT: three-up-cards
+     Use for: three parallel topics shown horizontally (e.g. HIMSS / UW / SIIM, before/now/next, three options).
+     PowerPoint analog: extended "Comparison" with three regions.
+     Regions: title | Card 1 x=160..640 | Card 2 x=720..1200 | Card 3 x=1280..1760 (width=480 each, gap=80)
+-->
+<?xml-stylesheet type="text/css" href="../themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <!-- TITLE -->
+  <text x="160" y="144" class="title text" font-size="56">Slide title</text>
+
+  <!-- CARD 1 (x=160..640) -->
+  <rect x="160" y="240" width="480" height="720" class="surface" />
+  <rect x="160" y="240" width="480" height="6" class="accent" />
+  <text x="184" y="306" class="h2 text" font-size="30">Card 1</text>
+  <text x="184" y="350" class="body text-muted" font-size="20">subtitle</text>
+  <text x="184" y="416" xml:space="preserve" class="body text" font-size="22">
+    <tspan x="184" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="184" dy="1.6em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- CARD 2 (x=720..1200) -->
+  <rect x="720" y="240" width="480" height="720" class="surface" />
+  <rect x="720" y="240" width="480" height="6" class="accent" />
+  <text x="744" y="306" class="h2 text" font-size="30">Card 2</text>
+  <text x="744" y="350" class="body text-muted" font-size="20">subtitle</text>
+  <text x="744" y="416" xml:space="preserve" class="body text" font-size="22">
+    <tspan x="744" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="744" dy="1.6em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- CARD 3 (x=1280..1760) -->
+  <rect x="1280" y="240" width="480" height="720" class="surface" />
+  <rect x="1280" y="240" width="480" height="6" class="accent" />
+  <text x="1304" y="306" class="h2 text" font-size="30">Card 3</text>
+  <text x="1304" y="350" class="body text-muted" font-size="20">subtitle</text>
+  <text x="1304" y="416" xml:space="preserve" class="body text" font-size="22">
+    <tspan x="1304" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="1304" dy="1.6em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+</svg>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The xml-stylesheet PI is for browser preview only. rsvg-convert and PowerPoint ignore it; the inline <style> block (between THEME-START/END) is canonical. -->
+<?xml-stylesheet type="text/css" href="themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <text x="160" y="144" class="title text" font-size="56">Table + bullets combo</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Top half: dense numeric table. Bottom half: short takeaway bullets. Both patterns on one slide.</text>
+
+  <!-- TABLE: 7 data rows with zebra stripes, right-aligned numeric columns -->
+  <!-- Header row -->
+  <rect x="160" y="260" width="1600" height="56" class="surface" />
+  <text x="184" y="297" class="body-bold text" font-size="22">Model</text>
+  <text x="314" y="297" class="body-bold text" font-size="22">SKU</text>
+  <text x="786" y="297" text-anchor="end" class="body-bold text" font-size="22">Latency floor (p50)</text>
+  <text x="1166" y="297" text-anchor="end" class="body-bold text" font-size="22">Peak throughput</text>
+  <text x="1214" y="297" class="body-bold text" font-size="22">At SLA point</text>
+
+  <!-- Row separators -->
+  <line x1="160" y1="316" x2="1760" y2="316" class="border" stroke-width="1" />
+  <line x1="160" y1="374" x2="1760" y2="374" class="border" stroke-width="1" />
+  <line x1="160" y1="432" x2="1760" y2="432" class="border" stroke-width="1" />
+  <line x1="160" y1="490" x2="1760" y2="490" class="border" stroke-width="1" />
+  <line x1="160" y1="548" x2="1760" y2="548" class="border" stroke-width="1" />
+  <line x1="160" y1="606" x2="1760" y2="606" class="border" stroke-width="1" />
+  <line x1="160" y1="664" x2="1760" y2="664" class="border" stroke-width="1" />
+  <line x1="160" y1="722" x2="1760" y2="722" class="border" stroke-width="1" />
+
+  <!-- Zebra stripes on alternating rows -->
+  <rect x="160" y="316" width="1600" height="58" class="surface-alt" />
+  <rect x="160" y="432" width="1600" height="58" class="surface-alt" />
+  <rect x="160" y="548" width="1600" height="58" class="surface-alt" />
+  <rect x="160" y="664" width="1600" height="58" class="surface-alt" />
+
+  <!-- Data rows -->
+  <text x="184" y="354" class="body text" font-size="22">Model-A</text>
+  <text x="314" y="354" class="body text" font-size="22">1×A100</text>
+  <text x="786" y="354" text-anchor="end" class="body text" font-size="22">480 ms</text>
+  <text x="1166" y="354" text-anchor="end" class="body text" font-size="22">2.1 req/s</text>
+  <text x="1214" y="354" class="body text" font-size="22">≤8 users, p95 3.9s</text>
+
+  <text x="184" y="412" class="body text" font-size="22">Model-A</text>
+  <text x="314" y="412" class="body text" font-size="22">2×A100 (TP=2)</text>
+  <text x="786" y="412" text-anchor="end" class="body text" font-size="22">620 ms</text>
+  <text x="1166" y="412" text-anchor="end" class="body text" font-size="22">2.2 req/s</text>
+  <text x="1214" y="412" class="body text" font-size="22">— (same ceiling as 1×A100)</text>
+
+  <text x="184" y="470" class="body text" font-size="22">Model-A</text>
+  <text x="314" y="470" class="body text" font-size="22">T4×8</text>
+  <text x="786" y="470" text-anchor="end" class="body text" font-size="22">790 ms</text>
+  <text x="1166" y="470" text-anchor="end" class="body text" font-size="22">4.8 req/s</text>
+  <text x="1214" y="470" class="body text" font-size="22">≤24 users, p95 5.4s</text>
+
+  <text x="184" y="528" class="body text" font-size="22">Model-B</text>
+  <text x="314" y="528" class="body text" font-size="22">1×A100</text>
+  <text x="786" y="528" text-anchor="end" class="body text" font-size="22">860 ms</text>
+  <text x="1166" y="528" text-anchor="end" class="body text" font-size="22">2.9 req/s</text>
+  <text x="1214" y="528" class="body text" font-size="22">10 users, p95 4.2s</text>
+
+  <text x="184" y="586" class="body text" font-size="22">Model-B</text>
+  <text x="314" y="586" class="body text" font-size="22">2×A100 (TP=2)</text>
+  <text x="786" y="586" text-anchor="end" class="body text" font-size="22">900 ms</text>
+  <text x="1166" y="586" text-anchor="end" class="body text" font-size="22">4.3 req/s</text>
+  <text x="1214" y="586" class="body text" font-size="22">20 users, p95 5.8s</text>
+
+  <text x="184" y="644" class="body text" font-size="22">Model-C</text>
+  <text x="314" y="644" class="body text" font-size="22">1×A100</text>
+  <text x="786" y="644" text-anchor="end" class="body text" font-size="22">640 ms</text>
+  <text x="1166" y="644" text-anchor="end" class="body text" font-size="22">3.6 req/s</text>
+  <text x="1214" y="644" class="body text" font-size="22">24 users, p95 6.4s</text>
+
+  <text x="184" y="702" class="body text" font-size="22">Model-C</text>
+  <text x="314" y="702" class="body text" font-size="22">2×A100 (TP=2)</text>
+  <text x="786" y="702" text-anchor="end" class="body text" font-size="22">780 ms</text>
+  <text x="1166" y="702" text-anchor="end" class="body text" font-size="22">4.7 req/s</text>
+  <text x="1214" y="702" class="body text" font-size="22">—</text>
+
+  <!-- Bullets below the table -->
+  <text x="160" y="800" xml:space="preserve" class="body text" font-size="24">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16" class="body-bold text">Ballpark numbers for cost sizing.</tspan><tspan> Not a real latency test.</tspan>
+    <tspan x="160" dy="1.5em" class="accent">•</tspan><tspan dx="16" class="body-bold text">Model-A hits a ~2.1 req/s per-instance ceiling.</tspan><tspan> Scale via replicas.</tspan>
+    <tspan x="160" dy="1.5em" class="accent">•</tspan><tspan dx="16" class="body-bold text">Model-B TP=2 scales ~1.5× over TP=1.</tspan>
+  </text>
+
+  <text x="160" y="1020" class="body text-muted italic" font-size="22">Reference: pattern-tables.md + pattern-bullets.md</text>
+</svg>

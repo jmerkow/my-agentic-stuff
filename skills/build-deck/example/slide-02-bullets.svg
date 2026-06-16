@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The xml-stylesheet PI is for browser preview only. rsvg-convert and PowerPoint ignore it; the inline <style> block (between THEME-START/END) is canonical. -->
+<?xml-stylesheet type="text/css" href="themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <text x="160" y="144" class="title text" font-size="56">Bullet lists</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">One &lt;text&gt; block. dx after the marker. dy between rows.</text>
+
+  <text x="160" y="320" xml:space="preserve" class="body text" font-size="30">
+    <tspan x="160" class="accent">•</tspan><tspan dx="20">Markers are </tspan><tspan class="body-bold text">•</tspan><tspan> glyphs in </tspan><tspan class="body-bold text">.accent</tspan><tspan>; body text in </tspan><tspan class="body-bold text">.body</tspan><tspan>.</tspan>
+    <tspan x="160" dy="1.7em" class="accent">•</tspan><tspan dx="20"></tspan><tspan class="body-bold text">dx="16"</tspan><tspan> spaces the body away from the bullet glyph.</tspan>
+    <tspan x="160" dy="1.7em" class="accent">•</tspan><tspan dx="20"></tspan><tspan class="body-bold text">dy="1.5em"</tspan><tspan> on rows 2+ advances one line per bullet.</tspan>
+    <tspan x="160" dy="1.7em" class="accent">•</tspan><tspan dx="20">Inline emphasis with a </tspan><tspan class="body-bold text">body-bold text</tspan><tspan> tspan — use sparingly.</tspan>
+  </text>
+
+  <text x="160" y="1020" class="body text-muted italic" font-size="22">Reference: pattern-bullets.md</text>
+</svg>

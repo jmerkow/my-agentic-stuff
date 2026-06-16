@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- LAYOUT: title-body
+     Use for: the workhorse — title at top, single body region for bullets/table/chart/etc.
+     PowerPoint analog: "Title and Content".
+     Regions: title | subtitle | body (1600×740 starting at x=160 y=240)
+-->
+<?xml-stylesheet type="text/css" href="../themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <!-- TITLE -->
+  <text x="160" y="144" class="title text" font-size="56">Slide title</text>
+
+  <!-- SUBTITLE (optional) -->
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Optional subtitle.</text>
+
+  <!-- BODY REGION: x=160..1760 (width=1600), y=240..980 (height=740). Replace with bullets/table/chart per pattern-* references. -->
+  <text x="160" y="320" xml:space="preserve" class="body text" font-size="28">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">First bullet.</tspan>
+    <tspan x="160" dy="1.5em" class="accent">•</tspan><tspan dx="16">Second bullet.</tspan>
+  </text>
+</svg>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The xml-stylesheet PI is for browser preview only. rsvg-convert and PowerPoint ignore it; the inline <style> block (between THEME-START/END) is canonical. -->
+<?xml-stylesheet type="text/css" href="themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <text x="160" y="144" class="title text" font-size="56">Matplotlib charts</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Python generates the chart. Palette pulled from theme CSS. Embedded via &lt;image&gt; with href + xlink:href.</text>
+
+  <!-- Both href and xlink:href for renderer compat. -->
+  <image
+    href="./assets/slide5-perturbation-chart.png"
+    xlink:href="./assets/slide5-perturbation-chart.png"
+    x="160" y="260" width="1600" height="720"
+    preserveAspectRatio="xMidYMid meet" />
+
+  <text x="160" y="1020" class="body text-muted italic" font-size="22">Reference: pattern-charts.md</text>
+</svg>

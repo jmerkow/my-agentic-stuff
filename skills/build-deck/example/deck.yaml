@@ -1,0 +1,20 @@
+slides:
+- file: slide-01-title.svg
+- file: slide-02-bullets.svg
+  notes: |
+    - dy pattern, no bullet drift on edit
+    - dx=16 is the body offset
+    - bold = structural, not decorative
+- file: slide-03-numbered.svg
+- file: slide-04-tables.svg
+- file: slide-05-matplotlib-chart.svg
+  notes: |
+    - palette comes from theme CSS
+    - use both href and xlink:href
+    - PNG is inlined, no external deps
+- file: slide-06-svg-diagram.svg
+  notes: |
+    - native SVG, no chart pipeline
+    - define marker once, reuse on lines
+    - best for fixed-layout diagrams
+- file: slide-07-table-and-bullets.svg

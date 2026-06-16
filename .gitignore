@@ -1,0 +1,10 @@
+# Python basics
+**/__pycache__/
+**/*.pyc
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Per-skill private config (real values, never committed)
+private/

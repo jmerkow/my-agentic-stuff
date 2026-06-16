@@ -1,0 +1,13 @@
+# Normalize all text files to LF on commit; never check out CRLF.
+# Prevents Windows contributors from introducing CRLF drift.
+* text=auto eol=lf
+
+# Explicit binaries (don't touch line endings)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.pptx binary
+*.docx binary
+*.xlsx binary

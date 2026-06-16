@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- LAYOUT: grid-2x2
+     Use for: four parallel topics shown as a grid (skills / agents / mcp / habits, before/after/etc).
+     PowerPoint analog: none directly — extends "Comparison" into a 2x2 grid.
+     Regions: title | TL x=80..960  | TR x=1000..1880 | BL x=80..960 (y=600+) | BR x=1000..1880 (y=600+)
+-->
+<?xml-stylesheet type="text/css" href="../themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <!-- TITLE -->
+  <text x="160" y="144" class="title text" font-size="56">Slide title</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Optional subtitle.</text>
+
+  <!-- TOP-LEFT -->
+  <text x="160" y="288" class="h2 accent" font-size="30">Quadrant 1</text>
+  <text x="160" y="346" xml:space="preserve" class="body text" font-size="24">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="160" dy="1.5em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- TOP-RIGHT -->
+  <text x="1000" y="288" class="h2 accent" font-size="30">Quadrant 2</text>
+  <text x="1000" y="346" xml:space="preserve" class="body text" font-size="24">
+    <tspan x="1000" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="1000" dy="1.5em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- BOTTOM-LEFT -->
+  <text x="160" y="664" class="h2 accent" font-size="30">Quadrant 3</text>
+  <text x="160" y="722" xml:space="preserve" class="body text" font-size="24">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="160" dy="1.5em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- BOTTOM-RIGHT -->
+  <text x="1000" y="664" class="h2 accent" font-size="30">Quadrant 4</text>
+  <text x="1000" y="722" xml:space="preserve" class="body text" font-size="24">
+    <tspan x="1000" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="1000" dy="1.5em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+</svg>

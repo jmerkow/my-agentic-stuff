@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- LAYOUT: sections-stacked
+     Use for: N labeled sections one above the other (Done/Now/Next, 3–4 themed bullet groups).
+     PowerPoint analog: none directly — extends "Title and Content" with multiple sub-headers.
+     Regions: title | section header + bullets, repeated. Typical N=3.
+-->
+<?xml-stylesheet type="text/css" href="../themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <!-- TITLE -->
+  <text x="160" y="144" class="title text" font-size="56">Slide title</text>
+
+  <!-- SECTION 1 (header y=240, bullets start y=296) -->
+  <text x="160" y="240" class="h2 accent" font-size="34">Section 1</text>
+  <text x="160" y="296" xml:space="preserve" class="body text" font-size="26">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="160" dy="1.6em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- SECTION 2 (header y=468) -->
+  <text x="160" y="468" class="h2 accent" font-size="34">Section 2</text>
+  <text x="160" y="524" xml:space="preserve" class="body text" font-size="26">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="160" dy="1.6em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+
+  <!-- SECTION 3 (header y=696) -->
+  <text x="160" y="696" class="h2 accent" font-size="34">Section 3</text>
+  <text x="160" y="752" xml:space="preserve" class="body text" font-size="26">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+    <tspan x="160" dy="1.6em" class="accent">•</tspan><tspan dx="16">Bullet.</tspan>
+  </text>
+</svg>

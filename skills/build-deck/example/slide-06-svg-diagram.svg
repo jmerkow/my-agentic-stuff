@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The xml-stylesheet PI is for browser preview only. rsvg-convert and PowerPoint ignore it; the inline <style> block (between THEME-START/END) is canonical. -->
+<?xml-stylesheet type="text/css" href="themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+
+  <!-- Arrow marker (must come before any element that uses it) -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0078d4" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <text x="160" y="144" class="title text" font-size="56">SVG flow diagrams</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Boxes are &lt;rect&gt;, arrows are &lt;line&gt; with marker-end. No chart pipeline, no raster.</text>
+
+  <!-- Source box (left, centered vertically) -->
+  <rect x="160" y="450" width="360" height="180" rx="16" ry="16" class="surface" />
+  <rect x="160" y="450" width="360" height="180" rx="16" ry="16" class="border" stroke-width="2" />
+  <text x="340" y="528" text-anchor="middle" class="body-bold text" font-size="32">slide-NN.svg</text>
+  <text x="340" y="572" text-anchor="middle" class="body text-muted" font-size="22">source</text>
+
+  <!-- Top branch: rsvg-convert → renders/*.png -->
+  <rect x="760" y="280" width="360" height="180" rx="16" ry="16" class="surface" />
+  <rect x="760" y="280" width="360" height="180" rx="16" ry="16" class="border" stroke-width="2" />
+  <text x="940" y="358" text-anchor="middle" class="body-bold text" font-size="32">rsvg-convert</text>
+  <text x="940" y="402" text-anchor="middle" class="body text-muted" font-size="22">renders PNG preview</text>
+
+  <rect x="1360" y="280" width="360" height="180" rx="16" ry="16" class="surface" />
+  <rect x="1360" y="280" width="360" height="180" rx="16" ry="16" class="border" stroke-width="2" />
+  <text x="1540" y="358" text-anchor="middle" class="body-bold text" font-size="32">renders/*.png</text>
+  <text x="1540" y="402" text-anchor="middle" class="body text-muted" font-size="22">authoring</text>
+
+  <!-- Bottom branch: build-pptx.py → deck.pptx -->
+  <rect x="760" y="620" width="360" height="180" rx="16" ry="16" class="surface" />
+  <rect x="760" y="620" width="360" height="180" rx="16" ry="16" class="border" stroke-width="2" />
+  <text x="940" y="698" text-anchor="middle" class="body-bold text" font-size="32">build-pptx.py</text>
+  <text x="940" y="742" text-anchor="middle" class="body text-muted" font-size="22">packages + verifies</text>
+
+  <rect x="1360" y="620" width="360" height="180" rx="16" ry="16" class="surface" />
+  <rect x="1360" y="620" width="360" height="180" rx="16" ry="16" class="border" stroke-width="2" />
+  <text x="1540" y="698" text-anchor="middle" class="body-bold text" font-size="32">deck.pptx</text>
+  <text x="1540" y="742" text-anchor="middle" class="body text-muted" font-size="22">delivery</text>
+
+  <!-- Arrows: source splits to both branches, each branch flows to its output -->
+  <line x1="520" y1="500" x2="760" y2="370" class="accent-stroke" stroke-width="4" marker-end="url(#arrow)" />
+  <line x1="520" y1="580" x2="760" y2="710" class="accent-stroke" stroke-width="4" marker-end="url(#arrow)" />
+  <line x1="1120" y1="370" x2="1360" y2="370" class="accent-stroke" stroke-width="4" marker-end="url(#arrow)" />
+  <line x1="1120" y1="710" x2="1360" y2="710" class="accent-stroke" stroke-width="4" marker-end="url(#arrow)" />
+
+  <text x="160" y="1020" class="body text-muted italic" font-size="22">Built from &lt;rect&gt;, &lt;line&gt;, &lt;marker&gt;, &lt;text&gt; — no asset, no script.</text>
+</svg>

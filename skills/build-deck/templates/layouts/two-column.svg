@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- LAYOUT: two-column
+     Use for: side-by-side content. Chart left + bullets right; table left + emphasis right; photo + caption.
+     PowerPoint analog: "Two Content".
+     Regions: title | subtitle | LEFT col x=160..930 (width=770) | RIGHT col x=990..1760 (width=770)
+-->
+<?xml-stylesheet type="text/css" href="../themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <!-- TITLE -->
+  <text x="160" y="144" class="title text" font-size="56">Slide title</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Optional subtitle.</text>
+
+  <!-- LEFT COLUMN: x=160..930 (width=770) -->
+  <text x="160" y="290" class="h2 accent" font-size="32">Left header</text>
+  <text x="160" y="360" xml:space="preserve" class="body text" font-size="26">
+    <tspan x="160" class="accent">•</tspan><tspan dx="16">Left bullet.</tspan>
+    <tspan x="160" dy="1.5em" class="accent">•</tspan><tspan dx="16">Left bullet.</tspan>
+  </text>
+
+  <!-- RIGHT COLUMN: x=990..1760 (width=770) -->
+  <text x="990" y="290" class="h2 accent" font-size="32">Right header</text>
+  <text x="990" y="360" xml:space="preserve" class="body text" font-size="26">
+    <tspan x="990" class="accent">•</tspan><tspan dx="16">Right bullet.</tspan>
+    <tspan x="990" dy="1.5em" class="accent">•</tspan><tspan dx="16">Right bullet.</tspan>
+  </text>
+</svg>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The xml-stylesheet PI is for browser preview only. rsvg-convert and PowerPoint ignore it; the inline <style> block (between THEME-START/END) is canonical. -->
+<?xml-stylesheet type="text/css" href="themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <text x="160" y="144" class="title text" font-size="56">Tables and columns</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Positioned &lt;text&gt; rows for tables. Lay out columns side-by-side — there's no flow.</text>
+
+  <!-- LEFT COLUMN: pattern → reference table (x=160..930) -->
+  <text x="160" y="290" class="h2 accent" font-size="32">Patterns &amp; references</text>
+
+  <rect x="160" y="320" width="770" height="54" class="surface" />
+  <text x="184" y="356" class="body-bold text" font-size="22">Pattern</text>
+  <text x="600" y="356" class="body-bold text" font-size="22">Reference file</text>
+
+  <rect x="160" y="374" width="770" height="50" class="surface-alt" />
+  <text x="184" y="406" class="body text" font-size="22">Bullets / numbered lists</text>
+  <text x="600" y="406" class="body text" font-size="22">pattern-bullets.md</text>
+
+  <text x="184" y="456" class="body text" font-size="22">Tables</text>
+  <text x="600" y="456" class="body text" font-size="22">pattern-tables.md</text>
+
+  <rect x="160" y="474" width="770" height="50" class="surface-alt" />
+  <text x="184" y="506" class="body text" font-size="22">Images / photos</text>
+  <text x="600" y="506" class="body text" font-size="22">pattern-images.md</text>
+
+  <text x="184" y="556" class="body text" font-size="22">Charts (matplotlib)</text>
+  <text x="600" y="556" class="body text" font-size="22">pattern-charts.md</text>
+
+  <rect x="160" y="574" width="770" height="50" class="surface-alt" />
+  <text x="184" y="606" class="body text" font-size="22">Theming &amp; colors</text>
+  <text x="600" y="606" class="body text" font-size="22">theming.md</text>
+
+  <!-- RIGHT COLUMN: emphasis example -->
+  <text x="1020" y="290" class="h2 accent" font-size="32">Inline emphasis</text>
+
+  <text x="1020" y="354" class="body text-muted" font-size="20">Switch class on a tspan mid-bullet for emphasis:</text>
+
+  <rect x="1020" y="378" width="800" height="220" class="surface" />
+  <text x="1044" y="416" class="body text" font-size="20" font-family="'JetBrains Mono', Consolas, monospace">&lt;tspan x="160" class="accent"&gt;•&lt;/tspan&gt;</text>
+  <text x="1044" y="446" class="body text" font-size="20" font-family="'JetBrains Mono', Consolas, monospace">&lt;tspan dx="16" class="body-bold"&gt;Lead phrase.&lt;/tspan&gt;</text>
+  <text x="1044" y="476" class="body text" font-size="20" font-family="'JetBrains Mono', Consolas, monospace">&lt;tspan&gt; rest of the bullet text.&lt;/tspan&gt;</text>
+  <text x="1044" y="540" class="body text-muted" font-size="18">renders as ↓</text>
+
+  <text x="1020" y="650" xml:space="preserve" class="body text" font-size="26">
+    <tspan x="1020" class="accent">•</tspan><tspan dx="16" class="body-bold text">Lead phrase.</tspan><tspan> rest of the bullet text.</tspan>
+  </text>
+
+  <text x="1020" y="760" class="body text-muted italic" font-size="22">Use sparingly — one or two bullets per slide.</text>
+
+  <text x="160" y="1020" class="body text-muted italic" font-size="22">Reference: pattern-tables.md</text>
+</svg>

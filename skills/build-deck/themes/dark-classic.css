@@ -1,0 +1,16 @@
+/* dark-classic — black/dark bg, light text, vibrant blue accent */
+.bg          { fill: #0f1115; }
+.surface     { fill: #1a1d23; }
+.surface-alt { fill: #15181d; }
+.text        { fill: #f0f0f0; }
+.text-muted  { fill: #8a8a8a; }
+.accent      { fill: #4cc2ff; }
+.accent-stroke { stroke: #4cc2ff; }
+.border      { stroke: #2a2e36; fill: none; }
+
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }

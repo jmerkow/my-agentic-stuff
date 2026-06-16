@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- LAYOUT: full-bleed-diagram
+     Use for: a single big visual that should dominate the slide — process diagram, big chart,
+     architecture sketch. Title sits compactly in the top-left, diagram fills the rest.
+     PowerPoint analog: "Title Only" with one large shape.
+     Regions: small title (top-left) | diagram area x=80..1840 y=180..1020
+-->
+<?xml-stylesheet type="text/css" href="../themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+
+  <!-- Define markers up front if you're drawing arrows -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0078d4" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <!-- COMPACT TITLE (top-left, leaves room for diagram) -->
+  <text x="80" y="90" class="title text" font-size="40">Slide title</text>
+  <text x="80" y="130" class="subtitle text-muted" font-size="22">Optional subtitle.</text>
+
+  <!-- DIAGRAM REGION: x=80..1840 (width=1760), y=180..1020 (height=840). Draw boxes and arrows here. -->
+  <!-- Example shape (delete and replace): -->
+  <rect x="800" y="500" width="320" height="160" rx="16" ry="16" class="surface" />
+  <rect x="800" y="500" width="320" height="160" rx="16" ry="16" class="border" stroke-width="2" />
+  <text x="960" y="588" text-anchor="middle" class="body-bold text" font-size="28">Replace me</text>
+</svg>

@@ -1,0 +1,8 @@
+# Slide PNG previews — regenerated from the SVGs, not source
+renders/
+
+# Built deck is a smoke-test output, not source
+example/*.pptx
+
+# Personal config — never travels when this skill is copied into another repo
+private/

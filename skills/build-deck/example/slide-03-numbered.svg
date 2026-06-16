@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The xml-stylesheet PI is for browser preview only. rsvg-convert and PowerPoint ignore it; the inline <style> block (between THEME-START/END) is canonical. -->
+<?xml-stylesheet type="text/css" href="themes/light-classic.css"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="1920" height="1080" viewBox="0 0 1920 1080">
+  <style type="text/css"><![CDATA[
+/* THEME-START */
+.bg          { fill: #ffffff; }
+.surface     { fill: #f5f7fa; }
+.surface-alt { fill: #fafbfc; }
+.text        { fill: #1a1a1a; }
+.text-muted  { fill: #666666; }
+.accent      { fill: #0078d4; }
+.accent-stroke { stroke: #0078d4; }
+.border      { stroke: #e5e7eb; fill: none; }
+.title       { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.subtitle    { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-style: italic; }
+.h2          { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.body        { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 400; }
+.body-bold   { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; font-weight: 700; }
+.italic      { font-style: italic; }
+/* THEME-END */
+  ]]></style>
+  <rect x="0" y="0" width="1920" height="1080" class="bg" />
+
+  <text x="160" y="144" class="title text" font-size="56">Numbered lists</text>
+  <text x="160" y="200" class="subtitle text-muted" font-size="26">Same dx/dy pattern as bullets. Marker is "1." instead of "•".</text>
+
+  <text x="160" y="300" xml:space="preserve" class="body text" font-size="30">
+    <tspan x="160" class="accent body-bold">1.</tspan><tspan dx="20">Write </tspan><tspan class="body-bold text">slide-spec.md</tspan><tspan>.</tspan>
+    <tspan x="160" dy="1.7em" class="accent body-bold">2.</tspan><tspan dx="20">Scaffold the deck dir.</tspan>
+    <tspan x="160" dy="1.7em" class="accent body-bold">3.</tspan><tspan dx="20">Copy </tspan><tspan class="body-bold text">slide-base.svg</tspan><tspan> per slide.</tspan>
+    <tspan x="160" dy="1.7em" class="accent body-bold">4.</tspan><tspan dx="20">Render previews with </tspan><tspan class="body-bold text">rsvg-convert</tspan><tspan>.</tspan>
+    <tspan x="160" dy="1.7em" class="accent body-bold">5.</tspan><tspan dx="20">Run </tspan><tspan class="body-bold text">slop-check</tspan><tspan> on text content.</tspan>
+    <tspan x="160" dy="1.7em" class="accent body-bold">6.</tspan><tspan dx="20">Build the </tspan><tspan class="body-bold text">.pptx</tspan><tspan> with </tspan><tspan class="body-bold text">build-pptx.py</tspan><tspan>.</tspan>
+  </text>
+
+  <text x="160" y="1020" class="body text-muted italic" font-size="22">Reference: pattern-bullets.md</text>
+</svg>
