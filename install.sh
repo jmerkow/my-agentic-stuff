@@ -2,18 +2,57 @@
 # Install agentic stuff into the right Copilot directories.
 #
 # Currently handles:
-#   skills/<name>/SKILL.md  →  ~/.copilot/skills/<name>           (copy)
+#   skills/<name>/SKILL.md  →  ~/.copilot/skills/<name>           (rsync mirror)
 #
 # Usage:
-#   ./install.sh                # install everything in every category
-#   ./install.sh skills         # install all skills only
-#   ./install.sh skills/build-deck   # install one skill by path
-#   ./install.sh <name>...      # install named skills (looked up under skills/)
+#   ./install.sh                              # preview everything in every category
+#   ./install.sh --apply                      # install everything in every category
+#   ./install.sh --host my-host               # preview everything on a remote host
+#   ./install.sh skills                       # preview all skills only
+#   ./install.sh --apply skills               # install all skills only
+#   ./install.sh --host my-host skills/build-deck
+#                                            # preview one skill by path on a remote host
+#   ./install.sh <name>...                    # preview named skills (looked up under skills/)
 
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS_TARGET="${COPILOT_SKILLS_DIR:-$HOME/.copilot/skills}"
+APPLY_MODE=0
+HOST=""
+
+# Parse args
+declare -a selectors=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --apply)
+      APPLY_MODE=1
+      shift
+      ;;
+    --host)
+      if [[ $# -lt 2 ]]; then
+        echo "  ERROR --host requires a host argument" >&2
+        exit 1
+      fi
+      HOST="$2"
+      shift 2
+      ;;
+    *)
+      selectors+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "  ERROR rsync is required but was not found in PATH." >&2
+  exit 1
+fi
+
+if [[ -n "$HOST" && -z "${COPILOT_SKILLS_DIR:-}" ]]; then
+  SKILLS_TARGET='~/.copilot/skills'
+else
+  SKILLS_TARGET="${COPILOT_SKILLS_DIR:-$HOME/.copilot/skills}"
+fi
 
 # Map: category dir → install target dir
 declare -A CATEGORY_TARGETS=(
@@ -25,6 +64,59 @@ declare -A CATEGORY_MARKERS=(
   ["skills"]="SKILL.md"
 )
 
+# Files/dirs never worth mirroring into an install target.
+declare -a RSYNC_EXCLUDES=(
+  --exclude='__pycache__/'
+  --exclude='*.pyc'
+  --exclude='.gitignore'
+  --exclude='.DS_Store'
+)
+
+collect_rsync_output() {
+  local rsync_output=""
+  local rsync_status=0
+
+  set +e
+  rsync_output="$(rsync "$@" 2>&1)"
+  rsync_status=$?
+  set -e
+
+  printf '%s' "$rsync_output"
+  return "$rsync_status"
+}
+
+# Translate rsync -i itemized output (read from stdin) into readable change
+# lines: "+ path" (new), "~ path" (updated), "- path" (deleted). Directory-only
+# and timestamp-noise entries are dropped. Emits nothing when there are no
+# meaningful changes.
+format_rsync_changes() {
+  local line flags ftype attrs path
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    case "$line" in
+      'created directory '*) continue ;;   # rsync's mkdir notice, not a change
+      '*deleting '*)
+        path="${line#'*deleting'}"
+        path="${path#"${path%%[![:space:]]*}"}"   # trim leading whitespace
+        path="${path%/}"
+        [[ -z "$path" ]] && continue
+        printf '    - %s\n' "$path"
+        continue
+        ;;
+    esac
+    flags="${line%% *}"
+    path="${line#* }"
+    ftype="${flags:1:1}"
+    [[ "$ftype" == "d" ]] && continue   # skip directory entries (files inside cover it)
+    attrs="${flags:2}"
+    if [[ "$attrs" == "+++++++++" ]]; then
+      printf '    + %s\n' "$path"
+    else
+      printf '    ~ %s\n' "$path"
+    fi
+  done
+}
+
 install_item() {
   local category="$1"
   local name="$2"
@@ -32,6 +124,8 @@ install_item() {
   local target_dir="${CATEGORY_TARGETS[$category]}"
   local marker="${CATEGORY_MARKERS[$category]}"
   local dst="$target_dir/$name"
+  local rsync_dst="$dst"
+  local preview_output=""
 
   if [[ ! -d "$src" ]]; then
     echo "  SKIP $category/$name (no such dir)" >&2
@@ -42,21 +136,60 @@ install_item() {
     return
   fi
 
-  mkdir -p "$target_dir"
-
-  if [[ -e "$dst" || -L "$dst" ]]; then
-    if [[ -L "$dst" ]]; then
-      rm "$dst"
-    elif [[ -d "$dst" ]]; then
-      rm -rf "$dst"
-    else
-      echo "  ERROR $dst exists and is not a symlink or directory. Move or delete it manually." >&2
-      exit 1
-    fi
+  if [[ -n "$HOST" ]]; then
+    rsync_dst="$HOST:$dst"
+  elif [[ -e "$dst" && ! -d "$dst" && ! -L "$dst" ]]; then
+    echo "  ERROR $dst exists and is not a symlink or directory. Move or delete it manually." >&2
+    exit 1
   fi
 
-  cp -r "$src" "$dst"
-  echo "  installed $category/$name → $dst (copy)"
+  if [[ $APPLY_MODE -eq 0 ]]; then
+    if preview_output="$(collect_rsync_output -ain --delete "${RSYNC_EXCLUDES[@]}" "$src/" "$rsync_dst/")"; then
+      local is_new=0
+      if [[ -z "$HOST" && ! -e "$dst" && ! -L "$dst" ]]; then
+        is_new=1
+      fi
+
+      local changes
+      changes="$(printf '%s\n' "$preview_output" | format_rsync_changes)"
+
+      # A remote target with nothing but additions is also a fresh install.
+      if [[ $is_new -eq 0 && -n "$changes" ]] && ! printf '%s\n' "$changes" | grep -qv '^    + '; then
+        is_new=1
+      fi
+
+      if [[ $is_new -eq 1 ]]; then
+        NEW_ITEMS+=("$category/$name → $rsync_dst")
+        return
+      fi
+
+      if [[ -z "$changes" ]]; then
+        UNCHANGED_ITEMS+=("$category/$name")
+        return
+      fi
+
+      UPDATE_NAMES+=("$category/$name → $rsync_dst")
+      UPDATE_BLOCKS+=("$changes")
+      return
+    fi
+
+    echo "  ERROR rsync preview failed for $category/$name → $rsync_dst" >&2
+    if [[ -n "$preview_output" ]]; then
+      printf '%s\n' "$preview_output" >&2
+    fi
+    exit 1
+  fi
+
+  if [[ -z "$HOST" && ! -e "$dst" && ! -L "$dst" ]]; then
+    mkdir -p "$dst"
+  fi
+
+  if ! rsync -a --delete "${RSYNC_EXCLUDES[@]}" "$src/" "$rsync_dst/"; then
+    echo "  ERROR rsync apply failed for $category/$name → $rsync_dst" >&2
+    exit 1
+  fi
+
+  echo "  installed $category/$name → $rsync_dst (rsync)"
 }
 
 install_category() {
@@ -73,13 +206,23 @@ install_category() {
   done
 }
 
-# Parse args
-if [[ $# -eq 0 ]]; then
+if [[ $APPLY_MODE -eq 0 ]]; then
+  echo "Preview only (nothing written).  + add   ~ update   - delete"
+  echo "Run with --apply to sync."
+  echo
+fi
+
+declare -a NEW_ITEMS=()
+declare -a UPDATE_NAMES=()
+declare -a UPDATE_BLOCKS=()
+declare -a UNCHANGED_ITEMS=()
+
+if [[ ${#selectors[@]} -eq 0 ]]; then
   for category in "${!CATEGORY_TARGETS[@]}"; do
     install_category "$category"
   done
 else
-  for arg in "$@"; do
+  for arg in "${selectors[@]}"; do
     if [[ "$arg" == */* ]]; then
       category="${arg%%/*}"
       name="${arg#*/}"
@@ -101,4 +244,32 @@ else
       fi
     fi
   done
+fi
+
+# Grouped preview summary (apply mode prints inline above and skips this).
+if [[ $APPLY_MODE -eq 0 ]]; then
+  if [[ ${#NEW_ITEMS[@]} -gt 0 ]]; then
+    echo "New installs:"
+    for item in "${NEW_ITEMS[@]}"; do
+      echo "  $item"
+    done
+    echo
+  fi
+
+  if [[ ${#UPDATE_NAMES[@]} -gt 0 ]]; then
+    echo "Updates:"
+    for i in "${!UPDATE_NAMES[@]}"; do
+      echo "  ${UPDATE_NAMES[$i]}"
+      printf '%s\n' "${UPDATE_BLOCKS[$i]}"
+    done
+    echo
+  fi
+
+  if [[ ${#UNCHANGED_ITEMS[@]} -gt 0 ]]; then
+    echo "Unchanged: ${#UNCHANGED_ITEMS[@]} (${UNCHANGED_ITEMS[*]})"
+  fi
+
+  if [[ ${#NEW_ITEMS[@]} -eq 0 && ${#UPDATE_NAMES[@]} -eq 0 ]]; then
+    echo "Nothing to install. Everything is up to date."
+  fi
 fi
