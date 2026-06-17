@@ -1,6 +1,6 @@
 # Other Plugin Platforms (Orientation Only)
 
-This skill targets **VS Code agent plugins for GitHub Copilot**. The agent plugin format is shared across several tools, so you may encounter plugin directories shaped for other hosts. Use this file to orient when reading those — not as a guide for authoring.
+This skill targets **VS Code agent plugins for GitHub Copilot**. The agent plugin format is shared across several tools, so you may encounter plugin directories shaped for other hosts. Use this file to orient when reading those, not as a guide for authoring.
 
 If a plugin is meant to run in VS Code + Copilot, see [agent-plugin-reference.md](agent-plugin-reference.md). Use this file only to identify and translate non-VS-Code plugin layouts.
 
@@ -31,7 +31,7 @@ Differences from the VS Code surface:
 
 - **Plugin-root token:** `${CLAUDE_PLUGIN_ROOT}` is expanded in hook commands and MCP server config. VS Code recognizes this token in Claude-format plugins.
 - **Hook config location:** `hooks/hooks.json` instead of root `hooks.json`.
-- **Hook matchers:** Claude supports a `matcher` field (e.g. `"Edit|Write"`) on hook entries. VS Code parses these but ignores the matcher value — every event matches.
+- **Hook matchers:** Claude supports a `matcher` field (e.g. `"Edit|Write"`) on hook entries. VS Code parses these but ignores the matcher value; every event matches.
 - **Tool name and case differences:** Claude tools use snake_case input properties (`tool_input.file_path`) and different tool names (`Write`, `Edit`). VS Code uses camelCase (`tool_input.filePath`) and names like `create_file`, `replace_string_in_file`. Hooks copied from Claude need translation.
 - **Agent format:** `.claude/agents/<name>.md` (plain `.md`, not `.agent.md`) with frontmatter fields like `tools` as a comma-separated string instead of YAML array.
 
@@ -66,8 +66,4 @@ A Copilot CLI plugin is generally also a valid VS Code agent plugin if it stays 
 
 ## Sources
 
-- https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference
-- https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-creating
-- https://code.claude.com/docs/en/plugin-marketplaces
-- https://github.com/anthropics/skills
-- https://code.visualstudio.com/docs/copilot/customization/agent-plugins (cross-tool compatibility section)
+See [sources.md](sources.md) for the full source list and verification date.

@@ -19,22 +19,24 @@ description: >
 
 This skill follows the official Copilot plugin docs:
 
-- VS Code: [Agent plugins in VS Code (Preview)](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
+- VS Code: [Agent plugins in VS Code (Preview)](https://code.visualstudio.com/docs/agent-customization/agent-plugins)
 - Copilot CLI: [Creating a plugin for GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-creating)
 
 Both surfaces use the **same plugin format** (a directory with a `plugin.json` manifest). A single plugin can be installed by both VS Code Copilot and Copilot CLI.
 
 For the full field reference, lifecycle events, marketplace schema, and gotchas, load [references/agent-plugin-reference.md](references/agent-plugin-reference.md). If you encounter a plugin shaped for Claude Code or OpenPlugin, load [references/other-platforms.md](references/other-platforms.md) for orientation.
 
+> **Last verified:** 2026-06-17. Agent plugins are a Preview feature, so there is no stable version to pin. See [references/sources.md](references/sources.md) for the full source list, verification date, and tooling versions. Re-verify against those docs if behavior differs.
+
 ## What plugins provide
 
 A plugin can bundle any combination of:
 
-- **Slash commands** — additional `/` commands in chat
-- **Agent skills** — `SKILL.md` directories with instructions, scripts, and resources
-- **Custom agents** — `.agent.md` files with specialized personas and tool configs
-- **Hooks** — shell commands that run at agent lifecycle points
-- **MCP servers** — external tool integrations via Model Context Protocol
+- **Slash commands**: additional `/` commands in chat
+- **Agent skills**: `SKILL.md` directories with instructions, scripts, and resources
+- **Custom agents**: `.agent.md` files with specialized personas and tool configs
+- **Hooks**: shell commands that run at agent lifecycle points
+- **MCP servers**: external tool integrations via Model Context Protocol
 
 Once installed, plugin-provided customizations appear alongside locally defined ones (e.g., skills from a plugin show up in `Configure Skills`; MCP servers appear in the MCP server list).
 
@@ -105,7 +107,7 @@ Reference component examples and event names in [references/agent-plugin-referen
 
 ### 3. Install locally for development
 
-**VS Code** — register the plugin path in `settings.json`:
+**VS Code**: register the plugin path in `settings.json`:
 
 ```json
 "chat.pluginLocations": {
@@ -113,7 +115,7 @@ Reference component examples and event names in [references/agent-plugin-referen
 }
 ```
 
-**Copilot CLI** — install from the local path:
+**Copilot CLI**: install from the local path:
 
 ```bash
 copilot plugin install ./my-plugin
@@ -153,11 +155,18 @@ When publishing changes, **bump `version` in `plugin.json`** so update checks pi
 - From a marketplace: Extensions view → search `@agentPlugins`.
 - From a Git URL: command palette → `Chat: Install Plugin From Source`.
 - From a local marketplace clone: add a `file:///` URI to `chat.plugins.marketplaces`.
+- Plugins installed by the Copilot CLI (under `~/.copilot/installed-plugins/`) automatically appear in VS Code's Agent Plugins view; no separate registration needed.
 
 **Copilot CLI**:
 
 ```bash
 copilot plugin install PLUGIN-NAME@MARKETPLACE-NAME
+copilot plugin install OWNER/REPO
+copilot plugin install OWNER/REPO:PATH/TO/PLUGIN
+copilot plugin install https://github.com/owner/repo.git
+copilot plugin enable PLUGIN-NAME
+copilot plugin disable PLUGIN-NAME
+copilot plugin update --all
 copilot plugin marketplace add OWNER/REPO          # add a marketplace
 copilot plugin marketplace add /path/to/local      # local marketplace
 ```
@@ -172,6 +181,8 @@ Reference marketplaces:
 
 - [github/copilot-plugins](https://github.com/github/copilot-plugins)
 - [github/awesome-copilot](https://github.com/github/awesome-copilot)
+
+To recommend plugins from a project, add `extraKnownMarketplaces` and `enabledPlugins` to `.claude/settings.json` or `.github/copilot/settings.json`; VS Code surfaces these as `@agentPlugins @recommended` in the Extensions view.
 
 ## Troubleshooting
 

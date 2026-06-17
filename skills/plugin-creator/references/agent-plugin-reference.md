@@ -1,6 +1,6 @@
 # Agent Plugin Reference
 
-Field reference, snippets, lifecycle events, marketplace schema, and gotchas for Copilot plugins (VS Code + Copilot CLI). Sourced from the official VS Code and GitHub Copilot CLI plugin docs — see [Sources](#sources) at the end.
+Field reference, snippets, lifecycle events, marketplace schema, and gotchas for Copilot plugins (VS Code + Copilot CLI). Sourced from the official VS Code and GitHub Copilot CLI plugin docs; see [sources.md](sources.md) for the full source list and verification date.
 
 ---
 
@@ -36,10 +36,11 @@ All optional; defaults are used if omitted.
 |-------|------|---------|-------|
 | `agents` | string \| string[] | `agents/` | Path(s) to agent directories (`.agent.md` files). |
 | `skills` | string \| string[] | `skills/` | Path(s) to skill directories (`SKILL.md` files). |
-| `commands` | string \| string[] | — | Path(s) to command directories. |
-| `hooks` | string \| object | — | Path to a hooks config file, or an inline hooks object. |
-| `mcpServers` | string \| object | — | Path to an MCP config file (e.g. `.mcp.json`), or inline server definitions. |
-| `lspServers` | string \| object | — | Path to an LSP config file, or inline server definitions. |
+| `commands` | string \| string[] | none | Path(s) to command directories. |
+| `hooks` | string \| object | none | Path to a hooks config file, or an inline hooks object. |
+| `mcpServers` | string \| object | none | Path to an MCP config file (e.g. `.mcp.json`), or inline server definitions. |
+| `lspServers` | string \| object | none | Path to an LSP config file, or inline server definitions. |
+| `extensions` | string \| string[] \| object | none | Path(s) to extension directories. Object form `{ paths: [...], exclusive: true }` suppresses built-ins. |
 
 ### Example
 
@@ -60,12 +61,28 @@ All optional; defaults are used if omitted.
 
 ### Recognized manifest paths
 
-VS Code and the Copilot CLI both look for `plugin.json` at:
+VS Code and the Copilot CLI check for `plugin.json` in this order:
 
-- `plugin.json` (root)
-- `.github/plugin/plugin.json`
+1. `.plugin/plugin.json`
+2. `plugin.json` (root)
+3. `.github/plugin/plugin.json`
+4. `.claude-plugin/plugin.json`
 
-Other locations exist for cross-tool plugins — see [other-platforms.md](other-platforms.md).
+The manifest location also signals the plugin format; see [Plugin formats](#plugin-formats) and [other-platforms.md](other-platforms.md) for details.
+
+---
+
+## Plugin formats
+
+VS Code auto-detects the plugin format from the manifest location:
+
+| Format | Manifest location | Hook config |
+|--------|-------------------|-------------|
+| Copilot (default) | `plugin.json` (root) | `hooks.json` (root) |
+| Claude | `.claude-plugin/plugin.json` | `hooks/hooks.json` |
+| OpenPlugin | `.plugin/plugin.json` | none |
+
+A single plugin repo can carry manifests for multiple formats and be consumed cross-tool.
 
 ---
 
@@ -121,7 +138,16 @@ Lifecycle events:
 | `SubagentStop` | A subagent completes |
 | `Stop` | The agent session ends |
 
-Hooks communicate over stdin/stdout JSON. Filter logic must live inside the hook script — VS Code does not act on the Claude-style `matcher` field.
+Hooks communicate over stdin/stdout JSON. VS Code parses the Claude-style `matcher` field for cross-tool compatibility but ignores its filter values; hooks fire regardless. Put any filtering logic inside the hook script.
+
+Each hook command entry accepts optional properties beyond `type` and `command`:
+
+| Property | Notes |
+|----------|-------|
+| `windows` / `linux` / `osx` | OS-specific command override for that platform |
+| `cwd` | Working directory, relative to repo root |
+| `env` | Extra environment variables (object) |
+| `timeout` | Seconds before the hook is killed (default 30) |
 
 ### MCP servers (`.mcp.json`)
 
@@ -140,7 +166,7 @@ Hooks communicate over stdin/stdout JSON. Filter logic must live inside the hook
 }
 ```
 
-The top-level key is `mcpServers` — not `servers` (which is the workspace `.vscode/mcp.json` shape).
+The top-level key is `mcpServers`, not `servers` (which is the workspace `.vscode/mcp.json` shape).
 
 Plugin MCP servers are trusted at plugin-install time; they don't trigger the per-workspace MCP trust prompt.
 
@@ -199,7 +225,7 @@ A plugin marketplace is a Git repo (or local directory) containing a `marketplac
 
 ### Plugin entry fields
 
-`name`, `source` (required), plus the same metadata and component path fields as `plugin.json`. `source` resolves relative to the marketplace repo root.
+`name`, `source` (required), plus the same metadata and component path fields as `plugin.json`. `source` resolves relative to the marketplace repo root. Optional `strict` (default `true`): full schema validation; set `false` for relaxed validation.
 
 ---
 
@@ -219,24 +245,31 @@ A plugin marketplace is a Git repo (or local directory) containing a `marketplac
 "chat.plugins.marketplaces": [
   "owner/repo",
   "https://github.com/o/r.git",
+  "git@github.com:owner/repo.git",
   "file:///path/to/local-marketplace"
 ]
 ```
 
 Command palette:
 
-- `Chat: Install Plugin From Source` — install directly from a Git URL.
+- `Chat: Install Plugin From Source`: install directly from a Git URL.
 
 ### Copilot CLI
 
 ```bash
-# Install from local path or marketplace
+# Install from local path, marketplace, or Git repo
 copilot plugin install ./my-plugin
 copilot plugin install PLUGIN-NAME@MARKETPLACE-NAME
+copilot plugin install OWNER/REPO
+copilot plugin install OWNER/REPO:PATH/TO/PLUGIN
+copilot plugin install https://github.com/owner/repo.git
 
 # Manage plugins
 copilot plugin list
+copilot plugin enable PLUGIN-NAME
+copilot plugin disable PLUGIN-NAME
 copilot plugin update PLUGIN-NAME
+copilot plugin update --all
 copilot plugin uninstall PLUGIN-NAME
 
 # Manage marketplaces
@@ -260,9 +293,9 @@ Default Copilot CLI marketplaces (registered out of the box): `copilot-plugins`,
 
 ## Loading order and precedence (Copilot CLI)
 
-- **Custom agents** — first-found-wins, deduplicated by ID (derived from filename).
-- **Skills** — first-found-wins, deduplicated by `name` in `SKILL.md`.
-- **MCP servers** — last-loaded-wins, deduplicated by server name. Plugin MCP servers can override earlier ones; `--additional-mcp-config` takes the highest priority.
+- **Custom agents:** first-found-wins, deduplicated by ID (derived from filename).
+- **Skills:** first-found-wins, deduplicated by `name` in `SKILL.md`.
+- **MCP servers:** last-loaded-wins, deduplicated by server name. Plugin MCP servers can override earlier ones; `--additional-mcp-config` takes the highest priority.
 - **Built-in tools and agents** are always present and cannot be overridden.
 
 This means plugin components cannot override project-level or personal definitions of the same name.
@@ -271,14 +304,14 @@ This means plugin components cannot override project-level or personal definitio
 
 ## Gotchas
 
-- **`chat.plugins.enabled` must be on (VS Code).** Preview/org-managed flag — confirm before debugging anything else.
+- **`chat.plugins.enabled` must be on (VS Code).** Preview/org-managed flag; confirm before debugging anything else.
 - **Kebab-case names are required.** Plugin and component names: `[a-z0-9-]+` only. Invalid names silently fail.
 - **Skill `name` must equal directory name.** Otherwise the skill is silently skipped.
 - **No manual namespacing on skill names.** Don't write `myorg/skill-name` or `myorg:skill-name`. The plugin context provides scoping.
 - **MCP key mismatch.** Plugin `.mcp.json` uses `mcpServers`; workspace `.vscode/mcp.json` uses `servers`.
 - **Bump `version` for updates** to be picked up in `plugin.json` (and the marketplace entry).
 - **Copilot CLI caches components.** Reinstall with `copilot plugin install ./path` after local edits.
-- **No plugin-root path token in VS Code.** The Copilot plugin format does not expose a `${PLUGIN_ROOT}`-style variable. Reference scripts via the hook command's working directory or paths the install layer provides.
+- **Path tokens vary by plugin format.** Copilot-format plugins do not expose a plugin-root token. Claude-format plugins expose `${CLAUDE_PLUGIN_ROOT}`; OpenPlugin-format plugins expose `${PLUGIN_ROOT}`. Both are usable in hook commands and MCP server config fields (`command`, `args`, `cwd`, `env`, `url`, `headers`) and injected as environment variables. All formats expose a persistent writable per-plugin directory: `${COPILOT_PLUGIN_DATA}` (Copilot format) or `${CLAUDE_PLUGIN_DATA}` (Claude format). Use this for runtime data instead of paths inside the install cache.
 - **Plugin MCP is pre-trusted.** Plugin-bundled MCP servers bypass the per-workspace trust prompt.
 - **Classic extension boundary is hard.** Agent plugins cannot access `vscode.*` APIs, register Chat Participants, or use the Language Model Tools API. Those require a classic TypeScript extension.
 
@@ -286,21 +319,4 @@ This means plugin components cannot override project-level or personal definitio
 
 ## Sources
 
-VS Code:
-
-- https://code.visualstudio.com/docs/copilot/customization/agent-plugins
-- https://code.visualstudio.com/docs/copilot/customization/agent-skills
-- https://code.visualstudio.com/docs/copilot/customization/custom-agents
-- https://code.visualstudio.com/docs/copilot/customization/hooks
-- https://code.visualstudio.com/docs/copilot/customization/mcp-servers
-- https://code.visualstudio.com/docs/copilot/customization/prompt-files
-- https://code.visualstudio.com/docs/copilot/reference/mcp-configuration
-- https://code.visualstudio.com/api/extension-guides/ai/ai-extensibility-overview
-
-GitHub Copilot CLI:
-
-- https://docs.github.com/en/copilot/concepts/agents/copilot-cli/about-copilot-cli
-- https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-creating
-- https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing
-- https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
-- https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference
+See [sources.md](sources.md) for the full source list and verification date.
