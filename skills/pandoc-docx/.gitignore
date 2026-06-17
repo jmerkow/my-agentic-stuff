@@ -1,0 +1,5 @@
+# Personal config — never travels when this skill is copied into another repo
+private/
+
+# Generated preview — regenerate from the .md, don't commit
+examples/*.docx
