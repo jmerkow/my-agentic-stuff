@@ -138,4 +138,5 @@ Paths are relative to the deck dir. `--output PATH` on the CLI overrides whateve
 ## Companion skills
 
 - **`slop-check`** — run on `slide-spec.md` and on each slide's text before declaring done. Cliché filler reads worse on a slide than in prose.
+- **`visual-design`** (if available) — run on slide layout and visual choices before declaring done. The visual counterpart to `slop-check`'s prose pass; flags defaults and templated patterns.
 - **`diagram`** — use for one-off diagrams that aren't part of a deck.

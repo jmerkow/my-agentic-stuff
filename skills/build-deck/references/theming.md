@@ -8,6 +8,14 @@ All visual style lives in `themes/<name>.css`. Slides reference style via class 
 - **Inline theme block** because external CSS isn't honored by every renderer we ship to. We accept the duplication for portability.
 - **Marker-bracketed block** so `apply-theme.sh` can swap themes mechanically.
 
+## Why system fonts (render fidelity)
+
+`rsvg-convert` resolves fonts through fontconfig on the build/render host at render time, then rasterizes to PNG. If a slide names a font not installed on that host, rsvg falls back silently. The fallback's glyph metrics (advance width, x-height, kerning) differ from what you laid out, so text overflows its box, wraps wrong, or collides with hand-positioned elements. The same failure hits PowerPoint's "convert text to shapes" path if the font is absent.
+
+Therefore: use only fonts guaranteed present on the render host. The default `-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif` chain is chosen for this reason, not brand preference. WYSIWYG only holds if the renderer can resolve the named font.
+
+Anti-pattern: naming a "distinctive" display face to look less templated. It breaks layout silently. Vary scale, weight, and hierarchy within the installed family instead.
+
 ## Theme block contract
 
 Every slide SVG contains exactly one `<style>` block with this shape:
