@@ -16,6 +16,13 @@ Default behavior is an `rsync` dry-run preview. It resolves each selected item, 
 
 Apply mode mirrors each valid item into the right target directory with `rsync -a --delete`, so stale files in the target are removed.
 
+```bash
+./install.sh --update          # preview updates to already-installed items only
+./install.sh --apply --update  # update existing items, skip ones not installed yet
+```
+
+Update mode restricts the run to items that already exist in the target. Anything not yet installed is skipped (listed under `Skipped (not installed, --update)`) instead of being created. Combine with `--apply` to push updates without adding new items.
+
 Use `--host <HOST>` to install to a remote machine over ssh. When `--host` is set and `COPILOT_SKILLS_DIR` is unset, the default remote base stays the literal `~/.copilot/skills` so the remote shell expands it.
 
 Subset installs:
@@ -27,7 +34,15 @@ Subset installs:
 ./install.sh --apply --host my-host skills/build-deck
 ```
 
-Override the install target by setting `COPILOT_SKILLS_DIR` (and equivalents as they're added). When using `--host`, the override must be valid on the remote machine.
+### Install location
+
+Skills install into `~/.copilot/skills` by default. If your Copilot keeps skills somewhere else, point the installer at that directory with `COPILOT_SKILLS_DIR`:
+
+```bash
+COPILOT_SKILLS_DIR=~/.config/copilot/skills ./install.sh --apply
+```
+
+The variable applies to a single run (prefix it on the command, as above) or can be exported for the session. With `--host`, the path must be valid on the remote machine, not the local one.
 
 ## Layout
 

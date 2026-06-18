@@ -7,6 +7,8 @@
 # Usage:
 #   ./install.sh                              # preview everything in every category
 #   ./install.sh --apply                      # install everything in every category
+#   ./install.sh --update                     # preview updates to already-installed items only
+#   ./install.sh --apply --update             # update already-installed items, skip new ones
 #   ./install.sh --host my-host               # preview everything on a remote host
 #   ./install.sh skills                       # preview all skills only
 #   ./install.sh --apply skills               # install all skills only
@@ -18,6 +20,7 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APPLY_MODE=0
+UPDATE_MODE=0
 HOST=""
 
 # Parse args
@@ -26,6 +29,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --apply)
       APPLY_MODE=1
+      shift
+      ;;
+    --update)
+      UPDATE_MODE=1
       shift
       ;;
     --host)
@@ -117,6 +124,21 @@ format_rsync_changes() {
   done
 }
 
+# Decide whether an item is a brand-new install (target does not exist yet).
+# Local: a cheap filesystem check. Remote: fall back to an rsync dry-run and
+# treat "nothing but additions" as new. Returns 0 (true) when new.
+item_is_new() {
+  local src="$1" dst="$2" rsync_dst="$3"
+  if [[ -z "$HOST" ]]; then
+    [[ ! -e "$dst" && ! -L "$dst" ]]
+    return
+  fi
+  local out changes
+  out="$(collect_rsync_output -ain --delete "${RSYNC_EXCLUDES[@]}" "$src/" "$rsync_dst/")"
+  changes="$(printf '%s\n' "$out" | format_rsync_changes)"
+  [[ -n "$changes" ]] && ! printf '%s\n' "$changes" | grep -qv '^    + '
+}
+
 install_item() {
   local category="$1"
   local name="$2"
@@ -159,6 +181,10 @@ install_item() {
       fi
 
       if [[ $is_new -eq 1 ]]; then
+        if [[ $UPDATE_MODE -eq 1 ]]; then
+          SKIPPED_NEW+=("$category/$name")
+          return
+        fi
         NEW_ITEMS+=("$category/$name → $rsync_dst")
         return
       fi
@@ -178,6 +204,11 @@ install_item() {
       printf '%s\n' "$preview_output" >&2
     fi
     exit 1
+  fi
+
+  if [[ $UPDATE_MODE -eq 1 ]] && item_is_new "$src" "$dst" "$rsync_dst"; then
+    echo "  skipped $category/$name (not installed; --update only touches existing)"
+    return
   fi
 
   if [[ -z "$HOST" && ! -e "$dst" && ! -L "$dst" ]]; then
@@ -216,6 +247,7 @@ declare -a NEW_ITEMS=()
 declare -a UPDATE_NAMES=()
 declare -a UPDATE_BLOCKS=()
 declare -a UNCHANGED_ITEMS=()
+declare -a SKIPPED_NEW=()
 
 if [[ ${#selectors[@]} -eq 0 ]]; then
   for category in "${!CATEGORY_TARGETS[@]}"; do
@@ -269,7 +301,11 @@ if [[ $APPLY_MODE -eq 0 ]]; then
     echo "Unchanged: ${#UNCHANGED_ITEMS[@]} (${UNCHANGED_ITEMS[*]})"
   fi
 
-  if [[ ${#NEW_ITEMS[@]} -eq 0 && ${#UPDATE_NAMES[@]} -eq 0 ]]; then
+  if [[ ${#SKIPPED_NEW[@]} -gt 0 ]]; then
+    echo "Skipped (not installed, --update): ${#SKIPPED_NEW[@]} (${SKIPPED_NEW[*]})"
+  fi
+
+  if [[ ${#NEW_ITEMS[@]} -eq 0 && ${#UPDATE_NAMES[@]} -eq 0 && ${#SKIPPED_NEW[@]} -eq 0 ]]; then
     echo "Nothing to install. Everything is up to date."
   fi
 fi
