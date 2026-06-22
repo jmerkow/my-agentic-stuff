@@ -43,7 +43,7 @@ Throughout this skill, `<skill>` refers to the skill's install directory — typ
 2. **Scaffold** — create `<slides-root>/` with the structure below. If you intend to swap themes via `apply-theme.sh`, copy `<skill>/themes/*.css` into `<slides-root>/themes/` and copy `<skill>/scripts/apply-theme.sh` into `<slides-root>/scripts/`. Otherwise the inline theme block in each slide is sufficient and `themes/` can be omitted.
 3. **For each slide** — copy `templates/slide-base.svg` (or a layout from `templates/layouts/`) to `<slides-root>/slide-NN-name.svg`, then fill in content using the right pattern reference.
 4. **Render and *look*** — `rsvg-convert -w 1920 -h 1080 slide-NN-name.svg -o renders/slide-NN-name.png` after every edit, then **open the PNG and review it**. Visual checks the build can't do: text wraps, alignment, density, contrast. Non-negotiable; the build verifier doesn't catch layout bugs.
-5. **Iterate** — fix layout, re-render, repeat. Run `slop-check` on text content before declaring done.
+5. **Iterate** — fix layout, re-render, repeat. If `slop-check` is available, run it on text content before declaring done.
 6. **Build the deck** — run `uv run <skill>/scripts/parse-spec.py [--lint-only]` to lint the spec and write `deck.yaml` (inline speaker notes included); then run `uv run <skill>/scripts/build-pptx.py <slides-root>`. Use `--lint-only` for a fast validation pass without writing. Pre-existing `deck.yaml` `output`/`template` values are preserved. See `references/pptx-export.md`.
 
 ## Directory structure
@@ -137,6 +137,6 @@ Paths are relative to the deck dir. `--output PATH` on the CLI overrides whateve
 
 ## Companion skills
 
-- **`slop-check`** — run on `slide-spec.md` and on each slide's text before declaring done. Cliché filler reads worse on a slide than in prose.
+- **`slop-check`** (if available) — run on `slide-spec.md` and on each slide's text before declaring done. Cliché filler reads worse on a slide than in prose.
 - **`visual-design`** (if available) — run on slide layout and visual choices before declaring done. The visual counterpart to `slop-check`'s prose pass; flags defaults and templated patterns.
 - **`diagram`** — use for one-off diagrams that aren't part of a deck.

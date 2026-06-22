@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# DEPRECATED: this repo is now a Copilot plugin marketplace. Prefer installing
+# plugins (see README.md). This rsync installer is kept for direct skill mirroring
+# but is no longer the supported path and may be removed. Docs: INSTALL-RSYNC.md
+#
 # Install agentic stuff into the right Copilot directories.
 #
 # Currently handles:
