@@ -1,0 +1,2 @@
+[tool.slopcop.per-file-ignores]
+"scripts/slop_lint.py" = ["no-print"]

@@ -16,8 +16,8 @@ Two-pass system for detecting AI slop in text:
 
 ## Bundled Resources
 
-- **[slop_lint.py]** — Python linter script. No external dependencies.
-- **[slop-words.yaml]** — Pattern definitions.
+- **[slop_lint.py]** — Python linter script. Requires pyyaml. Run via `uv run scripts/slop_lint.py` (auto-provisions dep) or ensure pyyaml is installed in the active environment.
+- **[slop-words.yaml]** — Flat list of rules, each tagged with a rule ID and level.
 
 [slop_lint.py]: scripts/slop_lint.py
 [slop-words.yaml]: references/slop-words.yaml
@@ -36,7 +36,7 @@ Options:
 - `--format json` — machine-readable output
 - `--text "inline text"` — lint a string directly
 
-The linter reads patterns from [slop-words.yaml]. Each finding includes line number, matched text, and a fix suggestion. Treat every finding as a candidate for review — the linter doesn't judge, you do.
+The linter reads patterns from [slop-words.yaml]. Each finding includes a rule ID (category), level, line number, matched text, and a fix suggestion.
 
 ### Step 2: Agent review pass
 
@@ -51,7 +51,7 @@ After running the linter, do a manual read-through checking for issues the regex
 
 ### Step 3: Produce a report
 
-Combine linter output and agent findings into a single report.
+Combine linter output and agent findings into a single report. Group by severity.
 
 For each finding:
 - Quote the problematic text
@@ -62,27 +62,29 @@ For each finding:
 
 When fixing, follow these rules:
 
-- **Default to fixing** unless the matched word is genuinely the right one (e.g., "leverage" for financial leverage, "journey" for actual travel). Note intentional uses inline.
+- **High severity** — Fix or delete unless there's an explicit justification. If the slop word is genuinely the right word (e.g., "leverage" for financial leverage, "journey" for actual travel), keep it and add a brief inline comment noting it's intentional.
+- **Medium severity** — Fix the obvious ones. For borderline cases, note them but don't force a change.
+- **Low severity** — Fix only if there's a clear better word. Don't over-correct — personality and style matter.
 - **Never** introduce new slop while fixing old slop.
-- **Preserve voice** — the goal is clarity and substance, not sterile prose.
-- **Em dashes and ` - `** — see triage rules below.
+- **Preserve voice** — The goal is clarity and substance, not sterile prose.
 
-## Em dash / spaced hyphen triage
+#### Em dashes
 
-The linter flags every line containing an em dash (`—`) or a mid-sentence ` - ` (bullets are skipped). It does **not** judge — you do. Apply these rules:
+Em dashes flag at `info` level. Bold lead-in labels like `**Label** —` are exempt and will not fire. When an em dash is flagged, do NOT mechanically substitute a comma, semicolon, or period. The dash is almost always there because two clauses have a real relationship. Rephrase the sentence so that relationship is expressed without the dash.
 
-**Fix (replace with comma, colon, period, or parens):**
-- Em dash used as sentence punctuation. *"This was hard — we shipped anyway."*
-- Em dash inside a sentence joining clauses. *"The result — a 30% lift — surprised us."*
-- Multiple em dashes on one line.
-- Mid-sentence ` - ` standing in for an em dash.
+- ❌ `This was hard — we shipped anyway.`
+- ✅ `Despite the difficulty, we shipped on schedule.`
 
-**Keep:**
-- `**Label** - details` — bold-label-then-detail pattern, especially in lists or definition-style prose.
-- `Label — details` at the start of a bullet or paragraph where the dash separates the label from its expansion.
-- Numeric ranges (`5 - 10`, though `5–10` or `5-10` is cleaner).
+## Level Guide
 
-**Default action:** if you're not sure, fix it. AI overuses em dashes; humans rarely use them at all.
+Each finding carries a **rule ID** (the category, e.g. `fake-authority`, `em-dash-prose`) and a **level** tag. Multiple rule IDs can share a level. Output is grouped by rule ID, sorted highest level first.
+
+| Level | Meaning | Action |
+|-------|---------|--------|
+| 🔴 High | Almost always slop. Dead openers, fake authority, fortune-cookie wisdom. | Fix, delete, or explicitly justify. |
+| 🟡 Medium | Frequently sloppy but sometimes defensible. Buzzwords, weasel words, hedging. | Review and fix obvious cases. |
+| 🔵 Low | Style nits. Overused but not inherently bad. | Fix in aggregate; ignore in isolation. |
+| ⚪ Info | Not wrong on its own. Em dashes, fancy unicode, etc. | Be aware, do not overuse. Only act when density is high. |
 
 ## The Antidote Checklist
 
@@ -99,9 +101,14 @@ Good writing that avoids slop has these properties — use as a positive check:
 Add new slop patterns to [slop-words.yaml]:
 
 ```yaml
-- pattern: "\\bsome-regex\\b"
+- rule: my-rule-id
+  level: medium
+  pattern: "\\bsome-regex\\b"
   suggestion: "Better alternative."
   note: "Optional — when the word is acceptable."
+  unless: "\\bcontextual-exemption\\b"
 ```
 
-Patterns are Python regexes matched case-insensitively. Always include `\b` word boundaries for single words to avoid false positives.
+Fields: `rule` (stable kebab-case ID), `level` (`high`/`medium`/`low`/`info`), `pattern` (Python regex, case-insensitive), `suggestion` (fix guidance), `note` (optional context), `unless` (optional per-line exemption regex — if it matches the line, the rule is skipped for that line).
+
+Always include `\b` word boundaries for single-word patterns to avoid false positives.
