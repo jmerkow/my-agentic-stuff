@@ -1,6 +1,6 @@
 # my-agentic-stuff
 
-Personal source of truth for everything I've built around AI agents: skills, agents, prompts, MCP configs, and whatever else fits the category. This repo is an **agent plugin marketplace**. The plugin format is shared across tools, so the same marketplace works in VS Code, the GitHub Copilot CLI, and Claude Code.
+Personal collection of skills I've built for AI coding agents, packaged as a plugin marketplace. The plugin format is shared across tools, so the same marketplace works in VS Code, the GitHub Copilot CLI, and Claude Code.
 
 ## Plugins
 
@@ -21,15 +21,14 @@ Personal source of truth for everything I've built around AI agents: skills, age
 ## Install
 
 > [!WARNING]
-> **Back up your private config first.** Installing a plugin writes into your Copilot directories and can overwrite existing skills or config under `~/.copilot/`. If you keep private or local-only customizations there, copy them somewhere safe before installing:
+> **Back up your config first.** Installing a plugin writes into `~/.copilot/`, and a skill that shares a name with one you already have can overwrite it. If you keep local-only customizations there, copy them somewhere safe first:
 > ```bash
 > cp -r ~/.copilot ~/.copilot.bak
 > ```
-> This is a file-overwrite risk, not a code-execution one: every plugin here is skills-only (markdown, model-invoked) and ships no hooks, MCP servers, or scripts, so installing runs no code.
 
-There are two ways in, depending on what you want.
+Two ways in:
 
-### Direct from GitHub (just use it)
+### Direct from GitHub
 
 If you only want to install and use the plugins, pull straight from GitHub. Untracked local files are excluded, so you get exactly what's committed.
 
@@ -41,7 +40,7 @@ copilot plugin marketplace browse my-agentic-stuff
 copilot plugin install slop-check@my-agentic-stuff
 ```
 
-**VS Code** — add the repo to `chat.plugins.marketplaces` in `settings.json`, then install plugins from the Chat plugin picker:
+**VS Code**: add the repo to `chat.plugins.marketplaces` in `settings.json`, then install plugins from the Chat plugin picker:
 
 ```jsonc
 "chat.plugins.marketplaces": [
@@ -51,7 +50,7 @@ copilot plugin install slop-check@my-agentic-stuff
 
 ### From a local clone (fork + dev work)
 
-If you want to edit skills, add new ones, or develop against the marketplace, fork and clone the repo, then register the **local path** as the source. Installs reflect your working tree, so changes show up without pushing.
+Fork and clone the repo, then register the **local path** as the source. Installs reflect your working tree, so edits show up without pushing.
 
 **Copilot CLI:**
 
@@ -62,7 +61,7 @@ copilot plugin marketplace add "$PWD"
 copilot plugin install slop-check@my-agentic-stuff
 ```
 
-**VS Code** — point `chat.plugins.marketplaces` at the local path:
+**VS Code**: point `chat.plugins.marketplaces` at the local path:
 
 ```jsonc
 "chat.plugins.marketplaces": [
@@ -74,7 +73,7 @@ To iterate: edit a skill, then re-run `copilot plugin update` (CLI) or reinstall
 
 ### Install individual plugins
 
-Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`. Bundles (`authoring`, `eng-ops`) install all their skills at once; the rest install a single skill.
+Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`. Bundles (`authoring`, `eng-ops`) install all their skills at once. The rest install a single skill.
 
 > The old `rsync` installer (`install.sh`) is **deprecated**. It still works for mirroring skills directly into `~/.copilot/skills/`, but plugins are the supported path now. See [INSTALL-RSYNC.md](INSTALL-RSYNC.md).
 
@@ -83,33 +82,27 @@ Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`
 ```
 my-agentic-stuff/
 ├── README.md
+├── ADDING.md
 ├── INSTALL-RSYNC.md                 # deprecated rsync installer docs
 ├── install.sh                       # deprecated
-├── .github/plugin/marketplace.json  # marketplace manifest (9 plugins)
-├── .claude-plugin/marketplace.json  # symlink → above, for Claude Code
+├── scripts/validate-marketplace.py  # manifest validator
+├── .github/plugin/marketplace.json  # marketplace manifest
+├── .claude-plugin/marketplace.json  # symlink to the above, for Claude Code
 └── skills/                          # canonical skills, shared across plugins
-    ├── build-deck/                  # each item has its own SKILL.md
+    ├── build-deck/                  # each has its own SKILL.md
     ├── slop-check/
     └── ...                          # one directory per skill
 ```
 
-Every plugin entry uses `source: "./"` and references its skills in place (`./skills/<name>`), so skills live canonically under `skills/` and any plugin can pull one in without copying it. The `.claude-plugin/marketplace.json` symlink lets Claude Code read the same manifest VS Code and the Copilot CLI use.
-
-Future categories (when needed): `agents/`, `prompts/`, `instructions/`, `mcp/`. Per-plugin extras (agents, hooks, MCP configs) go under `plugins/<name>/`, added lazily the first time a plugin needs one.
+Every plugin entry uses `source: "./"` and references its skills in place (`./skills/<name>`), so a skill lives once under `skills/` and any plugin can pull it in without copying. The `.claude-plugin/marketplace.json` symlink lets Claude Code read the same manifest VS Code and the Copilot CLI use.
 
 ## Adding stuff
 
-1. Drop the new skill under `skills/<name>/` with a `SKILL.md` (`name` field must match the directory name).
-2. Add or extend a plugin entry in [.github/plugin/marketplace.json](.github/plugin/marketplace.json) pointing at `./skills/<name>`. Reuse an existing bundle if it fits, or add a standalone entry.
-3. Validate the manifest:
-   ```bash
-   python3 -c "import json,os; m=json.load(open('.github/plugin/marketplace.json')); bad=[s for p in m['plugins'] for s in p['skills'] if not os.path.isfile(os.path.join(s,'SKILL.md'))]; print('MISSING:',bad) if bad else print('ok,',len(m['plugins']),'plugins')"
-   ```
-4. Test from a local clone (see above), then commit.
+See [ADDING.md](ADDING.md) for the steps to add a skill or plugin to the marketplace.
 
 ## Conventions
 
-- One item per top-level directory inside its category; name = directory name.
-- Items should be self-contained, with no hard cross-references between items (companion skills like `slop-check` and `visual-design` are used only if present).
-- If an item ships scripts, put them at `<item>/scripts/`.
-- If an item ships an example/test, put it at `<item>/example/` and make sure it works as a smoke test.
+- One directory per skill under `skills/`. The `name` in `SKILL.md` matches the directory name.
+- Skills should be self-contained. Companion skills like `slop-check` and `visual-design` are used only if present.
+- Skill scripts go in `<skill>/scripts/`.
+- A skill's example or smoke test goes in `<skill>/example/`.

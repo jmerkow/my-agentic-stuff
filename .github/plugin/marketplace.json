@@ -40,7 +40,7 @@
     },
     {
       "name": "sessions",
-      "description": "Inspect and query GitHub Copilot session history. Currently ships chronicle session-store collection; more session tooling to come.",
+      "description": "Collect and query Copilot session-store history.",
       "source": "./",
       "strict": false,
       "skills": [
