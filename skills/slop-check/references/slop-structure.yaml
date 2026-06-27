@@ -1,0 +1,98 @@
+# Slop Structure Rules
+# Structure-oriented rules for scripts/slop_structure_lint.py.
+# Patterns are Python regexes matched case-insensitively where applicable.
+# Fields: rule, check, level (0 info, 1 low, 2 medium, 3 high), fix_type (key from slop-fix-types.yaml), suggestion, thresholds, patterns, note.
+
+- rule: listicle-instinct
+  check: list_run
+  level: 1
+  fix_type: restructure
+  thresholds:
+    item_counts: [3, 5, 7, 10]
+  patterns:
+    bullet: "^\\s*[-*+]\\s+"
+    numbered: "^\\s*\\d+[.)]\\s+"
+  suggestion: "Check whether the exact-size list is formulaic. Merge, split, or use prose if the count is arbitrary."
+
+- rule: bold-first-bullets
+  check: bold_first_bullets
+  level: 1
+  fix_type: restructure
+  patterns:
+    bullet: "^\\s*[-*+]\\s+\\*\\*[^*]+\\*\\*:?"
+  suggestion: "Avoid every bullet starting with a bold label unless the label carries real scan value."
+
+- rule: question-then-answer
+  check: question_then_answer
+  level: 2
+  fix_type: rewrite
+  thresholds:
+    max_answer_words: 12
+  patterns:
+    question: "\\?\\s+"
+  suggestion: "Skip the staged Q&A hook and state the claim directly."
+
+- rule: negation-countdown
+  check: negation_countdown
+  level: 2
+  fix_type: rewrite
+  thresholds:
+    min_run: 2
+    max_sentence_words: 8
+  patterns:
+    sentence_start: "^not\\b"
+  suggestion: "Replace the repeated 'Not X. Not Y.' rhythm with one concrete contrast."
+
+- rule: staccato-burst
+  check: staccato_burst
+  level: 1
+  fix_type: rewrite
+  thresholds:
+    min_run: 3
+    max_sentence_words: 7
+  patterns:
+    list_line: "^\\s*(?:[-*+]\\s+|\\d+[.)]\\s+)"
+  suggestion: "Combine short fragments or vary sentence length so the rhythm feels earned."
+
+- rule: anaphora-abuse
+  check: anaphora_abuse
+  level: 1
+  fix_type: rewrite
+  thresholds:
+    min_run: 3
+    opener_words: 1
+  suggestion: "Reduce repeated sentence openers unless the repetition is intentional rhetoric."
+
+- rule: gerund-litany
+  check: gerund_litany
+  level: 2
+  fix_type: rewrite
+  thresholds:
+    min_run: 2
+    max_sentence_words: 7
+  patterns:
+    sentence_start: "^[a-z]+ing\\b"
+  suggestion: "Turn gerund fragments into concrete actions with subjects and outcomes."
+
+- rule: short-hook-paragraph
+  check: short_hook_paragraph
+  level: 1
+  fix_type: rewrite
+  thresholds:
+    max_hook_words: 5
+    min_following_sentences: 2
+    min_following_avg_words: 12
+  suggestion: "Remove the tiny hook paragraph opening or fold it into the actual point."
+
+- rule: dramatic-fragment
+  check: dramatic_fragment
+  level: 2
+  fix_type: rewrite
+  thresholds:
+    min_words: 1
+    max_words: 4
+  patterns:
+    heading: "^\\s{0,3}#{1,6}\\s+"
+    title_like: "^[A-Z][A-Za-z0-9'’:-]*(?:\\s+[A-Z][A-Za-z0-9'’:-]*){0,5}$"
+    list_line: "^\\s*(?:[-*+]\\s+|\\d+[.)]\\s+)"
+  suggestion: "Avoid standalone emphasis fragments unless they are headings or labels."

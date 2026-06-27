@@ -1,563 +1,768 @@
 # Slop Words & Phrases Reference
 # Flat list of rules, each tagged with a rule ID and level.
 # Patterns are Python regexes matched case-insensitively.
-# Fields: rule (kebab-case ID), level (high/medium/low/info),
+# Fields: rule (kebab-case ID), level (0 info, 1 low, 2 medium, 3 high),
+#         fix_type (key from slop-fix-types.yaml),
 #         pattern (regex), suggestion, note (optional), unless (optional exemption regex).
 
 # ── Dead openers / closers ───────────────────────────────────────────────────────
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "in today's (?:fast-paced|digital|ever-changing|rapidly evolving) (?:world|landscape|era|age)"
   suggestion: "Cut entirely. Open with a specific claim or fact."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "in the ever-evolving landscape"
   suggestion: "Cut entirely."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "now more than ever"
   suggestion: "Cut entirely or cite what changed."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "it's no secret that"
   suggestion: "Cut entirely — if it's no secret, just state the fact."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "have you ever wondered"
   suggestion: "Cut entirely. Just make the point."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "in conclusion"
   suggestion: "Cut if the conclusion is obvious from context."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "at the end of the day"
   suggestion: "Cut entirely."
 
 - rule: dead-opener
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "when all is said and done"
   suggestion: "Cut entirely."
 
 # ── Filler hedges ────────────────────────────────────────────────────────────────
 - rule: filler-hedge
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "it's important to note that"
   suggestion: "Delete and state the fact directly."
 
 - rule: filler-hedge
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "it's worth noting that"
   suggestion: "Delete and state the fact directly."
 
 - rule: filler-hedge
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "it goes without saying"
   suggestion: "If it goes without saying, don't say it."
 
 - rule: filler-hedge
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "the fact of the matter is"
   suggestion: "Delete and state the fact directly."
 
 - rule: filler-hedge
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "needless to say"
   suggestion: "Delete — then just say it."
 
 # ── Fake authority ───────────────────────────────────────────────────────────────
 - rule: fake-authority
-  level: high
+  level: 3
+  fix_type: substantiate
   pattern: "studies (?:have )?show(?:n|s)?"
   suggestion: "Name the study or delete the claim."
   note: "Acceptable if immediately followed by a specific citation."
 
 - rule: fake-authority
-  level: high
+  level: 3
+  fix_type: substantiate
   pattern: "research (?:has )?(?:demonstrated|suggests|indicates|confirms)"
   suggestion: "Name the research or delete the claim."
   note: "Acceptable if immediately followed by a specific citation."
 
 - rule: fake-authority
-  level: high
+  level: 3
+  fix_type: substantiate
   pattern: "experts agree"
   suggestion: "Name the experts or delete."
 
 - rule: fake-authority
-  level: high
+  level: 3
+  fix_type: substantiate
   pattern: "(?:industry )?leaders (?:have )?recogni[sz]ed?"
   suggestion: "Name them or delete."
 
 - rule: fake-authority
-  level: high
+  level: 3
+  fix_type: substantiate
   pattern: "the data speaks for itself"
   suggestion: "Show the data instead."
 
 - rule: fake-authority
-  level: high
+  level: 3
+  fix_type: substantiate
   pattern: "as we all know"
   suggestion: "Delete — readers know what they know."
 
 # ── Pseudo-insight / fortune cookie ──────────────────────────────────────────────
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: rewrite
   pattern: "the key is to find balance"
   suggestion: "State the specific tradeoff instead."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: rewrite
   pattern: "true growth comes from within"
   suggestion: "Replace with a specific mechanism."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "it's not about the destination.*journey"
   suggestion: "Delete cliché. Say what it IS about."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "everything happens for a reason"
   suggestion: "Delete."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "the only limit is (?:the one )?you(?:rself)? set"
   suggestion: "Delete."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: rewrite
   pattern: "something shifted"
   suggestion: "Say what shifted."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: rewrite
   pattern: "and that changed everything"
   suggestion: "Say what changed and how."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: rewrite
   pattern: "but (?:here's the thing|now\\?)"
   suggestion: "Just make the point."
 
 - rule: pseudo-insight
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "let that sink in"
   suggestion: "Delete. If it's impactful, it will sink in."
 
 # ── Wellness platitudes ───────────────────────────────────────────────────────────
 - rule: wellness-platitude
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "self-care isn't selfish"
   suggestion: "Delete platitude."
 
 - rule: wellness-platitude
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "honor your journey"
   suggestion: "Delete."
 
 - rule: wellness-platitude
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "you are enough"
   suggestion: "Delete."
 
 - rule: wellness-platitude
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "embrace your authentic self"
   suggestion: "Delete."
 
 - rule: wellness-platitude
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "give yourself grace"
   suggestion: "Delete."
 
 # ── Wikipedia rehash ──────────────────────────────────────────────────────────────
 - rule: wikipedia-rehash
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "(?:X |it )?is (?:broadly )?defined as"
   suggestion: "Skip the definition if the audience already knows the term."
 
 - rule: wikipedia-rehash
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "(?:X |it )?refers to (?:the process of|a)"
   suggestion: "Skip or give an original angle."
 
 - rule: wikipedia-rehash
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "can be (?:broadly )?categori[sz]ed into"
   suggestion: "Skip taxonomy if it's common knowledge."
 
 - rule: wikipedia-rehash
-  level: high
+  level: 3
+  fix_type: delete
   pattern: "there are (?:several|many|three main|various) types of"
   suggestion: "Skip enumeration unless adding original analysis."
 
 # ── Corporate buzzwords ───────────────────────────────────────────────────────────
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: replace
   pattern: "\\bleverage\\b"
   suggestion: "Use 'use' unless referring to financial leverage."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: replace
   pattern: "\\butilize\\b"
   suggestion: "Use 'use'."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: replace
   pattern: "\\bin order to\\b"
   suggestion: "Use 'to'."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: replace
   pattern: "\\ba myriad of\\b"
   suggestion: "Use 'many' or a specific number."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bmultifaceted\\b"
   suggestion: "Name the specific facets or use 'complex'."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\brobust\\b"
   suggestion: "Describe the specific property (reliable, tested, scalable)."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bseamless(?:ly)?\\b"
   suggestion: "Describe what actually makes it smooth."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bsynerg(?:y|ies|istic)\\b"
   suggestion: "Describe the actual interaction."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bholistic(?:ally)?\\b"
   suggestion: "Describe what's included."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\binnovati(?:ve|on|ng)\\b"
   suggestion: "What's new about it? Say that instead."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\btransformati(?:ve|on|onal)\\b"
   suggestion: "What changed? Say that instead."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bcutting[- ]edge\\b"
   suggestion: "Describe the specific advancement."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\bstate[- ]of[- ]the[- ]art\\b"
   suggestion: "Cite the benchmark or comparison."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bgame[- ]chang(?:er|ing)\\b"
   suggestion: "Describe the specific impact."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bparadigm shift\\b"
   suggestion: "Describe what shifted."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\bworld[- ]class\\b"
   suggestion: "Compared to what? Be specific."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bnext[- ]level\\b"
   suggestion: "Describe the specific improvement."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\bbest[- ]in[- ]class\\b"
   suggestion: "Cite the comparison or benchmark."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\bscalable\\b"
   suggestion: "To what scale? Be specific."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bactionable\\b"
   suggestion: "What action? Be specific."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bimpactful\\b"
   suggestion: "What impact? Be specific."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bgroundbreaking\\b"
   suggestion: "What did it break? Be specific."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bpivot(?:al)?\\b"
   suggestion: "Often overused. Say what makes it important."
   note: "Fine when describing a startup pivot."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bempower(?:s|ed|ing|ment)?\\b"
   suggestion: "What capability does it give? Say that."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bunlock(?:s|ed|ing)?\\b"
   suggestion: "Say what became possible."
   note: "Fine for literal unlocking (doors, features)."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\belevat(?:e|es|ed|ing)\\b"
   suggestion: "Say how it improves."
   note: "Fine for literal elevation."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\boptimize\\b"
   suggestion: "What metric improves? Be specific."
   note: "Fine in technical optimization contexts."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bstreamline\\b"
   suggestion: "What steps are removed?"
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bsupercharge\\b"
   suggestion: "Describe the actual acceleration."
 
 - rule: corporate-buzzword
-  level: medium
+  level: 2
+  fix_type: replace
   pattern: "\\bbolster\\b"
   suggestion: "Use 'strengthen' or say what it does."
 
 # ── Weasel words ──────────────────────────────────────────────────────────────────
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: restructure
   pattern: "\\badditionally\\b"
   suggestion: "Vary connectors or restructure."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: restructure
   pattern: "\\bfurthermore\\b"
   suggestion: "Vary connectors or restructure."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: restructure
   pattern: "\\bmoreover\\b"
   suggestion: "Vary connectors or restructure."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "(?:it |this )depends on (?:various|many|a number of) factors"
   suggestion: "Name the factors."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "(?:various|many) (?:factors|considerations|aspects)"
   suggestion: "Name them."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "\\bthere are pros and cons\\b"
   suggestion: "List the specific pros and cons, or take a stance."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: rewrite
   pattern: "the best approach depends on your (?:individual )?(?:needs|circumstances)"
   suggestion: "Give concrete guidance for common cases."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\barguably\\b"
   suggestion: "Commit to the argument or cite who argues it."
 
 - rule: weasel-word
-  level: medium
+  level: 2
+  fix_type: substantiate
   pattern: "\\bto some extent\\b"
   suggestion: "Quantify the extent."
 
 # ── Engagement bait ───────────────────────────────────────────────────────────────
 - rule: engagement-bait
-  level: medium
+  level: 2
+  fix_type: delete
   pattern: "what do you think\\?"
   suggestion: "Cut unless genuinely soliciting feedback."
 
 - rule: engagement-bait
-  level: medium
+  level: 2
+  fix_type: delete
   pattern: "let me know (?:in the comments|your thoughts|what you think)"
   suggestion: "Cut engagement bait."
 
 - rule: engagement-bait
-  level: medium
+  level: 2
+  fix_type: delete
   pattern: "stay tuned"
   suggestion: "Cut or give a specific date/deliverable."
 
+# ── Slop Cop additions: filler and certainty ───────────────────────────────────
+- rule: filler-adverb
+  level: 2
+  fix_type: delete
+  pattern: "\\b(?:importantly|essentially|fundamentally|ultimately|inherently|undoubtedly|obviously|clearly|basically)\\b"
+  suggestion: "Cut the adverb or rewrite so the sentence earns the emphasis."
+
+- rule: almost-hedge
+  level: 2
+  fix_type: rewrite
+  pattern: "\\balmost\\s+(?:always|never|certainly|exclusively|entirely|completely|invariably|universally)\\b"
+  suggestion: "Use a precise qualifier like 'usually' or commit to the claim."
+
+- rule: era-opener
+  level: 3
+  fix_type: delete
+  pattern: "\\bin\\s+(?:an?\\s+era|a world)\\s+(?:of|where|when|in which)\\b"
+  suggestion: "Delete the setup clause and start at the real point."
+
+# ── Slop Cop additions: inflated register ──────────────────────────────────────
+- rule: elevated-register
+  level: 2
+  fix_type: replace
+  pattern: "\\b(?:commence(?:d|ment)?|endeavou?r(?:s|ed|ing)?|elucidat(?:e|es|ed|ing)|promulgat(?:e|es|ed|ing)|cognizant|pertaining to|in regards to|with regards to|at this juncture|in terms of)\\b"
+  suggestion: "Use plain language: start, try, explain, spread, aware, about, now, or cut the phrase."
+
+- rule: elevated-register
+  level: 2
+  fix_type: rewrite
+  pattern: "\\b(?:moving|going) forward\\b"
+  suggestion: "Name the next step or use a date."
+
+# ── Slop Cop additions: stock metaphors and dodges ─────────────────────────────
+- rule: metaphor-crutch
+  level: 2
+  fix_type: rewrite
+  pattern: "\\b(?:double[- ]edged sword|tip of the iceberg|north star|building blocks|elephant in the room|perfect storm|low[- ]hanging fruit|move the needle|think outside the box|silver bullet|boil(?:ing)? the ocean|circle back|deep dive|level up|hit the ground running|the devil is in the details|on the same page|reinvent the wheel|touch base|bandwidth|bleeding edge|best of breed)\\b"
+  suggestion: "Replace the stock metaphor with plain language or a concrete image from the subject."
+  note: "Some terms are literal in technical or domain-specific contexts."
+
+- rule: broader-implications
+  level: 2
+  fix_type: substantiate
+  pattern: "\\b(?:broader|wider) implications?\\b"
+  suggestion: "State the specific implication or cut the phrase."
+
+- rule: serves-as-dodge
+  level: 2
+  fix_type: replace
+  pattern: "\\b(?:serves|stands|acts|functions)\\s+as\\b"
+  suggestion: "Use 'is' or 'are' unless the phrase adds a real functional distinction."
+
+# ── Slop Cop additions: suspense and teacher-mode setup ────────────────────────
+- rule: suspense-transition
+  level: 2
+  fix_type: delete
+  pattern: "\\bhere(?:'|’)?s\\s+(?:the kicker|the thing|where it gets interesting|what most people miss|the real)\\b"
+  suggestion: "Delete the suspense transition and state the point directly."
+
+- rule: pedagogical-aside
+  level: 2
+  fix_type: delete
+  pattern: "\\b(?:let(?:'|’)?s\\s+(?:break this down|unpack|explore|dive in|examine)|think of (?:it|this) as|think of it like)\\b"
+  suggestion: "Skip the teacher-mode preamble and explain directly."
+
+- rule: imagine-world
+  level: 2
+  fix_type: delete
+  pattern: "\\bimagine\\s+(?:a world|if you|what would|a future)\\b"
+  suggestion: "Start with the actual argument instead of asking the reader to imagine it."
+
+# ── Slop Cop additions: vague attribution and empty caveats ────────────────────
+- rule: vague-attribution
+  level: 3
+  fix_type: substantiate
+  pattern: "\\b(?:experts (?:argue|say|suggest|believe|note)|industry analysts|observers (?:have )?(?:noted|cited|argue)|analysts (?:note|suggest)|many experts|several experts|some experts|according to experts)\\b"
+  suggestion: "Name the source, cite it, or drop the claim."
+
+- rule: empty-concession
+  level: 2
+  fix_type: substantiate
+  pattern: "\\bdespite (?:these|its|the|their|all|such)\\b[^.!?]{0,80}\\b(?:challenge|obstacle|limitation|difficult|drawback|shortcoming)"
+  suggestion: "Name the specific challenge or cut the concession."
+
+# ── Slop Cop additions: invented labels and intensifiers ───────────────────────
+- rule: invented-concept-label
+  level: 1
+  fix_type: rewrite
+  pattern: "\\b[a-z]+\\s+(?:paradox|trap|creep|vacuum|inversion|chasm)\\b"
+  suggestion: "Use an established term or describe the phenomenon plainly."
+
+- rule: overused-intensifier
+  level: 1
+  fix_type: rewrite
+  pattern: "\\b(?:crucial|vital|comprehensive|fundamental|noteworthy|nuanced|unprecedented|dynamic|enduring|interplay|intricate|intricacies|valuable|vibrant)\\b"
+  suggestion: "Delete the intensifier if the sentence still works, otherwise show the evidence behind it."
+
 # ── AI vocabulary ─────────────────────────────────────────────────────────────────
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bdelve(?:s|d)? into\\b"
   suggestion: "Use 'explore', 'examine', or 'cover'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: rewrite
   pattern: "\\bnavigate the (?:landscape|complexities|world) of\\b"
   suggestion: "Just discuss the topic."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\btap(?:ping)? into\\b"
   suggestion: "Use 'use' or 'access'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bfoster(?:s|ed|ing)?\\b"
   suggestion: "Use 'encourage', 'build', or 'support'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bfacilitat(?:e|es|ed|ing)\\b"
   suggestion: "Use 'enable', 'help', or 'allow'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bdovetail(?:s|ed|ing)?\\b"
   suggestion: "Use 'complement' or 'align with'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bunderscore(?:s|d)?\\b"
   suggestion: "Use 'shows', 'highlights', or 'emphasizes'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bunravel\\b"
   suggestion: "Use 'explain' or 'investigate'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\btapestry\\b"
   suggestion: "Use a more concrete metaphor."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\brealm\\b"
   suggestion: "Use 'area', 'field', or 'domain'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\blandscape\\b"
   suggestion: "Use 'field', 'market', or 'space'."
   note: "Fine when describing actual landscapes."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bjourney\\b"
   suggestion: "Use 'process', 'experience', or describe what happened."
   note: "Fine for actual travel."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\becosystem\\b"
   suggestion: "Use 'system', 'community', or 'market'."
   note: "Fine in biology contexts."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bpivotal\\b"
   suggestion: "Use 'important' or 'critical'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bcommenced\\b"
   suggestion: "Use 'started' or 'began'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bascertain\\b"
   suggestion: "Use 'find out' or 'determine'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bameliorat(?:e|es|ed|ing)\\b"
   suggestion: "Use 'improve'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\breadily\\b"
   suggestion: "Use 'easily' or cut."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bmeticulous(?:ly)?\\b"
   suggestion: "Use 'careful(ly)' or 'thorough(ly)'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bplethora\\b"
   suggestion: "Use 'many' or a specific number."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bmyriad\\b"
   suggestion: "Use 'many' or a specific number."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: rewrite
   pattern: "\\bcraftsman(?:ship)?\\b"
   suggestion: "Often pretentious. Be specific about the quality."
   note: "Fine in woodworking/trade contexts."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bwhilst\\b"
   suggestion: "Use 'while'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bhenceforth\\b"
   suggestion: "Use 'from now on'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bnotwithstanding\\b"
   suggestion: "Use 'despite' or 'regardless'."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bthus\\b"
   suggestion: "Use 'so' or restructure."
   note: "Fine in formal/academic writing."
 
 - rule: ai-vocab
-  level: low
+  level: 1
+  fix_type: replace
   pattern: "\\bin the realm of\\b"
   suggestion: "Use 'in' or drop."
 
 # ── Em dash in prose ──────────────────────────────────────────────────────────────
 - rule: em-dash-prose
-  level: info
+  level: 0
+  fix_type: rewrite
   pattern: "—"
   suggestion: >-
     Em dash in prose. Readers dislike them, so rephrase rather than keep — but do

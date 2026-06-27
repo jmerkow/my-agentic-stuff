@@ -1,0 +1,13 @@
+# Fix type vocabulary for slop rule YAML files.
+# Descriptions explain the edit intent only; rule-specific suggestions stay on rules.
+fix_types:
+  delete:
+    description: "Remove the matched text."
+  replace:
+    description: "Replace the match with simpler or more precise wording."
+  rewrite:
+    description: "Rewrite the sentence or passage to say the point directly."
+  substantiate:
+    description: "Add specific evidence, attribution, or citation for the claim."
+  restructure:
+    description: "Change the shape or organization of the passage."

@@ -1,2 +1,38 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slop-check"
+version = "0.1.0"
+description = "Linters for detecting AI slop in prose."
+requires-python = ">=3.11"
+dependencies = [
+	"PyYAML>=6.0",
+]
+
+[project.scripts]
+slop-lint = "slop_check.slop_lint:main"
+slop-structure-lint = "slop_check.slop_structure_lint:main"
+
+[dependency-groups]
+dev = [
+	"pytest>=8.0",
+	"slopcop>=0.1.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["examples"]
+
+[tool.pyright]
+extraPaths = ["src"]
+
 [tool.slopcop.per-file-ignores]
 "scripts/slop_lint.py" = ["no-print"]
+"scripts/slop_structure_lint.py" = ["no-print"]
+"src/slop_check/slop_lint.py" = ["no-print"]
+"src/slop_check/slop_structure_lint.py" = ["no-print"]

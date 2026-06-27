@@ -1,2 +1,8 @@
 # Personal config — never travels when this skill is copied into another repo
 private/
+
+# Python project artifacts
+.pytest_cache/
+.venv/
+__pycache__/
+*.egg-info/
