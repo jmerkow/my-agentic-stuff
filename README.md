@@ -9,6 +9,7 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 | `authoring` | agent-refiner, skill-creator, plugin-creator | Author and refine Copilot customizations |
 | `decks` | build-deck | Build presentation decks as SVG slides packaged into `.pptx` |
 | `eng-ops` | engdirs-status, worktree-setup | Git worktree and `.eng/` repo-state tooling |
+| `engflow` | EngAgent external plugin | Engineering workflow agents and skills |
 | `sessions` | chronicle-collect | Inspect and query Copilot session history |
 | `code-review` | code-review | Local dual sub-agent code review, no PR |
 | `pandoc-docx` | pandoc-docx | Convert markdown to styled `.docx` |
@@ -57,6 +58,7 @@ Fork and clone the repo, then register the **local path** as the source. Install
 ```bash
 git clone https://github.com/<you>/my-agentic-stuff
 cd my-agentic-stuff
+git submodule update --init --recursive  # needed for submodule-backed plugins like engflow
 copilot plugin marketplace add "$PWD"
 copilot plugin install slop-check@my-agentic-stuff
 ```
@@ -73,7 +75,7 @@ To iterate: edit a skill, then re-run `copilot plugin update` (CLI) or reinstall
 
 ### Install individual plugins
 
-Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`. Bundles (`authoring`, `eng-ops`) install all their skills at once. The rest install a single skill.
+Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`. Bundles (`authoring`, `eng-ops`) install all their skills at once. `engflow` installs the external EngAgent plugin. The remaining entries install a single skill.
 
 > The old `rsync` installer (`install.sh`) is **deprecated**. It still works for mirroring skills directly into `~/.copilot/skills/`, but plugins are the supported path now. See [INSTALL-RSYNC.md](INSTALL-RSYNC.md).
 
@@ -86,15 +88,16 @@ my-agentic-stuff/
 ├── INSTALL-RSYNC.md                 # deprecated rsync installer docs
 ├── install.sh                       # deprecated
 ├── scripts/validate-marketplace.py  # manifest validator
-├── .github/plugin/marketplace.json  # marketplace manifest
-├── .claude-plugin/marketplace.json  # symlink to the above, for Claude Code
+├── .claude-plugin/marketplace.json  # Claude marketplace manifest
+├── catalog/                         # external plugin submodules
+│   └── EngAgent/                    # provides the engflow plugin
 └── skills/                          # canonical skills, shared across plugins
     ├── build-deck/                  # each has its own SKILL.md
     ├── slop-check/
     └── ...                          # one directory per skill
 ```
 
-Every plugin entry uses `source: "./"` and references its skills in place (`./skills/<name>`), so a skill lives once under `skills/` and any plugin can pull it in without copying. The `.claude-plugin/marketplace.json` symlink lets Claude Code read the same manifest VS Code and the Copilot CLI use.
+Most plugin entries use `source: "./"` and reference their skills in place (`./skills/<name>`), so a skill lives once under `skills/` and any plugin can pull it in without copying. External plugins can live under `catalog/` as submodules and point `source` at the plugin directory they provide. The authoritative marketplace manifest is `.claude-plugin/marketplace.json`.
 
 ## Adding stuff
 

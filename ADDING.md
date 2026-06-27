@@ -1,11 +1,11 @@
 # Adding to this marketplace
 
-Steps to add or change a plugin. The manifest is [.github/plugin/marketplace.json](.github/plugin/marketplace.json) (the `.claude-plugin/marketplace.json` symlink points at it, no need to touch that).
+Steps to add or change a plugin. The manifest is [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json).
 
 ## Add a skill to the marketplace
 
 1. Create the skill at `skills/<name>/SKILL.md`. The `name` field in the frontmatter must match the directory name.
-2. Edit `.github/plugin/marketplace.json` and either:
+2. Edit `.claude-plugin/marketplace.json` and either:
    - **add it to an existing plugin**: append `"./skills/<name>"` to that plugin's `skills` array, or
    - **make it a new plugin**: add an entry to the `plugins` array:
      ```jsonc
@@ -38,10 +38,23 @@ Steps to add or change a plugin. The manifest is [.github/plugin/marketplace.jso
 
 ```
 plugins/<plugin-name>/
-└── .github/plugin/plugin.json   # the plugin's own definition (name, skills, agents, hooks, mcp...)
+└── .claude-plugin/plugin.json   # the plugin's own definition (name, skills, agents, hooks, mcp...)
 ```
 
-The `plugin.json` is auto-detected at any of: `plugin.json`, `.plugin/plugin.json`, `.github/plugin/plugin.json`, `.claude-plugin/plugin.json`. Use this when a plugin carries more than skills (agents, hooks, MCP servers) or should be self-contained.
+The `plugin.json` is read from `.claude-plugin/plugin.json` under the plugin source. Use this when a plugin carries more than skills (agents, hooks, MCP servers) or should be self-contained.
 
 > [!CAUTION]
 > Don't set `strict: false` on an entry whose `source` dir also has a component-declaring `plugin.json`. That combination is a load conflict. Inline entries use `strict: false`. Self-managed `plugin.json` entries omit it, so `strict` defaults to `true` and the `plugin.json` becomes the authority that the marketplace entry supplements.
+
+## Add an external plugin submodule
+
+1. Confirm the target branch exists, then add it under `catalog/<repo-name>/`:
+  ```bash
+  git ls-remote --heads https://github.com/<owner>/<repo> <branch>
+  git submodule add -b <branch> https://github.com/<owner>/<repo> catalog/<repo-name>
+  ```
+2. Point the marketplace entry at the subdirectory that owns the plugin manifest:
+  ```jsonc
+  { "name": "<plugin-name>", "source": "./catalog/<repo-name>/<plugin-dir>" }
+  ```
+3. Validate with `python3 scripts/validate-marketplace.py`.
