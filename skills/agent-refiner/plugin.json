@@ -1,0 +1,7 @@
+{
+  "name": "agent-refiner",
+  "description": "Review and tighten Copilot agent files for persona clarity, process bloat, and constraint enforcement.",
+  "skills": [
+    "./"
+  ]
+}

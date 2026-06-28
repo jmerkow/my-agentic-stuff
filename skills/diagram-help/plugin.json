@@ -1,0 +1,7 @@
+{
+  "name": "diagram-help",
+  "description": "Lightweight reference for Mermaid and SVG diagram rendering gotchas.",
+  "skills": [
+    "./"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "worktree-setup",
+  "description": "Set up isolated git worktrees for Copilot agent work.",
+  "skills": [
+    "./"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "chronicle-collect",
+  "description": "Collect and query Copilot session-store history across machines.",
+  "skills": [
+    "./"
+  ]
+}

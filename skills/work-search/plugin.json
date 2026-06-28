@@ -1,0 +1,7 @@
+{
+  "name": "work-search",
+  "description": "Search and retrieve work information across M365 activity, internal engineering knowledge, and Microsoft documentation.",
+  "skills": [
+    "./"
+  ]
+}

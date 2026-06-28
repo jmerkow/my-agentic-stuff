@@ -1,0 +1,7 @@
+{
+  "name": "build-deck",
+  "description": "Build presentation decks as standalone SVG slides and packaged .pptx files.",
+  "skills": [
+    "./"
+  ]
+}

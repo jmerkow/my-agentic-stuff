@@ -1,0 +1,7 @@
+{
+  "name": "code-review",
+  "description": "Run local code-quality review with dual sub-agent review and human triage.",
+  "skills": [
+    "./"
+  ]
+}

@@ -9,34 +9,34 @@
   },
   "plugins": [
     {
-      "name": "authoring",
-      "description": "Author and refine Copilot customizations: review agent files, create skills, and build plugins and marketplaces.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/agent-refiner",
-        "./skills/skill-creator",
-        "./skills/plugin-creator"
-      ]
+      "name": "agent-refiner",
+      "description": "Review and tighten Copilot agent files for persona clarity, process bloat, and constraint enforcement.",
+      "source": "./skills/agent-refiner"
     },
     {
-      "name": "decks",
-      "description": "Build presentation decks as diffable SVG slides packaged into .pptx.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/build-deck"
-      ]
+      "name": "build-deck",
+      "description": "Build presentation decks as standalone SVG slides and packaged .pptx files.",
+      "source": "./skills/build-deck"
     },
     {
-      "name": "eng-ops",
-      "description": "Operational tooling for git worktrees and .eng/ repo state auditing.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/engdirs-status",
-        "./skills/worktree-setup"
-      ]
+      "name": "chronicle-collect",
+      "description": "Collect and query Copilot session-store history across machines.",
+      "source": "./skills/chronicle-collect"
+    },
+    {
+      "name": "code-review",
+      "description": "Run local code-quality review with dual sub-agent review and human triage.",
+      "source": "./skills/code-review"
+    },
+    {
+      "name": "diagram-help",
+      "description": "Lightweight reference for Mermaid and SVG diagram rendering gotchas.",
+      "source": "./skills/diagram-help"
+    },
+    {
+      "name": "engdirs-status",
+      "description": "Audit .eng git repos for dirty state, unpushed commits, and initialization issues.",
+      "source": "./skills/engdirs-status"
     },
     {
       "name": "engflow",
@@ -44,48 +44,39 @@
       "source": "./catalog/EngAgent/engflow"
     },
     {
-      "name": "sessions",
-      "description": "Collect and query Copilot session-store history.",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/chronicle-collect"
-      ]
-    },
-    {
-      "name": "code-review",
-      "description": "Local code-quality review with dual sub-agent review and human triage, without opening a PR.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/code-review"]
-    },
-    {
       "name": "pandoc-docx",
-      "description": "Convert markdown to styled .docx using pandoc with a bundled reference template.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/pandoc-docx"]
+      "description": "Convert markdown files to styled .docx using pandoc.",
+      "source": "./skills/pandoc-docx"
+    },
+    {
+      "name": "plugin-creator",
+      "description": "Create, inspect, install, and troubleshoot GitHub Copilot plugins.",
+      "source": "./skills/plugin-creator"
+    },
+    {
+      "name": "skill-creator",
+      "description": "Create and update GitHub Copilot agent skills.",
+      "source": "./skills/skill-creator"
     },
     {
       "name": "slop-check",
-      "description": "Detect and fix AI slop in text: vague filler, fake authority, cliches, buzzwords, and low-value structural patterns.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/slop-check"]
+      "description": "Detect and fix AI slop in prose, docs, and status writing.",
+      "source": "./skills/slop-check"
     },
     {
       "name": "visual-design",
-      "description": "Judge and improve the visual design of static artifacts (slides, diagrams, posters, SVG figures) so they read as intentional rather than templated.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/visual-design"]
+      "description": "Judge and improve static visual artifacts so they read as intentional.",
+      "source": "./skills/visual-design"
     },
     {
       "name": "work-search",
       "description": "Search and retrieve work information across M365 activity, internal engineering knowledge, and Microsoft documentation.",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/work-search"]
+      "source": "./skills/work-search"
+    },
+    {
+      "name": "worktree-setup",
+      "description": "Set up isolated git worktrees for Copilot agent work.",
+      "source": "./skills/worktree-setup"
     }
   ]
 }

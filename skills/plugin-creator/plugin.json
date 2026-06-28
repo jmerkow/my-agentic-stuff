@@ -1,0 +1,7 @@
+{
+  "name": "plugin-creator",
+  "description": "Create, inspect, install, and troubleshoot GitHub Copilot plugins.",
+  "skills": [
+    "./"
+  ]
+}

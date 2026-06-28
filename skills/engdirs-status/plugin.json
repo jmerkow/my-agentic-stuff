@@ -1,0 +1,7 @@
+{
+  "name": "engdirs-status",
+  "description": "Audit .eng git repos for dirty state, unpushed commits, and initialization issues.",
+  "skills": [
+    "./"
+  ]
+}
