@@ -9,24 +9,24 @@
   },
   "plugins": [
     {
-      "name": "agent-refiner",
-      "description": "Review and tighten Copilot agent files for persona clarity, process bloat, and constraint enforcement.",
-      "source": "./skills/agent-refiner"
+      "name": "authoring",
+      "description": "Create, review, and troubleshoot GitHub Copilot agents, skills, and plugins.",
+      "source": "./plugins/authoring"
     },
     {
-      "name": "build-deck",
-      "description": "Build presentation decks as standalone SVG slides and packaged .pptx files.",
-      "source": "./skills/build-deck"
+      "name": "eng-ops",
+      "description": "Audit .eng repo state and set up isolated git worktrees for Copilot agent work.",
+      "source": "./plugins/eng-ops"
     },
     {
-      "name": "chronicle-collect",
+      "name": "sessions",
       "description": "Collect and query Copilot session-store history across machines.",
-      "source": "./skills/chronicle-collect"
+      "source": "./plugins/sessions"
     },
     {
-      "name": "code-review",
-      "description": "Run local code-quality review with dual sub-agent review and human triage.",
-      "source": "./skills/code-review"
+      "name": "decks",
+      "description": "Build presentation decks as standalone SVG slides and packaged .pptx files.",
+      "source": "./plugins/decks"
     },
     {
       "name": "diagram-help",
@@ -34,29 +34,14 @@
       "source": "./skills/diagram-help"
     },
     {
-      "name": "engdirs-status",
-      "description": "Audit .eng git repos for dirty state, unpushed commits, and initialization issues.",
-      "source": "./skills/engdirs-status"
-    },
-    {
-      "name": "engflow",
-      "description": "Engineering workflow agents and skills for GitHub Copilot.",
-      "source": "./catalog/EngAgent/engflow"
+      "name": "code-review",
+      "description": "Run local code-quality review with dual sub-agent review and human triage.",
+      "source": "./skills/code-review"
     },
     {
       "name": "pandoc-docx",
       "description": "Convert markdown files to styled .docx using pandoc.",
       "source": "./skills/pandoc-docx"
-    },
-    {
-      "name": "plugin-creator",
-      "description": "Create, inspect, install, and troubleshoot GitHub Copilot plugins.",
-      "source": "./skills/plugin-creator"
-    },
-    {
-      "name": "skill-creator",
-      "description": "Create and update GitHub Copilot agent skills.",
-      "source": "./skills/skill-creator"
     },
     {
       "name": "slop-check",
@@ -74,9 +59,14 @@
       "source": "./skills/work-search"
     },
     {
-      "name": "worktree-setup",
-      "description": "Set up isolated git worktrees for Copilot agent work.",
-      "source": "./skills/worktree-setup"
+      "name": "engflow",
+      "description": "Engineering workflow agents and skills for GitHub Copilot.",
+      "source": {
+        "source": "github",
+        "repo": "jmerkow/EngAgent",
+        "path": "engflow",
+        "ref": "experimental"
+      }
     }
   ]
 }

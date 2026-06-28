@@ -4,6 +4,8 @@ Steps to add or change a plugin. The marketplace manifest is [.claude-plugin/mar
 
 ## Add a skill plugin
 
+Use this for a genuinely single-skill plugin that should stay under `skills/`.
+
 1. Create the skill at `skills/<name>/SKILL.md`. The `name` field in the frontmatter must match the directory name.
 2. Add `skills/<name>/plugin.json`:
    ```jsonc
@@ -34,8 +36,9 @@ Create a real plugin directory that owns its manifest, then point the marketplac
 ```text
 plugins/<plugin-name>/
 ├── plugin.json
-├── agents/
 └── skills/
+  └── <skill-name>/
+    └── SKILL.md
 ```
 
 ```jsonc
@@ -46,15 +49,19 @@ plugins/<plugin-name>/
 }
 ```
 
-## Add an external plugin submodule
+## Add an external plugin
 
-1. Confirm the target branch exists, then add it under `catalog/<repo-name>/`:
-  ```bash
-  git ls-remote --heads https://github.com/<owner>/<repo> <branch>
-  git submodule add -b <branch> https://github.com/<owner>/<repo> catalog/<repo-name>
-  ```
-2. Point the marketplace entry at the subdirectory that owns the plugin manifest:
+1. Confirm the target repo, plugin path, and ref.
+2. Add a marketplace entry with a GitHub source object:
   ```jsonc
-  { "name": "<plugin-name>", "source": "./catalog/<repo-name>/<plugin-dir>" }
+  {
+    "name": "<plugin-name>",
+    "source": {
+      "source": "github",
+      "repo": "<owner>/<repo>",
+      "path": "<plugin-dir>",
+      "ref": "<branch-or-tag>"
+    }
+  }
   ```
 3. Validate with `python3 scripts/validate-marketplace.py`.

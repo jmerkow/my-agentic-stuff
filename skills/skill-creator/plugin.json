@@ -1,7 +1,0 @@
-{
-  "name": "skill-creator",
-  "description": "Create and update GitHub Copilot agent skills.",
-  "skills": [
-    "./"
-  ]
-}
