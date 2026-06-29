@@ -78,8 +78,8 @@ def validate_skill_paths(plugin_name, plugin_dir, skills, errors):
             errors.append(f"{plugin_name}: missing SKILL.md at {skill_md.relative_to(ROOT)}")
             continue
         declared = skill_name(skill_md)
-        if declared and declared != skill_dir.resolve().name:
-            errors.append(f"{plugin_name}: SKILL.md name '{declared}' != dir '{skill_dir.resolve().name}'")
+        if declared and declared != skill_dir.name:
+            errors.append(f"{plugin_name}: SKILL.md name '{declared}' != dir '{skill_dir.name}'")
 
 
 def main():
