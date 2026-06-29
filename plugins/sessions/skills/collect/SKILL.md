@@ -1,5 +1,5 @@
 ---
-name: chronicle-collect
+name: collect
 description: 'Collect Copilot Chronicle session-store SQLite databases from local machine, WSL, and remote SSH hosts into a single staging directory, then query them with sqlite3. Use when the user wants to inspect, search, or export their Copilot chat history (sessions, turns, files, refs) across machines. Triggers: chronicle, session-store.db, copilot history, session history, search past sessions, what did I ask, find prompt.'
 argument-hint: '[hosts...] - optional SSH host names to include (e.g. my-host)'
 ---
@@ -33,7 +33,7 @@ Each DB has sidecar `*.db-shm` and `*.db-wal` files. **Always copy all three** â
 Run [collect.sh](./scripts/collect.sh) with optional SSH host args:
 
 ```bash
-bash ~/.copilot/skills/chronicle-collect/scripts/collect.sh my-host
+bash ~/.copilot/skills/collect/scripts/collect.sh my-host
 ```
 
 Output goes to `/tmp/chronicle/<host>/<source>/session-store.db*`.
