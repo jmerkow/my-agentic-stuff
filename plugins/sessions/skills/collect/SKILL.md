@@ -4,7 +4,7 @@ description: 'Collect Copilot Chronicle session-store SQLite databases from loca
 argument-hint: '[hosts...] - optional SSH host names to include (e.g. my-host)'
 ---
 
-# Chronicle Collect
+# Sessions Collect
 
 Gather Copilot Chronicle (`session-store.db`) databases from every place they live, stage them locally, and run SQL queries against them.
 
