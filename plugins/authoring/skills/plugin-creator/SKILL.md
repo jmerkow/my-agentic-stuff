@@ -177,10 +177,12 @@ Default Copilot CLI marketplaces (registered out of the box): `copilot-plugins`,
 
 To distribute, add the plugin to a marketplace by creating `marketplace.json`. The recommended location is `.github/plugin/marketplace.json` in a Git repository. Each entry in the `plugins` array references a plugin directory. See [references/agent-plugin-reference.md § marketplace.json](references/agent-plugin-reference.md) for the schema.
 
+Plugin sources can be shaped as a single-skill plugin (`plugin.json` colocated with `SKILL.md` in `skills/<name>/`, `skills: ["./"]`) or a grouped multi-skill plugin (`plugins/<group>/plugin.json` listing `skills: ["./skills/<a>", ...]`). A plugin hosted in another repo can be referenced with an object `source`: `{ "source": "github", "repo": "owner/repo", "path": "subdir", "ref": "tag" }`. See [references/agent-plugin-reference.md § Source forms](references/agent-plugin-reference.md).
+
 Reference marketplaces:
 
 - [github/copilot-plugins](https://github.com/github/copilot-plugins)
-- [github/awesome-copilot](https://github.com/github/awesome-copilot)
+- [github/awesome-copilot](https://github.com/github/awesome-copilot@)
 
 To recommend plugins from a project, add `extraKnownMarketplaces` and `enabledPlugins` to `.claude/settings.json` or `.github/copilot/settings.json`; VS Code surfaces these as `@agentPlugins @recommended` in the Extensions view.
 

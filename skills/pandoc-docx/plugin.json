@@ -1,0 +1,7 @@
+{
+  "name": "pandoc-docx",
+  "description": "Convert markdown files to styled .docx using pandoc.",
+  "skills": [
+    "./"
+  ]
+}

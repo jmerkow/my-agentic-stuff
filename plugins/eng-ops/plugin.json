@@ -1,0 +1,9 @@
+{
+  "name": "eng-ops",
+  "description": "Audit .eng repo state and set up isolated git worktrees for Copilot agent work.",
+  "version": "0.1.0",
+  "skills": [
+    "./skills/engdirs-status",
+    "./skills/worktree-setup"
+  ]
+}

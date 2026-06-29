@@ -1,4 +1,0 @@
-[submodule "catalog/EngAgent"]
-	path = catalog/EngAgent
-	url = https://github.com/jmerkow/EngAgent
-	branch = experimental

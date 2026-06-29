@@ -1,0 +1,8 @@
+{
+  "name": "sessions",
+  "description": "Collect and query Copilot session-store history across machines.",
+  "version": "0.1.0",
+  "skills": [
+    "./skills/chronicle-collect"
+  ]
+}
