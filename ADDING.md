@@ -36,6 +36,8 @@ Create a real plugin directory that owns its manifest, then point the marketplac
 ```text
 plugins/<plugin-name>/
 ├── plugin.json
+├── .mcp.json          # optional MCP server config
+├── agents/
 └── skills/
   └── <skill-name>/
     └── SKILL.md
@@ -48,6 +50,8 @@ plugins/<plugin-name>/
   "source": "./plugins/<plugin-name>"
 }
 ```
+
+To bundle MCP servers, add `.mcp.json` at the plugin root and reference it from the plugin's `plugin.json` with `"mcpServers": ".mcp.json"`. The top-level key inside `.mcp.json` is `mcpServers` (not `servers`, which is the workspace `.vscode/mcp.json` shape). Plugin MCP servers are trusted at install time, so they skip the per-workspace trust prompt.
 
 ## Add an external plugin
 
