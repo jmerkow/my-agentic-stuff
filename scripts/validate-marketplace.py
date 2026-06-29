@@ -49,8 +49,15 @@ def path_escapes_root(rel):
     return path.is_absolute() or ".." in path.parts
 
 
-def source_is_external(source):
-    return source.removeprefix("./").startswith("catalog/")
+def validate_object_source(name, source, errors):
+    if source.get("source") != "github":
+        errors.append(f"{name}: object source must set `source` to 'github'")
+    if not source.get("repo"):
+        errors.append(f"{name}: object source must set `repo`")
+    for field in ("path", "ref", "sha"):
+        value = source.get(field)
+        if value is not None and not isinstance(value, str):
+            errors.append(f"{name}: object source `{field}` must be a string")
 
 
 def validate_skill_paths(plugin_name, plugin_dir, skills, errors):
@@ -96,6 +103,8 @@ def main():
         source = plugin.get("source")
         if not source:
             errors.append(f"{name}: missing `source`")
+        elif isinstance(source, dict):
+            validate_object_source(name, source, errors)
         elif path_escapes_root(source):
             errors.append(f"{name}: source path escapes marketplace root: {source}")
             continue
@@ -105,7 +114,7 @@ def main():
             fields = ", ".join(entry_components)
             errors.append(f"{name}: move marketplace component fields into source plugin.json: {fields}")
 
-        if not source:
+        if not source or isinstance(source, dict):
             continue
         source_dir = ROOT / source
         plugin_json = source_dir / "plugin.json"
@@ -123,8 +132,7 @@ def main():
         declared = plugin_manifest.get("name")
         if declared != name:
             errors.append(f"{name}: plugin.json name '{declared}' != marketplace name")
-        if not source_is_external(source):
-            validate_skill_paths(name, source_dir, plugin_manifest.get("skills"), errors)
+        validate_skill_paths(name, source_dir, plugin_manifest.get("skills"), errors)
 
     for err in errors:
         print(f"  - {err}")
