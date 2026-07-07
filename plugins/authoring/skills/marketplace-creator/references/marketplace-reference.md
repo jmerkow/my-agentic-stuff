@@ -62,7 +62,12 @@ VS Code and the Copilot CLI look for the marketplace manifest in these locations
 
 ### Plugin entry fields
 
-`name` and `source` are required. An entry also accepts the same metadata and component path fields as `plugin.json` (`description`, `version`, `author`, `homepage`, `repository`, `license`, `keywords`, `category`, `tags`, `commands`, `agents`, `skills`, `hooks`, `mcpServers`, `lspServers`). `source` resolves relative to the marketplace repo root; the leading `./` is optional (`"./plugins/x"` and `"plugins/x"` resolve the same). Optional `strict` (default `true`): full schema validation; set `false` for relaxed validation on direct installs or legacy plugins.
+Each entry in the `plugins` array supports:
+
+- **Required:** `name` and `source`.
+- **Metadata and component paths:** the same fields as `plugin.json` (`description`, `version`, `author`, `homepage`, `repository`, `license`, `keywords`, `category`, `tags`, `commands`, `agents`, `skills`, `hooks`, `mcpServers`, `lspServers`).
+- **`source` resolution:** relative to the marketplace repo root; the leading `./` is optional (`"./plugins/x"` and `"plugins/x"` resolve the same).
+- **`strict`** (optional, default `true`): full schema validation. Set `false` for relaxed validation on direct installs or legacy plugins.
 
 Prefer keeping component path fields (`skills`, `agents`, `hooks`, `mcpServers`, ...) inside each plugin's own `plugin.json` rather than in the marketplace entry; the entry then only needs `name`, `source`, and light metadata.
 

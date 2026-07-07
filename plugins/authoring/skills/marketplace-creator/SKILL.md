@@ -33,7 +33,7 @@ For the full schema, source forms, layouts, and gotchas, load [references/market
 
 A plugin marketplace is a Git repo (or local directory) containing a `marketplace.json` file that lists installable plugins. VS Code and the Copilot CLI clone or read the repo, parse `marketplace.json`, and offer its `plugins` entries for install.
 
-This repository is itself a working marketplace: see [.claude-plugin/marketplace.json](../../../../.claude-plugin/marketplace.json) at the repo root for a complete, validated example.
+This repository is itself a working marketplace: see [.claude-plugin/marketplace.json](../../../../.claude-plugin/marketplace.json) for a complete, validated example.
 
 ## Where marketplace.json goes
 
