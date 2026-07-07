@@ -236,6 +236,7 @@
   suggestion: "Skip enumeration unless adding original analysis."
 
 # ── Corporate buzzwords ───────────────────────────────────────────────────────────
+# Plain jargon that has a simpler everyday replacement.
 - rule: corporate-buzzword
   level: 2
   fix_type: replace
@@ -262,163 +263,169 @@
 
 - rule: corporate-buzzword
   level: 2
+  fix_type: replace
+  pattern: "\\bbolster\\b"
+  suggestion: "Use 'strengthen' or say what it does."
+
+# ── Vague descriptors ─────────────────────────────────────────────────────────────
+# Fuzzy adjectives that hide the specific property they claim.
+- rule: vague-descriptor
+  level: 2
   fix_type: rewrite
   pattern: "\\bmultifaceted\\b"
   suggestion: "Name the specific facets or use 'complex'."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\brobust\\b"
   suggestion: "Describe the specific property (reliable, tested, scalable)."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\bseamless(?:ly)?\\b"
   suggestion: "Describe what actually makes it smooth."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\bsynerg(?:y|ies|istic)\\b"
   suggestion: "Describe the actual interaction."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\bholistic(?:ally)?\\b"
   suggestion: "Describe what's included."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\binnovati(?:ve|on|ng)\\b"
   suggestion: "What's new about it? Say that instead."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\btransformati(?:ve|on|onal)\\b"
   suggestion: "What changed? Say that instead."
 
-- rule: corporate-buzzword
-  level: 2
-  fix_type: rewrite
-  pattern: "\\bcutting[- ]edge\\b"
-  suggestion: "Describe the specific advancement."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: substantiate
-  pattern: "\\bstate[- ]of[- ]the[- ]art\\b"
-  suggestion: "Cite the benchmark or comparison."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: rewrite
-  pattern: "\\bgame[- ]chang(?:er|ing)\\b"
-  suggestion: "Describe the specific impact."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: rewrite
-  pattern: "\\bparadigm shift\\b"
-  suggestion: "Describe what shifted."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: substantiate
-  pattern: "\\bworld[- ]class\\b"
-  suggestion: "Compared to what? Be specific."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: rewrite
-  pattern: "\\bnext[- ]level\\b"
-  suggestion: "Describe the specific improvement."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: substantiate
-  pattern: "\\bbest[- ]in[- ]class\\b"
-  suggestion: "Cite the comparison or benchmark."
-
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: substantiate
   pattern: "\\bscalable\\b"
   suggestion: "To what scale? Be specific."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\bactionable\\b"
   suggestion: "What action? Be specific."
 
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\bimpactful\\b"
   suggestion: "What impact? Be specific."
 
-- rule: corporate-buzzword
-  level: 2
-  fix_type: rewrite
-  pattern: "\\bgroundbreaking\\b"
-  suggestion: "What did it break? Be specific."
-
-- rule: corporate-buzzword
+- rule: vague-descriptor
   level: 2
   fix_type: rewrite
   pattern: "\\bpivot(?:al)?\\b"
   suggestion: "Often overused. Say what makes it important."
   note: "Fine when describing a startup pivot."
 
-- rule: corporate-buzzword
+# ── Empty superlatives ────────────────────────────────────────────────────────────
+# Grandiose praise that asserts greatness without evidence.
+- rule: empty-superlative
+  level: 2
+  fix_type: rewrite
+  pattern: "\\bcutting[- ]edge\\b"
+  suggestion: "Describe the specific advancement."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: substantiate
+  pattern: "\\bstate[- ]of[- ]the[- ]art\\b"
+  suggestion: "Cite the benchmark or comparison."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: rewrite
+  pattern: "\\bgame[- ]chang(?:er|ing)\\b"
+  suggestion: "Describe the specific impact."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: rewrite
+  pattern: "\\bparadigm shift\\b"
+  suggestion: "Describe what shifted."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: substantiate
+  pattern: "\\bworld[- ]class\\b"
+  suggestion: "Compared to what? Be specific."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: rewrite
+  pattern: "\\bnext[- ]level\\b"
+  suggestion: "Describe the specific improvement."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: substantiate
+  pattern: "\\bbest[- ]in[- ]class\\b"
+  suggestion: "Cite the comparison or benchmark."
+
+- rule: empty-superlative
+  level: 2
+  fix_type: rewrite
+  pattern: "\\bgroundbreaking\\b"
+  suggestion: "What did it break? Be specific."
+
+# ── Hype verbs ────────────────────────────────────────────────────────────────────
+# Inflated action verbs that overstate what actually happens.
+- rule: hype-verb
   level: 2
   fix_type: rewrite
   pattern: "\\bempower(?:s|ed|ing|ment)?\\b"
   suggestion: "What capability does it give? Say that."
 
-- rule: corporate-buzzword
+- rule: hype-verb
   level: 2
   fix_type: rewrite
   pattern: "\\bunlock(?:s|ed|ing)?\\b"
   suggestion: "Say what became possible."
   note: "Fine for literal unlocking (doors, features)."
 
-- rule: corporate-buzzword
+- rule: hype-verb
   level: 2
   fix_type: rewrite
   pattern: "\\belevat(?:e|es|ed|ing)\\b"
   suggestion: "Say how it improves."
   note: "Fine for literal elevation."
 
-- rule: corporate-buzzword
+- rule: hype-verb
   level: 2
   fix_type: substantiate
   pattern: "\\boptimize\\b"
   suggestion: "What metric improves? Be specific."
   note: "Fine in technical optimization contexts."
 
-- rule: corporate-buzzword
+- rule: hype-verb
   level: 2
   fix_type: rewrite
   pattern: "\\bstreamline\\b"
   suggestion: "What steps are removed?"
 
-- rule: corporate-buzzword
+- rule: hype-verb
   level: 2
   fix_type: rewrite
   pattern: "\\bsupercharge\\b"
   suggestion: "Describe the actual acceleration."
-
-- rule: corporate-buzzword
-  level: 2
-  fix_type: replace
-  pattern: "\\bbolster\\b"
-  suggestion: "Use 'strengthen' or say what it does."
 
 # ── Weasel words ──────────────────────────────────────────────────────────────────
 - rule: weasel-word
@@ -765,9 +772,11 @@
   fix_type: rewrite
   pattern: "—"
   suggestion: >-
-    Em dash in prose. Readers dislike them, so rephrase rather than keep — but do
-    NOT mechanically swap in a period, semicolon, or comma. The dash is usually
-    there because two clauses have a real relationship. Restructure the sentence so
-    that relationship is expressed without the dash. Bold lead-in labels like
-    **Label** are exempt and fine.
+    Em dash in prose. Rephrase so the relationship between the clauses is stated
+    directly. Prefer: (1) merge the aside into the sentence with a connective
+    ("because", "so", "which", "while"); (2) split into two sentences only when the
+    clauses are genuinely independent; (3) turn a mid-sentence definition into a
+    parenthetical or a colon list. A comma, semicolon, or period is a last resort,
+    not the default — reach for it only when no rephrase reads better. Bold
+    lead-in labels like **Label** are exempt and fine.
   unless: "\\*\\*[^*]+\\*\\*\\s*—"
