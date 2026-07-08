@@ -21,35 +21,7 @@ VS Code and the Copilot CLI look for the marketplace manifest in these locations
 | `marketplace.json` (repo root) | Recognized. |
 | `.plugin/marketplace.json` | OpenPlugin-format layout. |
 
-### Example
-
-```json
-{
-  "name": "my-marketplace",
-  "owner": {
-    "name": "Your Organization",
-    "email": "plugins@example.com"
-  },
-  "metadata": {
-    "description": "Curated plugins for our team",
-    "version": "1.0.0"
-  },
-  "plugins": [
-    {
-      "name": "frontend-design",
-      "description": "Create a professional-looking GUI ...",
-      "version": "2.1.0",
-      "source": "./plugins/frontend-design"
-    },
-    {
-      "name": "security-checks",
-      "description": "Check for potential security vulnerabilities ...",
-      "version": "1.3.0",
-      "source": "./plugins/security-checks"
-    }
-  ]
-}
-```
+For a complete `marketplace.json` example, see the **marketplace-creator** SKILL.md.
 
 ### Top-level fields
 
@@ -172,7 +144,7 @@ VS Code checks for updates on **Extensions: Check for Extension Updates** or aut
 
 ---
 
-## Gotchas
+## Troubleshooting
 
 - **Manifest must live at a recognized path.** `.claude-plugin/marketplace.json`, `.github/plugin/marketplace.json`, root `marketplace.json`, or `.plugin/marketplace.json`. Elsewhere it is ignored.
 - **Never `"source": "./"`.** It installs the entire repo instead of one plugin. Always point at a bounded subdirectory or a `github` source object.
