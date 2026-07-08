@@ -60,7 +60,7 @@ Place it at one of these paths (pick one). `.claude-plugin/marketplace.json` is 
       "name": "security-checks",
       "description": "Check for potential security vulnerabilities ...",
       "version": "1.3.0",
-      "source": { "source": "github", "repo": "acme-labs/security-plugins", "path": "checks", "ref": "v1.3.0" }
+      "source": { "source": "github", "repo": "your-org/security-plugins", "path": "checks", "ref": "v1.3.0" }
     }
   ]
 }
