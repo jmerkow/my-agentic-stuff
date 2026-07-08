@@ -13,7 +13,8 @@ Canonical documentation this skill is built from.
 - https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace
 - https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing
 - https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference
+- https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference#marketplacejson-fields
 
-## Other plugin hosts (for cross-tool orientation)
+## Claude Code
 
 - https://code.claude.com/docs/en/plugin-marketplaces

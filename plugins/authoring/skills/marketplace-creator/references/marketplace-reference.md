@@ -1,6 +1,6 @@
 # Marketplace Reference
 
-Field reference, source forms, layouts, registration, and gotchas for Copilot plugin marketplaces (VS Code + Copilot CLI). Sourced from the official VS Code and GitHub Copilot CLI plugin docs; see [sources.md](sources.md) for the full source list and verification date.
+Field reference, source forms, layouts, registration, and gotchas for Copilot plugin marketplaces (VS Code + Copilot CLI). Sourced from the official VS Code, GitHub Copilot CLI, and Claude Code plugin docs; see [sources.md](sources.md) for the full source list and verification date.
 
 To author the plugins that a marketplace lists, see the **plugin-creator** skill.
 
