@@ -1,15 +1,22 @@
 """Phrase linter for AI slop patterns."""
 
 import argparse
-from collections import defaultdict
-import json
 import re
 import sys
 from pathlib import Path
 
 import yaml
 
-from slop_check.common import DEFAULT_FIX_TYPES_PATH, REFERENCES_DIR, YamlValue, load_fix_types, validate_level
+from slop_check.common import (
+    DEFAULT_FIX_TYPES_PATH,
+    REFERENCES_DIR,
+    YamlValue,
+    format_findings_json,
+    format_findings_text,
+    load_fix_types,
+    summary_counts,
+    validate_level,
+)
 
 
 def load_patterns(path: Path, fix_types_path: Path) -> list[dict]:
@@ -82,41 +89,11 @@ def lint_text(
 
 
 def format_text(findings: list[dict], filename: str | None = None) -> str:
-    if not findings:
-        return f"✅ {filename or 'text'}: No slop detected."
-
-    header = f"{'─' * 60}\n{filename or 'text'} — {len(findings)} finding(s)\n{'─' * 60}"
-    lines: list[str] = [header]
-
-    groups: dict[str, list[dict]] = defaultdict(list)
-    for finding in findings:
-        groups[finding.get("rule", "")].append(finding)
-
-    def group_sort_key(rule_name: str) -> tuple:
-        max_level = max(finding["level"] for finding in groups[rule_name])
-        return (-max_level, rule_name)
-
-    for rule_name in sorted(groups.keys(), key=group_sort_key):
-        rule_findings = groups[rule_name]
-        level = rule_findings[0]["level"]
-        lines.append(f"\n[{rule_name}] level {level}")
-        for finding in rule_findings:
-            note = f"\n       (note: {finding['note']})" if finding.get("note") else ""
-            fix_type = f"\n       fix: {finding['fix_type']}" if finding.get("fix_type") else ""
-            lines.append(f"  L{finding['line']}: \"{finding['match']}\"")
-            lines.append(f"       → {finding['suggestion']}{fix_type}{note}")
-    return "\n".join(lines)
+    return format_findings_text(findings, filename, empty_message="No slop detected.")
 
 
 def format_json(findings: list[dict], filename: str | None = None) -> str:
-    return json.dumps({"file": filename, "findings": findings}, indent=2)
-
-
-def summary_counts(all_findings: list[dict]) -> dict[int, int]:
-    counts = {0: 0, 1: 0, 2: 0, 3: 0}
-    for finding in all_findings:
-        counts[finding["level"]] = counts.get(finding["level"], 0) + 1
-    return counts
+    return format_findings_json(findings, filename)
 
 
 def main() -> int:

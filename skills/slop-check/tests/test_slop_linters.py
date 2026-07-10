@@ -6,7 +6,7 @@ import sys
 import pytest
 
 from slop_check import slop_lint, slop_structure_lint
-from slop_check.common import load_fix_types
+from slop_check.common import format_findings_text, load_fix_types
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
@@ -86,7 +86,10 @@ def test_structure_rule_invalid_fix_type_raises_clear_error(structure_linter, tm
     [
         ("It's important to note that speed matters.", "filler-hedge", 3, "delete"),
         ("Experts agree this is ready.", "fake-authority", 3, "substantiate"),
-        ("This is a robust design.", "corporate-buzzword", 2, "rewrite"),
+        ("This is a robust design.", "vague-descriptor", 2, "rewrite"),
+        ("We deliver a world-class platform.", "empty-superlative", 2, "substantiate"),
+        ("This will empower teams.", "hype-verb", 2, "rewrite"),
+        ("We leverage the toolchain.", "corporate-buzzword", 2, "replace"),
         ("In an era of constant churn, teams need clarity.", "era-opener", 3, "delete"),
     ],
 )
@@ -134,7 +137,7 @@ def test_staccato_burst_ignores_pure_bullet_list_paragraph(structure_linter):
 @pytest.mark.parametrize(
     ("module_name", "text", "expected_rule", "expected_exit_code"),
     [
-        ("slop_check.slop_lint", "This is a robust design.", "corporate-buzzword", 0),
+        ("slop_check.slop_lint", "This is a robust design.", "vague-descriptor", 0),
         ("slop_check.slop_structure_lint", "What does this mean? It means speed matters.", "question-then-answer", 0),
     ],
 )
@@ -150,3 +153,46 @@ def test_cli_json_text_smoke(module_name, text, expected_rule, expected_exit_cod
     payload = json.loads(completed_process.stdout)
     assert payload["file"] == "<inline>"
     assert expected_rule in rule_names(payload["findings"])
+
+def test_format_findings_text_empty_uses_custom_message():
+    output = format_findings_text([], "notes.md", empty_message="Nothing here.")
+
+    assert output == "✅ notes.md: Nothing here."
+
+
+def test_format_findings_text_groups_by_level_then_rule():
+    findings = [
+        {"rule": "beta", "level": 2, "fix_type": "rewrite", "line": 5, "match": "b", "suggestion": "fix b", "note": ""},
+        {"rule": "alpha", "level": 3, "fix_type": "delete", "line": 2, "match": "a", "suggestion": "fix a", "note": ""},
+    ]
+
+    output = format_findings_text(findings, "doc.md")
+
+    assert "doc.md — 2 finding(s)" in output
+    assert output.index("level 3 high") < output.index("level 2 medium")
+    assert output.index("[alpha]") < output.index("[beta]")
+    assert 'L2 "a"' in output
+    assert "fix a (delete)" in output
+
+
+def test_format_findings_text_collapses_shared_suggestion_into_one_block():
+    findings = [
+        {"rule": "em-dash-prose", "level": 0, "fix_type": "rewrite", "line": 3, "match": "—", "suggestion": "rephrase", "note": ""},
+        {"rule": "em-dash-prose", "level": 0, "fix_type": "rewrite", "line": 9, "match": "—", "suggestion": "rephrase", "note": ""},
+    ]
+
+    output = format_findings_text(findings, "doc.md")
+
+    assert output.count("→ rephrase (rewrite)") == 1
+    assert 'L3 "—" · L9 "—"' in output
+
+
+def test_format_findings_text_truncates_long_match():
+    long_match = "word " * 40
+    findings = [
+        {"rule": "staccato-burst", "level": 1, "fix_type": "rewrite", "line": 1, "match": long_match, "suggestion": "s", "note": ""},
+    ]
+
+    output = format_findings_text(findings, "doc.md")
+
+    assert "…" in output
