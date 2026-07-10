@@ -8,7 +8,7 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 |---|---|---|
 | `authoring` | agent-refiner, skill-creator, plugin-creator | Create, review, and troubleshoot Copilot agents, skills, and plugins |
 | `eng-ops` | engdirs-status, worktree-setup | Audit `.eng/` repo state and set up isolated git worktrees |
-| `sessions` | chronicle-collect | Inspect and query Copilot session history |
+| `sessions` | collect | Inspect and query Copilot session history |
 | `decks` | build-deck | Build presentation decks as SVG slides packaged into `.pptx` |
 | `code-review` | code-review | Local dual sub-agent code review, no PR |
 | `diagram-help` | diagram-help | Mermaid and SVG diagram rendering reference |
