@@ -97,13 +97,13 @@ When fixing, follow these rules:
 
 #### Em dashes
 
-Em dashes flag at `level: 0`. Bold lead-in labels like `**Label** —` are exempt and will not fire. When an em dash is flagged, do NOT reach for a comma, semicolon, or period by default. The dash is almost always there because two clauses have a real relationship, so rephrase to express that relationship directly:
+Em dashes flag at `level: 0`. Bold lead-in labels like `**Label** —` are exempt and will not fire. When an em dash is flagged, do NOT do a punctuation swap (`—` → `,`/`;`/`.`). That misses the real issue. Figure out whether the ideas belong together, then express that relationship directly:
 
-1. Merge the aside into the sentence with a connective (`because`, `so`, `which`, `while`).
+1. Integrate both ideas into one natural sentence when they belong together.
 2. Split into two sentences only when the clauses are genuinely independent.
 3. Turn a mid-sentence definition into a parenthetical or a colon list.
 
-A comma, semicolon, or period is a last resort — use it only when no rephrase reads better.
+A comma, semicolon, or period is a last resort only after a real rewrite.
 
 - ❌ `This was hard — we shipped anyway.`
 - ✅ `Despite the difficulty, we shipped on schedule.`

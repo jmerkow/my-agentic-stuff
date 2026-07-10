@@ -772,11 +772,11 @@
   fix_type: rewrite
   pattern: "—"
   suggestion: >-
-    Em dash in prose. Rephrase so the relationship between the clauses is stated
-    directly. Prefer: (1) merge the aside into the sentence with a connective
-    ("because", "so", "which", "while"); (2) split into two sentences only when the
-    clauses are genuinely independent; (3) turn a mid-sentence definition into a
-    parenthetical or a colon list. A comma, semicolon, or period is a last resort,
-    not the default — reach for it only when no rephrase reads better. Bold
-    lead-in labels like **Label** are exempt and fine.
+    Em dash in prose. Do not mechanically swap the dash for a comma, semicolon, or
+    period. First decide whether the clauses belong together, then express that
+    relationship directly: (1) integrate both ideas into one natural sentence when
+    they belong together; (2) split into two sentences only when the clauses are
+    genuinely independent; (3) turn a mid-sentence definition into a parenthetical
+    or a colon list. A comma, semicolon, or period is a last resort only after a
+    real rewrite. Bold lead-in labels like **Label** are exempt and fine.
   unless: "\\*\\*[^*]+\\*\\*\\s*—"
