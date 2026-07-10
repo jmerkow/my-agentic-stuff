@@ -184,29 +184,6 @@ Plugin MCP servers are trusted at plugin-install time; they don't trigger the pe
 
 Authoring a marketplace, its schema, source forms, plugin source layouts, registration (`chat.plugins.marketplaces`, `copilot plugin marketplace add`), and workspace recommendations are covered by the **marketplace-creator** skill. See its [marketplace-reference.md](../../marketplace-creator/references/marketplace-reference.md).
 
-### Source forms
-
-`source` can be a string or an object.
-
-- **String (local subdirectory of this marketplace repo):**
-  ```json
-  "source": "./plugins/frontend-design"
-  ```
-  Always point at a bounded subdirectory. Never use `"source": "./"`: it installs the entire repo instead of a single plugin.
-
-- **Object (a plugin hosted in another repo, no submodule needed):**
-  ```json
-  "source": { "source": "github", "repo": "owner/repo", "path": "subdir", "ref": "branch-tag-or-sha" }
-  ```
-  `repo` is required. `path` selects a subdirectory inside that repo (omit if the plugin is at the repo root). `ref` pins a branch, tag, or sha; `sha` may also be given for an exact pin.
-
-### Plugin source layouts
-
-A plugin's source directory can be shaped two ways:
-
-- **Single-skill plugin:** put `plugin.json` in `skills/<name>/` beside `SKILL.md`, with `"skills": ["./"]`. The marketplace entry `source` is `./skills/<name>`. It installs flat as `<name>/`.
-- **Grouped multi-skill plugin:** put `plugins/<group>/plugin.json` with `"skills": ["./skills/<a>", "./skills/<b>"]`, and place each skill in `plugins/<group>/skills/<skill>/`. The marketplace entry `source` is `./plugins/<group>`. It installs as `<group>/skills/<skill>/`.
-
 ---
 
 ## Installing and registering
