@@ -110,7 +110,7 @@ A comma, semicolon, or period is a last resort only after a real rewrite.
 
 ## Level Guide
 
-Each finding carries a **rule ID** (the category, e.g. `fake-authority`, `em-dash-prose`) and a numeric **level**. Multiple rule IDs can share a level. Text output is grouped by level (highest first), then by rule ID; within a rule, findings that share a suggestion are collapsed into one entry that lists every location.
+Each finding carries a **rule ID** (the category, e.g. `fake-authority`, `em-dash-prose`) and a numeric **level**. Multiple rule IDs can share a level. Text output is grouped by level (highest first), then by rule ID; within a rule, findings that share the same suggestion, fix type, and note are collapsed into one entry that lists every location.
 
 | Level | Meaning | Action |
 |-------|---------|--------|
