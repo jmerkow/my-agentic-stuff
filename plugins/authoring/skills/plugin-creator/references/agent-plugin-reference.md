@@ -1,6 +1,6 @@
 # Agent Plugin Reference
 
-Field reference, snippets, lifecycle events, marketplace schema, and gotchas for Copilot plugins (VS Code + Copilot CLI). Sourced from the official VS Code and GitHub Copilot CLI plugin docs; see [sources.md](sources.md) for the full source list and verification date.
+Field reference, snippets, lifecycle events, and gotchas for Copilot plugins (VS Code + Copilot CLI). Sourced from the official VS Code and GitHub Copilot CLI plugin docs; see [sources.md](sources.md) for the full source list and verification date. For marketplace authoring and registration, see the **marketplace-creator** skill.
 
 ---
 
@@ -182,50 +182,7 @@ Plugin MCP servers are trusted at plugin-install time; they don't trigger the pe
 
 ## marketplace.json
 
-A plugin marketplace is a Git repo (or local directory) containing a `marketplace.json` file. Recommended path: `.github/plugin/marketplace.json`.
-
-### Example
-
-```json
-{
-  "name": "my-marketplace",
-  "owner": {
-    "name": "Your Organization",
-    "email": "plugins@example.com"
-  },
-  "metadata": {
-    "description": "Curated plugins for our team",
-    "version": "1.0.0"
-  },
-  "plugins": [
-    {
-      "name": "frontend-design",
-      "description": "Create a professional-looking GUI ...",
-      "version": "2.1.0",
-      "source": "./plugins/frontend-design"
-    },
-    {
-      "name": "security-checks",
-      "description": "Check for potential security vulnerabilities ...",
-      "version": "1.3.0",
-      "source": "./plugins/security-checks"
-    }
-  ]
-}
-```
-
-### Top-level fields
-
-| Field | Required | Notes |
-|-------|----------|-------|
-| `name` | Yes | Kebab-case, max 64 chars |
-| `owner` | Yes | `{ name, email? }` |
-| `plugins` | Yes | Array of plugin entries |
-| `metadata` | No | `{ description?, version?, pluginRoot? }` |
-
-### Plugin entry fields
-
-`name`, `source` (required), plus the same metadata and component path fields as `plugin.json`. `source` resolves relative to the marketplace repo root. Optional `strict` (default `true`): full schema validation; set `false` for relaxed validation.
+Authoring a marketplace, its schema, source forms, plugin source layouts, registration (`chat.plugins.marketplaces`, `copilot plugin marketplace add`), and workspace recommendations are covered by the **marketplace-creator** skill. See its [marketplace-reference.md](../../marketplace-creator/references/marketplace-reference.md).
 
 ### Source forms
 
@@ -263,19 +220,11 @@ A plugin's source directory can be shaped two ways:
 }
 ```
 
-```json
-// settings.json
-"chat.plugins.marketplaces": [
-  "owner/repo",
-  "https://github.com/o/r.git",
-  "git@github.com:owner/repo.git",
-  "file:///path/to/local-marketplace"
-]
-```
-
 Command palette:
 
 - `Chat: Install Plugin From Source`: install directly from a Git URL.
+
+For registering a marketplace via `chat.plugins.marketplaces`, see the **marketplace-creator** skill.
 
 ### Copilot CLI
 
@@ -294,16 +243,9 @@ copilot plugin disable PLUGIN-NAME
 copilot plugin update PLUGIN-NAME
 copilot plugin update --all
 copilot plugin uninstall PLUGIN-NAME
-
-# Manage marketplaces
-copilot plugin marketplace add OWNER/REPO
-copilot plugin marketplace add /path/to/local
-copilot plugin marketplace list
-copilot plugin marketplace browse MARKETPLACE-NAME
-copilot plugin marketplace remove MARKETPLACE-NAME
 ```
 
-Default Copilot CLI marketplaces (registered out of the box): `copilot-plugins`, `awesome-copilot`.
+Marketplace management commands (`copilot plugin marketplace ...`) live in the **marketplace-creator** skill.
 
 ### Copilot CLI install layout
 
