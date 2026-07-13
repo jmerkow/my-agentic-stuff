@@ -8,7 +8,8 @@ description: >
   cross-model review of a high-stakes or ambiguous question, or asks to ask the council,
   panel, or multiple models.
   Keywords: council, panel, specialists, personas, multiple models, diverse perspectives,
-  ensemble, model comparison, cross-model review, fan-out, synthesize.
+  ensemble, model comparison, cross-model review, fan-out, synthesize, second opinion,
+  3-flag, 2-horse.
 ---
 
 # LLM Council
@@ -33,6 +34,21 @@ Do NOT use for every question. A council is heavier than a single model call —
 - **Hybrid** — combine both axes: specialists each seated on a distinct model, varying lens *and* blind spots at once.
 
 All modes keep seat independence (no seat sees another's answer) and use the same chair/synthesis step. Panel mode intentionally relaxes the "bare question, no framing" rule of Ensemble mode — that is the point, not a bug.
+
+## Presets (quick invocation)
+
+The user can lead with a shorthand: `/llm-council <preset> <question>`. The pattern is `<seats>-<tier>` — `flag` = flagship, `horse` = workhorse. No preset defaults to `3-flag`.
+
+| Preset | Council | Resolves to today |
+|---|---|---|
+| `3-flag` | 3 flagships, cross-vendor (**default**) | Opus 4.8 + Gemini 3.1 Pro + GPT-5.6 Sol |
+| `2-flag` | 2 flagships, 2 vendors — fast high-power second opinion | Opus 4.8 + Gemini 3.1 Pro |
+| `3-horse` | 3 workhorses, cross-vendor — lighter/faster | Sonnet 5 + Gemini 2.5 Pro + GPT-5.6 Terra |
+| `2-horse` | 2 workhorses, 2 vendors — lightest second opinion | Sonnet 5 + Gemini 2.5 Pro |
+| `4-code` | 3 flagships + a light code-tuned 4th lens | + MAI-Code |
+| `panel` | Panel mode, review lenses (skeptic + pragmatist + ambiguity hunter) on cross-vendor seats | — |
+
+Presets resolve roles to the live roster (see [references/model-selection.md](references/model-selection.md)); the "today" column is just the current mapping, not fixed. A `2-*` preset is two cold reads — disagreement means "look closer," not "majority wins."
 
 ## Portability (harness adapters)
 
