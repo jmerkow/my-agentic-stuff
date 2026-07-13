@@ -57,7 +57,13 @@ The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketp
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- **Default:** one flagship per vendor, priority Anthropic → OpenAI → Google. **3 seats = Opus + a GPT flagship + Gemini Pro** (full cross-vendor); **2 seats = Opus + a GPT flagship** (Anthropic + OpenAI — Google joins only as the 3rd seat). Resolve names at run time.
+- **Default seats** — fill in vendor-priority order:
+  1. Anthropic (Opus)
+  2. OpenAI (GPT flagship)
+  3. Google (Gemini Pro)
+  4. Microsoft (MAI-Code) — code lens only
+
+  So **2 seats = 1–2**, **3 seats = 1–3** (the default), **4-code = 1–4**. Resolve names at run time.
 - **Lighter / faster:** when the question doesn't need flagship power, drop to the workhorse tier — Sonnet, GPT-5.6 Terra, Gemini 2.5 Pro (same vendor priority).
 - **Code-heavy:** the flagships already code best; optionally add a light code-tuned model (MAI-Code) as a cheap 4th lens.
 - **Cross-vendor is *preferred, not required*:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses — it shares that vendor's blind spots, so weight its agreement accordingly.
