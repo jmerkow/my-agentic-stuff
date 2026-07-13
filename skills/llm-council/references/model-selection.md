@@ -40,7 +40,7 @@ A council's value comes from error coverage, not average accuracy. Two models ar
 
 Apply these rules in order:
 
-1. **Cross-vendor first.** With 3 seats, use 3 different vendors. Any combination spanning (Anthropic, Google, OpenAI) is more orthogonal than any within-vendor combination. Different labs use different pretraining pipelines, alignment regimes, and documented failure modes.
+1. **Prefer cross-vendor, but it is not required.** Across 3 seats, 3 different vendors (Anthropic, Google, OpenAI) give the most orthogonality — different pipelines, alignment regimes, and documented failure modes. But a same-vendor multi-tier council is a legitimate fallback when cross-vendor isn't available (e.g. Claude Code) or when you want tighter cost/latency control: Anthropic in particular spans Opus / Sonnet / Haiku, which differ enough in scale to give useful (if correlated) spread. A same-vendor council shares that vendor's blind spots — weight its agreement accordingly.
 2. **Avoid same named-variant clusters.** Do not seat GPT-5.6 Luna AND GPT-5.6 Sol — they share the same vendor and generation-variant cluster. Pick at most one from any named-variant cluster:
    - Luna / Sol / Terra → one seat maximum
    - Opus 4.6 / 4.7 / 4.8 → one seat maximum
@@ -99,3 +99,12 @@ When the roster changes, re-run the discovery probe and remap roles:
 - Google Pro → first non-Flash, non-Preview Google model
 - OpenAI current → GPT generation between the latest and its mini variant (avoid named-variant clusters)
 - Code specialist → any code-tuned model from a vendor not already in the council
+
+## 5. Pinning Models
+
+Two ways to fix which models sit on the council:
+
+- **Role-pinned (default, portable).** Store seats as roles — "Anthropic mid-tier", "Google Pro", "OpenAI current" — and resolve them to concrete names at run time from the live roster. Survives roster churn; the same council definition works across environments.
+- **Name-pinned (reproducible).** Store exact names (e.g. `Claude Sonnet 4.6`). Use only when you need reproducibility — benchmarking, or explicitly comparing named models — because pinned names go stale as models are retired.
+
+Whichever you use, **record the exact resolved model names (and the chair) in the run's appendix.** A role-pinned run is only reproducible after the fact if you captured what the roles resolved to. Pin the chair the same way you pin the seats.

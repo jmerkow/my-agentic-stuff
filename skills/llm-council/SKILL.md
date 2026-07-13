@@ -2,8 +2,9 @@
 name: llm-council
 description: >
   Run an LLM council: pose a question to multiple orthogonal models and/or specialist
-  personas in parallel (via the harness's subagent tool), anonymize and synthesize the
-  responses with a separate chair model. Use when the user wants diverse model
+  personas in parallel (via the harness's subagent tool), then summarize each stance and
+  synthesize the responses with a separate chair model. Use when the user wants diverse
+  model
   perspectives, a panel of specialist lenses (concise, skeptic, coder, prose), or
   cross-model review of a high-stakes or ambiguous question, or asks to ask the council,
   panel, or multiple models.
@@ -13,7 +14,7 @@ description: >
 
 # LLM Council
 
-Structured multi-model review: fan out one question to N independent models, anonymize and shuffle the responses, then have a chair model from a different vendor synthesize them into a single grounded answer.
+Structured multi-model review: fan out one question to N independent seats, then have a chair model summarize each councilor's stance and synthesize them into a single grounded answer.
 
 ## When to Use This Skill
 
@@ -47,14 +48,15 @@ Below, "spawn a seat" means the current harness's subagent call — not literall
 ## Roles
 
 - **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat sees ONLY the question (plus its own persona framing in Panel mode), never another seat's answer.
-- **Chair (synthesizer):** A model that did NOT produce any council answer — never one of the seats. Prefer a different vendor than the council; when there is no majority (e.g. the 3-vendor default) or only one vendor is available (Claude Code), pick any model/tier not used as a seat and note the reduced separation. Receives the question plus all anonymized responses.
+- **Chair (synthesizer):** A model that did NOT produce any council answer — never one of the seats. Prefer a different vendor than the council; when there is no majority (e.g. the 3-vendor default) or only one vendor is available (Claude Code), pick any model/tier not used as a seat and note the reduced separation. Receives the question plus every seat's response, each labeled with its model and persona.
 
 ## The 5-Step Flow
 
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- Default council = 3 cross-vendor mid-tier **roles**: an Anthropic mid-tier + a Google Pro + an OpenAI current model; add a code-specialist 4th seat for code-heavy work. Resolve roles to concrete names at discovery time — do not hardcode.
+- Default council = 3 mid-tier **roles**: an Anthropic mid-tier + a Google Pro + an OpenAI current model (add a code-specialist 4th for code-heavy work). Cross-vendor is *preferred, not required* — a same-vendor multi-tier council (e.g. Claude Opus + Sonnet + Haiku) is a valid fallback, and the only option on single-vendor harnesses; it just shares that vendor's blind spots, so weight its agreement accordingly.
+- **Pinning:** resolve roles to concrete names at run time (portable, survives churn). Name-pin exact models only for reproducibility or explicit model comparisons — and always record the resolved names in the appendix. See [references/model-selection.md](references/model-selection.md).
 - On Copilot harnesses, discover the live roster first via the invalid-model probe. On Claude Code, the roster is the Anthropic family (see Portability) — use Panel mode.
 - A dynamic/auto-routing model (e.g. Copilot `Auto`) may chair but must never hold a seat (non-deterministic).
 - Respect the user's explicit model or persona choices if given.
@@ -65,92 +67,99 @@ See [references/model-selection.md](references/model-selection.md) for roster di
 Config knobs:
 - `council_size`: 3 (default), 4 for code-heavy
 - `models`: explicit list overrides defaults (e.g., `["Claude Sonnet 4.6 (copilot)", "Gemini 2.5 Pro (copilot)", "GPT-5.5 (copilot)"]`)
-- `synthesizer`: model for the chair step (default: `Auto` or a model from a different vendor than the council majority)
+- `synthesizer`: model for the chair step (default: a model/tier not used as a seat; prefer a different vendor, or `Auto`)
 
 ### Step 2 — Fan-Out (Independent Answering)
 
-Spawn one `runSubagent` call per council seat. Run ALL in parallel.
+Spawn one seat per council member (see Portability for the per-harness call). Run them all in parallel.
 
-**Critical invariant — no cross-contamination:** No seat ever sees another seat's answer, your synthesis reasoning, model identity, or context the user didn't provide. This holds in every mode. Isolation is NOT automatic: a full-agent seat with tool access may read the repo or search the web, quietly re-correlating the seats. For a faithful Ensemble, pass only the question text and prefer non-agentic (persona-only) seats; reserve tool-using agent seats for Panel mode, where framing is deliberately varied.
+**Critical invariant — no cross-contamination:** No seat ever sees another seat's answer, your reasoning, or context the user didn't provide. Isolation is NOT automatic: a full-agent seat with tool access may read the repo or search the web, quietly re-correlating the seats. For a faithful Ensemble, pass only the question (plus a persona preamble in Panel mode) and prefer non-agentic seats; reserve tool-using agent seats for Panel mode.
 
-The `model` parameter format is `"Model Name (Vendor)"` — e.g., `"Claude Sonnet 4.6 (copilot)"`. For agent-backed seats, also set `agentName` (e.g. `eng-code-sub`).
+**Build the seat prompt.** Every seat gets the *same* task text — vary only the model and (Panel) the persona preamble. A bare question is rarely enough; add an **output cap** (keeps answers comparable and synthesis tractable) and the **output shape** you want, matched to the question.
 
-**Ensemble-mode member prompt (bare question only):**
+**Template A — opinion / take** (the question wants a position or answer):
 ```
-{user_question}
+{persona_preamble}          # Panel mode only
+
+{question}
+
+Answer in ≤200 words: state your position, then the 2-3 reasons that most drive it,
+then your single biggest uncertainty. Don't hedge.
 ```
-No preamble, no framing — the question only.
 
-**Panel-mode member prompt (persona preamble + question):**
+**Template B — findings / itemized** (the question is "find issues / review / list X"):
 ```
-{persona_preamble}
+{persona_preamble}          # Panel mode only
 
-{user_question}
+{question}
+
+Return a list, most important first, ≤8 items. For each: a short **title**, a
+one-sentence explanation, and a severity (high / med / low). Name the single biggest one.
 ```
-The persona preamble (from [references/specialists.md](references/specialists.md)) is the ONLY framing added, and it is per-seat. Never add your own opinions or another seat's answer.
 
-If a seat fails or times out: log it as failed, continue with survivors. Proceed to synthesis with a minimum of 2 surviving responses. One failure never blocks the council.
+**Simple vs. advanced questions:**
+- *Simple* — the templates above are enough; the seat answers directly.
+- *Advanced* (long, multi-part, or the seat must orchestrate or produce a large artifact): spell out the exact output format, and if the answer is long, have the seat **write it to a file and return a short summary + the path** instead of dumping it inline.
+  - If an `.eng/` directory exists at the workspace root, write there — the active workstream's `council/<date>-<slug>/` if one is active, else `.eng/council/<date>-<slug>/`.
+  - Otherwise write to a path the user names, or return inline when small.
+  - Collect the paths so the chair (Step 4) can read the full artifacts.
 
-### Step 3 — Collect and Anonymize
+If a seat fails or times out: log it, continue with survivors (minimum 2). One failure never blocks the council.
 
-After all parallel calls return (or time out with degradation applied):
+### Step 3 — Collect
 
-1. Collect all successful responses.
-2. Shuffle the response order randomly.
-3. Label them Response A, Response B, Response C (etc.).
-4. **Strip model identity** — the chair must not know which model produced which response.
+Gather every successful response and keep it **labeled** with its seat — the model, and in Panel mode the persona. You will summarize each councilor's stance for the user, so identity matters; do not strip it.
 
-Shuffling prevents position bias (LLM-as-a-Judge literature shows models prefer the first response when order is fixed). Anonymizing prevents self-enhancement bias (a model biased toward its own outputs if it can recognize them).
+(No anonymizing or shuffling: an LLM chair can't be made truly blind, and knowing each councilor's identity is exactly what lets the synthesis attribute stances and show who agrees with whom.)
 
 ### Step 4 — Synthesize (Chair Step)
 
-Call `runSubagent` with the chair model and the synthesis prompt below. The chair has NOT generated any of the constituent answers — it approaches them cold.
+Give the chair the question and every labeled response. The chair did not produce any of them, so it reads them cold. It returns two things:
 
-**Chair/synthesizer prompt template:**
+1. **Per-councilor stance** — one short paragraph per seat, in the chair's own words, capturing that councilor's position and what drives it. Label by model, plus persona when personas differ; skip persona labels when every seat shared one. Note where a councilor stands alone.
+2. **Synthesis** — where councilors agree, where they genuinely disagree (with a reasoned call on each), any unique point worth keeping, and a grounded bottom line. Don't just echo the most confident seat.
+
+**Chair prompt template:**
 ```
-You are synthesizing independent responses from multiple AI models to the following
-question. Your role is to produce a single, well-grounded answer that is more
-accurate and complete than any individual response.
+You are the chair of a council. Below is a question and the independent responses of
+several councilors, each labeled with its model (and persona, if any). Produce:
 
-Instructions:
-1. Identify CONSENSUS — where models agree, the answer is likely reliable.
-2. Identify DISAGREEMENTS — flag these explicitly and reason about which position
-   is more defensible.
-3. Identify UNIQUE CONTRIBUTIONS — insights or caveats present in only one response
-   that add value.
-4. Do not simply pick the most confident response. Synthesize.
-5. Attribute significant claims to "multiple models" (if consensus) or
-   "one model" (if unique or disputed). Do not speculate about which model.
+1. STANCE SUMMARY — one short paragraph per councilor, in your own words, capturing that
+   councilor's position and what drives it. Note where a councilor stands alone.
+2. SYNTHESIS — where councilors AGREE (likely reliable), where they DISAGREE (flag it and
+   reason about which position is more defensible), and any UNIQUE point that adds value.
+   End with a grounded bottom line. Do not merely echo the most confident answer; treat
+   unanimous agreement as possible correlated bias, not automatic truth.
 
-Original question:
+Question:
 {question}
 
-Independent responses (anonymized — do not speculate about model identity):
---- Response A ---
-{response_a}
+Councilor responses:
+--- {model_1} / {persona_1} ---
+{response_1}
 
---- Response B ---
-{response_b}
-
---- Response C ---
-{response_c}
----
-
-Synthesize your response now.
+--- {model_2} / {persona_2} ---
+{response_2}
+...
 ```
-
-Adapt the number of `--- Response X ---` blocks to the actual number of survivors.
 
 ### Step 5 — Present
 
-Return to the user:
-1. **Synthesized answer** (the chair's output, as the primary response)
-2. **Appendix — Council Details (compact by default):**
-   - Council composition: which models/personas were seated and which chaired
-   - Any seat that failed and was excluded
-   - Full per-seat responses only when the user asks, the question is high-stakes, or the seats materially disagree — otherwise a one-line-per-seat gist
+Match the presentation to what the councilors returned:
 
-Anonymization (Step 3) is only for the chair; the appendix may name models unless the user asked for a blind review.
+**If they returned lists / findings** (Template B — "find issues", reviews): present a **consolidated table**, consensus first, so agreement is obvious at a glance:
+
+| # | Finding | Raised by | Severity | Fix |
+|---|---|---|---|---|
+| 1 | short title | all 3 · Sonnet, Gemini, GPT | High | one-line fix |
+| 2 | short title | 2 · Sonnet, GPT | Med | one-line fix |
+| … | lone-wolf items last | 1 · Gemini | Low | one-line fix |
+
+Merge the same point raised by different councilors into one row and show who raised it — that agreement count is the signal. Follow the table with the chair's bottom line.
+
+**If they returned takes / positions** (Template A — a question or topic): present the chair's **per-councilor stance paragraphs**, then the **synthesis**. No table — itemizing prose takes loses the reasoning.
+
+**Always** end with a compact footer: council composition (models/personas, which chaired), any failed seats, and — if models were name-pinned or seats wrote to files — the resolved names and artifact paths. Offer full per-seat responses on request; don't dump them by default.
 
 ## Graceful Degradation
 
@@ -165,7 +174,7 @@ Never block the entire council on a single seat failure.
 
 ## Notes
 
-- Why independent first-pass answers: separate, uncontaminated seats reduce shared-context bias, so agreement becomes meaningful signal and disagreement surfaces blind spots (the Mixture-of-Agents finding). Why anonymize + shuffle for the chair: it removes position and self-enhancement bias (the LLM-as-a-Judge finding).
+- Why independent first-pass answers: separate, uncontaminated seats reduce shared-context bias, so agreement becomes meaningful signal and disagreement surfaces blind spots (the Mixture-of-Agents finding).
 - When seats strongly agree, treat it as possible correlated bias — not automatic truth — especially if they share a vendor.
 - Model discovery and orthogonal seat selection: [references/model-selection.md](references/model-selection.md).
 - Specialist personas and panel presets: [references/specialists.md](references/specialists.md).
