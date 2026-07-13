@@ -3,8 +3,7 @@ name: llm-council
 description: >
   Run an LLM council: pose a question to multiple orthogonal models and/or specialist
   personas in parallel (via the harness's subagent tool), then summarize each stance and
-  synthesize the responses with a separate chair model. Use when the user wants diverse
-  model
+  synthesize the responses with a separate chair model. Use when the user wants diverse model
   perspectives, a panel of specialist lenses (concise, skeptic, coder, prose), or
   cross-model review of a high-stakes or ambiguous question, or asks to ask the council,
   panel, or multiple models.
@@ -48,16 +47,19 @@ Below, "spawn a seat" means the current harness's subagent call — not literall
 ## Roles
 
 - **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat sees ONLY the question (plus its own persona framing in Panel mode), never another seat's answer.
-- **Chair (synthesizer):** A model that did NOT produce any council answer — never one of the seats. Prefer a different vendor than the council; when there is no majority (e.g. the 3-vendor default) or only one vendor is available (Claude Code), pick any model/tier not used as a seat and note the reduced separation. Receives the question plus every seat's response, each labeled with its model and persona.
+- **Chair (synthesizer):** any model that is NOT one of the seats — that's the only hard rule. With the cross-vendor default the chair will share a vendor with some seat; that's expected, not a problem to flag — just don't reuse a seat's exact model. `Auto`, or a workhorse from any vendor, makes a fine chair. It receives the question plus every seat's response, each labeled with its model and persona.
 
 ## The 5-Step Flow
 
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- Default council = 3 cross-vendor **roles**, latest of each: **Opus** (Anthropic flagship) + **Gemini Pro** (Google) + the **latest GPT** (OpenAI) — today Opus 4.8 + Gemini 3.1 Pro (Preview) + GPT-5.6 Sol; for code-heavy work the flagships already code best, so optionally add a light code-tuned model (MAI-Code) as a cheap extra lens. Drop to the **workhorse** tier (Sonnet / Gemini 2.5 Pro / GPT-5.5) for cheaper, faster fan-out. Cross-vendor is *preferred, not required* — a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses; it shares that vendor's blind spots, so weight its agreement accordingly.
+- **Default:** 3 cross-vendor flagship **roles** — Opus (Anthropic) + Gemini Pro (Google) + latest GPT (OpenAI). Today those resolve to Opus 4.8 + Gemini 3.1 Pro (Preview) + GPT-5.6 Sol. The **roles** are authoritative; the names are just the current dated resolution — re-resolve them, don't trust them.
+- **Cheaper / faster:** drop to the workhorse tier — Sonnet / Gemini 2.5 Pro / GPT-5.6 Terra.
+- **Code-heavy:** the flagships already code best; optionally add a light code-tuned model (MAI-Code) as a cheap 4th lens.
+- **Cross-vendor is *preferred, not required*:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses — it shares that vendor's blind spots, so weight its agreement accordingly.
 - **Pinning:** resolve roles to concrete names at run time (portable, survives churn). Name-pin exact models only for reproducibility or explicit model comparisons — and always record the resolved names in the appendix. See [references/model-selection.md](references/model-selection.md).
-- On Copilot harnesses, discover the live roster first via the invalid-model probe. On Claude Code, the roster is the Anthropic family (see Portability) — use Panel mode.
+- On Copilot harnesses, discover the live roster first via the invalid-model probe; if it returns nothing parseable, ask the user for model names or use the dated defaults above. On Claude Code, the roster is the Anthropic family (see Portability) — use Panel mode.
 - A dynamic/auto-routing model (e.g. Copilot `Auto`) may chair but must never hold a seat (non-deterministic).
 - Respect the user's explicit model or persona choices if given.
 - **Panel/Hybrid mode:** pick specialist lenses from [references/specialists.md](references/specialists.md) (or a preset panel). Optionally pair each with a distinct model, or target an existing agent via `agentName` — but agent names like `eng-code-sub` / `Explore` are examples that may not exist; if absent, fall back to the persona preamble alone.
@@ -66,14 +68,14 @@ See [references/model-selection.md](references/model-selection.md) for roster di
 
 Config knobs:
 - `council_size`: 3 (default), 4 for code-heavy
-- `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "Gemini 3.1 Pro (Preview) (copilot)", "GPT-5.6 Sol (copilot)"]`)
-- `synthesizer`: model for the chair step (default: a model/tier not used as a seat; prefer a different vendor, or `Auto`)
+- `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "Gemini 3.1 Pro (Preview) (copilot)", "GPT-5.6 Sol (copilot)"]`) — a manual override can collapse the cross-vendor/tier spread; note that in the footer if it does
+- `synthesizer`: model for the chair step (default: `Auto`, or any model that isn't one of the seats)
 
 ### Step 2 — Fan-Out (Independent Answering)
 
 Spawn one seat per council member (see Portability for the per-harness call). Run them all in parallel.
 
-**Critical invariant — no cross-contamination:** No seat ever sees another seat's answer, your reasoning, or context the user didn't provide. Isolation is NOT automatic: a full-agent seat with tool access may read the repo or search the web, quietly re-correlating the seats. For a faithful Ensemble, pass only the question (plus a persona preamble in Panel mode) and prefer non-agentic seats; reserve tool-using agent seats for Panel mode.
+**Critical invariant — no cross-contamination:** No seat ever sees another seat's answer, your reasoning, or context the user didn't provide. Isolation is NOT automatic: a full-agent seat with tool access may read the repo or search the web, quietly re-correlating the seats. For a faithful Ensemble, pass only the question (plus a persona preamble in Panel mode) and prefer non-agentic seats; reserve tool-using agent seats for Panel mode. **Never seat an agent-backed (`agentName`) or otherwise tool-enabled seat in Ensemble mode** — its extra context defeats the independence that mode exists for.
 
 **Build the seat prompt.** Every seat gets the *same* task text — vary only the model and (Panel) the persona preamble. A bare question is rarely enough; add an **output cap** (keeps answers comparable and synthesis tractable) and the **output shape** you want, matched to the question.
 
@@ -100,8 +102,8 @@ one-sentence explanation, and a severity (high / med / low). Name the single big
 **Simple vs. advanced questions:**
 - *Simple* — the templates above are enough; the seat answers directly.
 - *Advanced* (long, multi-part, or the seat must orchestrate or produce a large artifact): spell out the exact output format, and if the answer is long, have the seat **write it to a file and return a short summary + the path** instead of dumping it inline.
-  - If an `.eng/` directory exists at the workspace root, write there — the active workstream's `council/<date>-<slug>/` if one is active, else `.eng/council/<date>-<slug>/`.
-  - Otherwise write to a path the user names, or return inline when small.
+  - Write each seat to its own **uniquely named** file (e.g. `<seat-model-or-persona>.md`); tell the seat to write ONLY its own file and never read the council directory, so seats still can't see each other.
+  - Location: if an `.eng/` directory exists at the workspace root, use the active workstream's `council/<date>-<slug>/` (or `.eng/council/<date>-<slug>/` when no workstream is active); otherwise a path the user names, or inline when small.
   - Collect the paths so the chair (Step 4) can read the full artifacts.
 
 If a seat fails or times out: log it, continue with survivors (minimum 2). One failure never blocks the council.
@@ -168,7 +170,7 @@ Merge the same point raised by different councilors into one row and show who ra
 | A seat times out | Note the failure; continue with survivors |
 | A seat returns an error | Note the failure; continue with survivors |
 | Only 2 survivors | Synthesize from 2 (note reduced council in appendix) |
-| Fewer than 2 survivors | Abort council; return the single surviving response with a note, or escalate to user |
+| Fewer than 2 survivors | Don't synthesize — return the one response labeled "not a council result," or report the failure |
 
 Never block the entire council on a single seat failure.
 
