@@ -58,6 +58,8 @@ In most families the tier is baked into the name and holds across versions, so n
 
 Cost tracks tier (flagship output ≈ 2500-3000 credits/1M, workhorse ≈ 1000-1500, light ≤ 900), and Google prices below the others at the same tier. Context also varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
 
+Per-model cards — grounded facts plus a subjective peer-rating `stats` block — are in [model-cards.yaml](model-cards.yaml).
+
 ### Which tiers to seat
 
 Vary the **vendor**, hold the **tier** — diversity should come from different labs, not from mixing strong and weak models.

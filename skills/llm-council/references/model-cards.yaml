@@ -1,0 +1,164 @@
+# LLM model cards — grounded facts + peer-rating stats
+#
+# tier / cost / context / vision are OBSERVED facts (2026-07-13 roster).
+# stats are SUBJECTIVE peer ratings (1-10), the mean of a 3-model self-poll
+#   (Claude Opus 4.8, Gemini 3.1 Pro, GPT-5.6 Sol) on 2026-07-13 — NOT benchmarks.
+#   Raw per-councilor ballots: .eng/workstreams/llm-council/ratings/ (not shipped).
+# Re-poll and re-average when the roster changes; treat as a rough guide, not truth.
+models:
+  - model: GPT-5.6 Sol
+    vendor: OpenAI
+    tier: flagship
+    cost_credits_per_1m: {in: 500, out: 3000}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 10.0
+      coding: 9.3
+      prose: 9.0
+      math: 9.7
+      knowledge: 9.7
+      overall: 9.5
+  - model: Claude Opus 4.8
+    vendor: Anthropic
+    tier: flagship
+    cost_credits_per_1m: {in: 500, out: 2500}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 9.7
+      coding: 9.3
+      prose: 10.0
+      math: 8.3
+      knowledge: 9.0
+      overall: 9.3
+  - model: Gemini 3.1 Pro (Preview)
+    vendor: Google
+    tier: flagship
+    cost_credits_per_1m: {in: 200, out: 1200}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 9.3
+      coding: 9.0
+      prose: 8.0
+      math: 9.7
+      knowledge: 10.0
+      overall: 9.2
+  - model: Claude Sonnet 5
+    vendor: Anthropic
+    tier: workhorse
+    cost_credits_per_1m: {in: 200, out: 1000}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 9.0
+      coding: 9.3
+      prose: 8.7
+      math: 8.3
+      knowledge: 8.3
+      overall: 8.7
+  - model: GPT-5.5
+    vendor: OpenAI
+    tier: flagship
+    cost_credits_per_1m: {in: 500, out: 3000}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 9.0
+      coding: 8.3
+      prose: 8.3
+      math: 8.7
+      knowledge: 9.3
+      overall: 8.7
+  - model: GPT-5.6 Terra
+    vendor: OpenAI
+    tier: workhorse
+    cost_credits_per_1m: {in: 250, out: 1500}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 8.7
+      coding: 8.7
+      prose: 8.0
+      math: 8.7
+      knowledge: 8.7
+      overall: 8.6
+  - model: Gemini 2.5 Pro
+    vendor: Google
+    tier: workhorse
+    cost_credits_per_1m: {in: 125, out: 1000}
+    context: 173K
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 7.7
+      coding: 7.7
+      prose: 7.0
+      math: 8.3
+      knowledge: 8.7
+      overall: 7.9
+  - model: Gemini 3.5 Flash
+    vendor: Google
+    tier: light
+    cost_credits_per_1m: {in: 150, out: 900}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 6.7
+      coding: 7.0
+      prose: 6.0
+      math: 6.3
+      knowledge: 7.3
+      overall: 6.7
+  - model: GPT-5.6 Luna
+    vendor: OpenAI
+    tier: light
+    cost_credits_per_1m: {in: 100, out: 600}
+    context: 1M
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 6.3
+      coding: 6.7
+      prose: 7.0
+      math: 5.7
+      knowledge: 6.7
+      overall: 6.5
+  - model: Claude Haiku 4.5
+    vendor: Anthropic
+    tier: light
+    cost_credits_per_1m: {in: 100, out: 500}
+    context: 200K
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 6.0
+      coding: 6.0
+      prose: 6.7
+      math: 4.7
+      knowledge: 5.7
+      overall: 5.8
+  - model: GPT-5 mini
+    vendor: OpenAI
+    tier: light
+    cost_credits_per_1m: {in: 25, out: 200}
+    context: 192K
+    vision: true
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 5.0
+      coding: 5.3
+      prose: 5.0
+      math: 5.0
+      knowledge: 6.0
+      overall: 5.3
+  - model: MAI-Code-1-Flash
+    vendor: Microsoft
+    tier: light (code)
+    cost_credits_per_1m: {in: 75, out: 450}
+    context: 256K
+    vision: false
+    stats:  # subjective peer ratings, mean of 3 (1-10)
+      reasoning: 5.0
+      coding: 8.0
+      prose: 3.3
+      math: 3.3
+      knowledge: 4.0
+      overall: 4.7
