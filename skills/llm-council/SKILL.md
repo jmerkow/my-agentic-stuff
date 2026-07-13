@@ -29,28 +29,28 @@ Do NOT use for every question. A council is heavier than a single model call —
 
 ## Two Modes
 
-- **Ensemble mode** — the same bare question goes to N diverse *models* (see [references/model-selection.md](references/model-selection.md)). Pure independence; maximizes error de-correlation. Use for factual/analytical questions where you want blind-spot coverage. The minimal Ensemble is **2 seats — two independent cold reads for a quick second opinion** (two different vendors); 3 is the default.
-- **Panel mode** — the question goes to N *specialists* (persona and/or agent lenses; see [references/specialists.md](references/specialists.md)), optionally each on a different model. Deliberately varies framing to get different *kinds* of feedback (concise vs. thorough, coder vs. prose). Use for reviews, designs, and judgment calls.
-- **Hybrid** — combine both axes: specialists each seated on a distinct model, varying lens *and* blind spots at once.
+- **Ensemble** — the same task to N diverse *models* (default). Independence → error de-correlation; use for factual/analytical questions.
+- **Panel** — N specialist *personas* (see [references/specialists.md](references/specialists.md)), optionally each on a different model. Use for reviews, designs, judgment calls.
+- **Hybrid** — distinct personas *and* models.
 
-All modes keep seat independence (no seat sees another's answer) and use the same chair/synthesis step. Ensemble seats get the task as-is; Panel seats also get a persona preamble.
+Seats are always independent (no seat sees another's answer) and feed the same chair step. Panel/Hybrid add a persona preamble; Ensemble gets the task alone. Min 2 seats, default 3.
 
 ## Presets (quick invocation)
 
-Lead with a shorthand code: `/llm-council <seats>-<tier> <question>`, where tier is `flag` (flagship) or `horse` (workhorse) — so `3-flag` is three flagships and `2-horse` is two workhorse cold reads. Any `<seats>-<tier>` works; a `2-*` is two cold reads, where disagreement means "look closer," not "majority wins." Named extras: `4-code` (flagships + a light code-tuned 4th lens) and `panel` (Panel mode with review lenses). Vendor priority is Anthropic → OpenAI → Google, so a `2-*` uses Anthropic + OpenAI and a `3-*` adds Google (see [references/model-selection.md](references/model-selection.md)); no preset → `3-flag`.
+Shorthand: `/llm-council <seats>-<tier> <question>` — tier is `flag` (flagship) or `horse` (workhorse), so `3-flag` = three flagships, `2-horse` = two workhorse cold reads. Extras: `4-code` (flagships + a code-tuned 4th lens), `panel` (Panel mode). No preset → `3-flag`. In a `2-*`, disagreement means "look closer," not "majority wins."
 
 ## Portability (harness adapters)
 
-The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketplace.json`) is portable, but the **runtime differs by harness**. Before executing, load [references/model-selection.md](references/model-selection.md) and [references/specialists.md](references/specialists.md), then pick the adapter:
+The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketplace.json`) is portable; the **runtime differs by harness**. Load [references/model-selection.md](references/model-selection.md) and [references/specialists.md](references/specialists.md), then:
 
-- **VS Code Copilot / Copilot CLI:** spawn seats with the `runSubagent` tool, an explicit `model` (`"Model Name (Vendor)"`), and optional `agentName`. Cross-vendor seats (Anthropic + Google + OpenAI) are available.
-- **Claude Code:** seats spawn via the `Task` tool against agents under `.claude/agents/`; models are the Anthropic family only (no `(copilot)` suffix). Cross-vendor Ensemble mode is **not** available — use **Panel mode**, where diversity comes from personas (optionally across Opus / Sonnet / Haiku tiers).
-- **No subagent tool at all:** tell the user the council can't run; offer a single-model answer.
+- **VS Code Copilot / Copilot CLI:** `runSubagent` with an explicit `model` (`"Model Name (Vendor)"`) + optional `agentName`; cross-vendor available.
+- **Claude Code:** `Task` against `.claude/agents/`, Anthropic-only — no cross-vendor Ensemble, so use Panel mode (personas, optionally across Opus/Sonnet/Haiku).
+- **No subagent tool:** say the council can't run; offer a single-model answer.
 
 ## Roles
 
-- **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat gets the full task (question + any context it needs), plus its persona framing in Panel mode — never another seat's answer or your own take.
-- **Chair (synthesizer):** reconciles the seats. **The calling agent chairs by default** — it produced none of the seat answers, so it reads them cold. Spawn a *separate* chair only for a fresh perspective; then use any model that isn't one of the seats (`Auto` or a workhorse is fine). The chair sees the question plus every labeled response.
+- **Council members:** N independent seats. Each gets the full task (+ persona in Panel), never another seat's answer or your own take.
+- **Chair:** the calling agent by default (it reads the seats cold). Spawn a separate chair only for a fresh perspective — any non-seat model (`Auto` or a workhorse).
 
 ## The 5-Step Flow
 
@@ -64,16 +64,16 @@ See [references/model-selection.md](references/model-selection.md) for roster di
   4. Microsoft (MAI-Code) — code lens only
 
   So **2 seats = 1–2**, **3 seats = 1–3** (the default), **4-code = 1–4**. Resolve names at run time.
-- **Lighter / faster:** when the question doesn't need flagship power, drop to the workhorse tier — Sonnet, GPT-5.6 Terra, Gemini 2.5 Pro (same vendor priority).
+- **Lighter / faster:** drop to the workhorse tier — Sonnet, GPT-5.6 Terra, Gemini 2.5 Pro.
 - **Code-heavy:** the flagships already code best; optionally add a light code-tuned model (MAI-Code) as a cheap 4th lens.
-- **Cross-vendor is *preferred, not required*:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses — it shares that vendor's blind spots, so weight its agreement accordingly.
+- **Cross-vendor preferred, not required:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback — and the only option on single-vendor harnesses — but shares blind spots, so discount its agreement.
 - **Pinning:** resolve roles at run time; name-pin exact models only for reproducibility, and record the resolved names in the footer. See [references/model-selection.md](references/model-selection.md).
 - On Copilot harnesses, discover the live roster first via the invalid-model probe; if that fails, ask the user for model names. On Claude Code, the roster is the Anthropic family (see Portability) — use Panel mode.
 - A dynamic/auto-routing model (e.g. Copilot `Auto`) may chair but must never hold a seat (non-deterministic).
 - Respect the user's explicit model or persona choices if given.
 - **Panel/Hybrid mode:** pick specialist lenses from [references/specialists.md](references/specialists.md) (or a preset panel). Optionally pair each with a distinct model, or target an existing agent via `agentName` — but agent names like `eng-code-sub` / `Explore` are examples that may not exist; if absent, fall back to the persona preamble alone.
 
-**If seats cannot be given distinct models** (harness has one model family, or the subagent tool has no `model` parameter): switch to Panel mode so diversity comes from personas. Do NOT silently run every seat on the same default model — that is a fake council with no error de-correlation. If neither distinct models nor personas are possible, tell the user and offer a single-model answer.
+**No distinct models?** (one model family, or no `model` parameter) → use Panel mode (persona diversity). Never run identical seats — that's a fake council. Neither possible → tell the user and offer a single-model answer.
 
 Config knobs:
 - `council_size`: 2 (two cold reads — a quick second opinion), 3 (default), 4 (code-heavy)
@@ -84,11 +84,12 @@ Config knobs:
 
 ### Step 2 — Fan-Out (Independent Answering)
 
-Spawn one seat per council member (see Portability for the per-harness call). Run them all in parallel.
+Spawn all seats in parallel. Each gets the *same* task text; vary only the model and (Panel) the persona.
 
-**Guardrails — include vs. withhold.** Give every seat the same, complete task: the question plus whatever context it needs to answer well. Don't starve a seat for the sake of "purity" — embedding the task's data is expected. Withhold only the contaminants: other seats' answers, your own opinion or the conclusion you expect, and hints about what you want to hear. A tool-using seat can pull its own extra context — fine, but it makes seats less independent, so in **Ensemble** mode prefer plain model seats and don't seat agent-backed (`agentName`) ones.
-
-**Build the seat prompt.** Every seat gets the *same* task text — vary only the model and (Panel) the persona preamble. A bare question is rarely enough; add an **output cap** (keeps answers comparable and synthesis tractable) and the **output shape** you want, matched to the question.
+- **Include:** the full question + any context it needs — embedding the task's data is expected.
+- **Withhold:** other seats' answers, your opinion, the conclusion you expect.
+- **Cap the output** and match its shape to the question (templates below).
+- **Ensemble independence:** prefer plain model seats; don't seat agent-backed (`agentName`) or tool-using ones (they pull extra context).
 
 **Template A — opinion / take** (the question wants a position or answer):
 ```
@@ -110,14 +111,9 @@ Return a list, most important first, ≤8 items. For each: a short **title**, a
 one-sentence explanation, and a severity (high / med / low). Name the single biggest one.
 ```
 
-**Simple vs. advanced questions:**
-- *Simple* — the templates above are enough; the seat answers directly.
-- *Advanced* (long, multi-part, or the seat must orchestrate or produce a large artifact): spell out the exact output format, and if the answer is long, have the seat **write it to a file and return a short summary + the path** instead of dumping it inline.
-  - Write each seat to its own **uniquely named** file (e.g. `<seat-model-or-persona>.md`); tell the seat to write ONLY its own file and never read the council directory, so seats still can't see each other.
-  - Location: if an `.eng/` directory exists at the workspace root, use the active workstream's `council/<date>-<slug>/` (or `.eng/council/<date>-<slug>/` when no workstream is active); otherwise a path the user names, or inline when small.
-  - Collect the paths so the chair (Step 4) can read the full artifacts.
+**Advanced** (long/multi-part, or a large artifact): give the exact output format, and if long, have each seat **write its own uniquely named file** (write only that file, never read the council dir) and return a summary + path. Location: under `.eng/`'s active-workstream `council/<date>-<slug>/` (or `.eng/council/<date>-<slug>/`), else a user path, or inline when small. Collect the paths for the chair.
 
-If a seat fails or times out: log it, continue with survivors (minimum 2). One failure never blocks the council.
+A seat fails/times out → continue with survivors (min 2).
 
 ### Step 3 — Collect
 
@@ -125,10 +121,10 @@ Gather every successful response and keep it **labeled** with its seat (model, a
 
 ### Step 4 — Synthesize (Chair Step)
 
-The chair (usually you — see Roles) reads the question and every labeled response, and returns two things:
+The chair (you, by default) reads the question + labeled responses and returns:
 
-1. **Per-councilor stance** — one short paragraph per seat, in the chair's own words, capturing that councilor's position and what drives it. Label by model, plus persona when personas differ; skip persona labels when every seat shared one. Note where a councilor stands alone.
-2. **Synthesis** — where councilors agree, where they genuinely disagree (with a reasoned call on each), any unique point worth keeping, and a grounded bottom line. Don't just echo the most confident seat.
+1. **Stance summary** — one paragraph per councilor (label by model, + persona when they differ); note lone stances.
+2. **Synthesis** — agreement, real disagreements (with a reasoned call), unique points, and a grounded bottom line. Don't just echo the most confident seat; treat unanimous agreement as possible correlated bias.
 
 **Chair prompt template:**
 ```
@@ -187,5 +183,3 @@ Never block the entire council on a single seat failure.
 
 - [model-selection.md](references/model-selection.md) — roster discovery, tiers, seat selection.
 - [specialists.md](references/specialists.md) — personas and panel presets.
-
-Strong agreement can be correlated bias rather than confirmation — especially among same-vendor seats.
