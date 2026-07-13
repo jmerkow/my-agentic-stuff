@@ -37,7 +37,7 @@ All modes keep seat independence (no seat sees another's answer) and use the sam
 
 ## Presets (quick invocation)
 
-Lead with a shorthand code: `/llm-council <seats>-<tier> <question>`, where tier is `flag` (flagship) or `horse` (workhorse) — so `3-flag` is three flagships and `2-horse` is two workhorse cold reads. Any `<seats>-<tier>` works; a `2-*` is two cold reads, where disagreement means "look closer," not "majority wins." Named extras: `4-code` (flagships + a light code-tuned 4th lens) and `panel` (Panel mode with review lenses). Resolve the tier to the live roster (see [references/model-selection.md](references/model-selection.md)); no preset → the default council (Opus + Sonnet + GPT).
+Lead with a shorthand code: `/llm-council <seats>-<tier> <question>`, where tier is `flag` (flagship) or `horse` (workhorse) — so `3-flag` is three flagships and `2-horse` is two workhorse cold reads. Any `<seats>-<tier>` works; a `2-*` is two cold reads, where disagreement means "look closer," not "majority wins." Named extras: `4-code` (flagships + a light code-tuned 4th lens) and `panel` (Panel mode with review lenses). Vendor priority is Anthropic → OpenAI → Google, so a `2-*` uses Anthropic + OpenAI and a `3-*` adds Google (see [references/model-selection.md](references/model-selection.md)); no preset → `3-flag`.
 
 ## Portability (harness adapters)
 
@@ -57,8 +57,8 @@ The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketp
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- **Default:** Claude Opus + Claude Sonnet (Anthropic) + a GPT flagship (OpenAI), resolved at run time. Anthropic + OpenAI by default; Opus and Sonnet share a vendor, so they're somewhat correlated — swap Sonnet for Gemini Pro when you want a third-vendor spread.
-- **Lighter / faster:** when the question doesn't need flagship power, drop to the workhorse tier — Sonnet + GPT-5.6 Terra.
+- **Default:** one flagship per vendor, priority Anthropic → OpenAI → Google. **3 seats = Opus + a GPT flagship + Gemini Pro** (full cross-vendor); **2 seats = Opus + a GPT flagship** (Anthropic + OpenAI — Google joins only as the 3rd seat). Resolve names at run time.
+- **Lighter / faster:** when the question doesn't need flagship power, drop to the workhorse tier — Sonnet, GPT-5.6 Terra, Gemini 2.5 Pro (same vendor priority).
 - **Code-heavy:** the flagships already code best; optionally add a light code-tuned model (MAI-Code) as a cheap 4th lens.
 - **Cross-vendor is *preferred, not required*:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses — it shares that vendor's blind spots, so weight its agreement accordingly.
 - **Pinning:** resolve roles at run time; name-pin exact models only for reproducibility, and record the resolved names in the footer. See [references/model-selection.md](references/model-selection.md).
@@ -71,7 +71,7 @@ See [references/model-selection.md](references/model-selection.md) for roster di
 
 Config knobs:
 - `council_size`: 2 (two cold reads — a quick second opinion), 3 (default), 4 (code-heavy)
-- `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "Claude Sonnet 5 (copilot)", "GPT-5.6 Sol (copilot)"]`) — a manual override can collapse the cross-vendor/tier spread; note that in the footer if it does
+- `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "GPT-5.6 Sol (copilot)", "Gemini 3.1 Pro (Preview) (copilot)"]`) — a manual override can collapse the cross-vendor/tier spread; note that in the footer if it does
 - `synthesizer`: chair model, only when spawning a *separate* chair (default: the calling agent itself; else `Auto` or any non-seat model)
 
 **Effort:** you can't set a seat's reasoning effort. For more depth, pick a higher tier (a flagship reasons more than a mini) or ask for it in the prompt.
@@ -156,9 +156,9 @@ Match the presentation to what the councilors returned:
 
 | # | Finding | Raised by | Severity | Fix |
 |---|---|---|---|---|
-| 1 | short title | all 3 · Opus, Sonnet, GPT | High | one-line fix |
+| 1 | short title | all 3 · Opus, GPT, Gemini | High | one-line fix |
 | 2 | short title | 2 · Opus, GPT | Med | one-line fix |
-| … | lone-wolf items last | 1 · Sonnet | Low | one-line fix |
+| … | lone-wolf items last | 1 · Gemini | Low | one-line fix |
 
 Merge the same point raised by different councilors into one row and show who raised it — that agreement count is the signal. Follow the table with the chair's bottom line.
 

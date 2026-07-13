@@ -64,7 +64,7 @@ Per-model cards — grounded facts plus a subjective peer-rating `stats` block �
 
 Vary the **vendor**, hold the **tier** — diversity should come from different labs, not from mixing strong and weak models.
 
-- **Same tier, cross-vendor:** three flagships or three workhorses, one per vendor — seats are peers, so synthesis weighs them equally. (The shipped default trades a little of this for two trusted Anthropic tiers + OpenAI; see §5.)
+- **Same tier, cross-vendor (recommended):** three flagships or three workhorses, one per vendor — seats are peers, so synthesis weighs them equally. This is the 3-seat default.
 - **Mixed tier:** avoid as a rule — a light seat beside a flagship mostly adds noise and can't be weighted equally. Sane exceptions: a deliberate fast "sanity-check" seat, or the code-specialist 4th (light but specialized).
 - **Single vendor, multiple tiers ("vertical", e.g. Opus + Sonnet + Haiku):** the fallback when only one vendor is available (Claude Code) or for cost. Weak orthogonality — the seats share the vendor's blind spots and are capability-ordered, so the flagship usually dominates and the smaller seats rarely overturn it. Use it, but trust its agreement less.
 
@@ -103,22 +103,24 @@ Use this table to avoid seating correlated models together:
 
 > **Verify before use.** The concrete model names below are an illustrative snapshot. Re-run the discovery probe (§1) and remap the roles to the live roster before each council. Treat the seats as **roles**, not fixed names — that is what survives roster churn.
 
-### 3-Model Default
+### 3-Model Default (cross-vendor)
 
-| Seat | Role | Resolves to (example) | Rationale |
-|---|---|---|---|
-| 1 | Anthropic flagship | Claude Opus 4.8 | Strongest Anthropic reasoning |
-| 2 | Anthropic workhorse | Claude Sonnet 5 | A fast, cheaper second Anthropic view |
-| 3 | OpenAI flagship | GPT-5.6 Sol | A different vendor's pipeline and failure modes |
+One flagship per vendor:
 
-Anthropic + OpenAI by default. Seats 1–2 share a vendor, so they're somewhat correlated — swap Sonnet for **Gemini Pro** (Google) when you want a true third vendor. Swap seats as needed:
+| Seat | Role | Resolves to (example) |
+|---|---|---|
+| 1 | Anthropic flagship | Claude Opus 4.8 |
+| 2 | OpenAI flagship | GPT-5.6 Sol |
+| 3 | Google flagship | Gemini 3.1 Pro (Preview) |
+
+Vendor priority is Anthropic → OpenAI → Google, so a **2-seat** council drops Google (Anthropic + OpenAI) and Google joins only at the 3rd seat. Swap seats as needed:
 - **Lower power / faster:** drop to the workhorse tier — Claude Sonnet 5, Gemini 2.5 Pro, GPT-5.6 Terra. Often nearly as good and faster for parallel fan-out. (GPT-5.5 is flagship-tier despite the name; the workhorse GPT is Terra.)
 - **Stability:** Gemini 3.1 Pro is a **Preview** build; for a documented, stable release use Gemini 2.5 Pro.
 - **Simplicity:** GPT-5.6 comes as three tiers (Sol = flagship, Terra = workhorse, Luna = light); this default uses Sol. Use GPT-5.5 instead to avoid the 5.6 line entirely.
 
 ### 2-Model Council (quick second opinion)
 
-The lightest useful council: **two independent cold reads** on two different vendors (e.g. Opus + Gemini Pro, or a workhorse pair). Use it for a fast sanity check when a 3-seat panel is overkill. The chair (usually the calling agent) reconciles the two — with only two seats, disagreement means "look closer," not "majority wins."
+The lightest useful council: **two independent cold reads** from the two primary vendors — **Anthropic + OpenAI** (e.g. Opus + a GPT flagship), not Google, regardless of which vendor the calling agent runs. Use it for a fast sanity check when a 3-seat panel is overkill. The chair is usually the calling agent (or one of the two vendors) — with only two seats, disagreement means "look closer," not "majority wins."
 
 ### 4-Model Council (add a differently-tuned lens)
 
@@ -127,8 +129,8 @@ For code-heavy work the default seats already code well. If you want a 4th seat,
 | Seat | Role | Current model |
 |---|---|---|
 | 1 | Anthropic flagship | Claude Opus 4.8 |
-| 2 | Anthropic workhorse | Claude Sonnet 5 |
-| 3 | OpenAI flagship | GPT-5.6 Sol |
+| 2 | OpenAI flagship | GPT-5.6 Sol |
+| 3 | Google flagship | Gemini 3.1 Pro (Preview) |
 | 4 | Code-tuned lens (light) | MAI-Code-1-Flash (or GPT-5.3-Codex) |
 
 ### Updating for Roster Churn
