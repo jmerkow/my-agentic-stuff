@@ -37,18 +37,7 @@ All modes keep seat independence (no seat sees another's answer) and use the sam
 
 ## Presets (quick invocation)
 
-The user can lead with a shorthand: `/llm-council <preset> <question>`. The pattern is `<seats>-<tier>` — `flag` = flagship, `horse` = workhorse. No preset defaults to `3-flag`.
-
-| Preset | Council | Resolves to today |
-|---|---|---|
-| `3-flag` | 3 flagships, cross-vendor (**default**) | Opus 4.8 + Gemini 3.1 Pro + GPT-5.6 Sol |
-| `2-flag` | 2 flagships, 2 vendors — fast high-power second opinion | Opus 4.8 + Gemini 3.1 Pro |
-| `3-horse` | 3 workhorses, cross-vendor — lighter/faster | Sonnet 5 + Gemini 2.5 Pro + GPT-5.6 Terra |
-| `2-horse` | 2 workhorses, 2 vendors — lightest second opinion | Sonnet 5 + Gemini 2.5 Pro |
-| `4-code` | 3 flagships + a light code-tuned 4th lens | + MAI-Code |
-| `panel` | Panel mode, review lenses (skeptic + pragmatist + ambiguity hunter) on cross-vendor seats | — |
-
-Presets resolve roles to the live roster (see [references/model-selection.md](references/model-selection.md)); the "today" column is just the current mapping, not fixed. A `2-*` preset is two cold reads — disagreement means "look closer," not "majority wins."
+Lead with a shorthand code: `/llm-council <seats>-<tier> <question>`, where tier is `flag` (flagship) or `horse` (workhorse) — so `3-flag` is three flagships (the default) and `2-horse` is two workhorse cold reads. Any `<seats>-<tier>` works; a `2-*` is two cold reads, where disagreement means "look closer," not "majority wins." Two named extras: `4-code` (3 flagships + a light code-tuned 4th lens) and `panel` (Panel mode with review lenses). Resolve the tier to the live roster (see [references/model-selection.md](references/model-selection.md)); no preset → `3-flag`.
 
 ## Portability (harness adapters)
 
