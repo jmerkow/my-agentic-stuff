@@ -33,11 +33,11 @@ Do NOT use for every question. A council is heavier than a single model call —
 - **Panel mode** — the question goes to N *specialists* (persona and/or agent lenses; see [references/specialists.md](references/specialists.md)), optionally each on a different model. Deliberately varies framing to get different *kinds* of feedback (concise vs. thorough, coder vs. prose). Use for reviews, designs, and judgment calls.
 - **Hybrid** — combine both axes: specialists each seated on a distinct model, varying lens *and* blind spots at once.
 
-All modes keep seat independence (no seat sees another's answer) and use the same chair/synthesis step. Ensemble seats get only the question; Panel seats also get a persona preamble.
+All modes keep seat independence (no seat sees another's answer) and use the same chair/synthesis step. Ensemble seats get the task as-is; Panel seats also get a persona preamble.
 
 ## Presets (quick invocation)
 
-Lead with a shorthand code: `/llm-council <seats>-<tier> <question>`, where tier is `flag` (flagship) or `horse` (workhorse) — so `3-flag` is three flagships (the default) and `2-horse` is two workhorse cold reads. Any `<seats>-<tier>` works; a `2-*` is two cold reads, where disagreement means "look closer," not "majority wins." Two named extras: `4-code` (3 flagships + a light code-tuned 4th lens) and `panel` (Panel mode with review lenses). Resolve the tier to the live roster (see [references/model-selection.md](references/model-selection.md)); no preset → `3-flag`.
+Lead with a shorthand code: `/llm-council <seats>-<tier> <question>`, where tier is `flag` (flagship) or `horse` (workhorse) — so `3-flag` is three flagships and `2-horse` is two workhorse cold reads. Any `<seats>-<tier>` works; a `2-*` is two cold reads, where disagreement means "look closer," not "majority wins." Named extras: `4-code` (flagships + a light code-tuned 4th lens) and `panel` (Panel mode with review lenses). Resolve the tier to the live roster (see [references/model-selection.md](references/model-selection.md)); no preset → the default council (Opus + Sonnet + GPT).
 
 ## Portability (harness adapters)
 
@@ -49,7 +49,7 @@ The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketp
 
 ## Roles
 
-- **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat sees ONLY the question (plus its own persona framing in Panel mode), never another seat's answer.
+- **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat gets the full task (question + any context it needs), plus its persona framing in Panel mode — never another seat's answer or your own take.
 - **Chair (synthesizer):** reconciles the seats. **The calling agent chairs by default** — it produced none of the seat answers, so it reads them cold. Spawn a *separate* chair only for a fresh perspective; then use any model that isn't one of the seats (`Auto` or a workhorse is fine). The chair sees the question plus every labeled response.
 
 ## The 5-Step Flow
@@ -57,7 +57,7 @@ The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketp
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- **Default:** 3 cross-vendor flagship **roles** — Opus (Anthropic) + Gemini Pro (Google) + latest GPT (OpenAI), resolved to concrete names at run time from the live roster.
+- **Default:** Claude Opus + Claude Sonnet (Anthropic) + a GPT flagship (OpenAI), resolved at run time. Anthropic + OpenAI by default; Opus and Sonnet share a vendor, so they're somewhat correlated — swap Sonnet for Gemini Pro when you want a third-vendor spread.
 - **Lighter / faster:** when the question doesn't need flagship power, drop to the workhorse tier — Sonnet / Gemini 2.5 Pro / GPT-5.6 Terra.
 - **Code-heavy:** the flagships already code best; optionally add a light code-tuned model (MAI-Code) as a cheap 4th lens.
 - **Cross-vendor is *preferred, not required*:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses — it shares that vendor's blind spots, so weight its agreement accordingly.
@@ -80,7 +80,7 @@ Config knobs:
 
 Spawn one seat per council member (see Portability for the per-harness call). Run them all in parallel.
 
-**Critical invariant — no cross-contamination:** No seat sees another seat's answer, your reasoning, or context the user didn't provide. Isolation isn't automatic — a tool-using seat can read the repo or web and re-correlate the seats — so in **Ensemble** mode pass only the question and don't use agent-backed (`agentName`) or tool-enabled seats. (Panel adds only the persona preamble.)
+**Guardrails — include vs. withhold.** Give every seat the same, complete task: the question plus whatever context it needs to answer well. Don't starve a seat for the sake of "purity" — embedding the task's data is expected. Withhold only the contaminants: other seats' answers, your own opinion or the conclusion you expect, and hints about what you want to hear. A tool-using seat can pull its own extra context — fine, but it makes seats less independent, so in **Ensemble** mode prefer plain model seats and don't seat agent-backed (`agentName`) ones.
 
 **Build the seat prompt.** Every seat gets the *same* task text — vary only the model and (Panel) the persona preamble. A bare question is rarely enough; add an **output cap** (keeps answers comparable and synthesis tractable) and the **output shape** you want, matched to the question.
 
