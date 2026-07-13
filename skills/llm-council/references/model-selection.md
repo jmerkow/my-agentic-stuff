@@ -46,7 +46,7 @@ In most families the tier is baked into the name and holds across versions, so n
 | Vendor | Flagship | Workhorse | Light | Code |
 |---|---|---|---|---|
 | **Anthropic** | Opus | Sonnet | Haiku | — |
-| **Google** | Gemini Pro (latest) | Gemini Pro (prior) | Gemini Flash | — |
+| **Google** | Gemini Pro (3.x) | Gemini Pro (2.x) | Gemini Flash | — |
 | **OpenAI** | latest GPT / GPT-5.6 Sol | GPT-5.6 Terra | GPT mini / GPT-5.6 Luna | GPT-5.3-Codex |
 | **Microsoft** | — | — | MAI-Code | MAI-Code |
 
@@ -57,7 +57,13 @@ In most families the tier is baked into the name and holds across versions, so n
 
 Cost tracks tier (flagship output ≈ 2500-3000 credits/1M, workhorse ≈ 1000-1500, light ≤ 900), and Google prices below the others at the same tier. Context also varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
 
-For a council, take the tier you want from 3 different vendors; the default (§5) is one flagship each from Anthropic / Google / OpenAI.
+### Which tiers to seat
+
+Vary the **vendor**, hold the **tier** — diversity should come from different labs, not from mixing strong and weak models.
+
+- **Same tier, cross-vendor (recommended):** three flagships (the default, §5) or three workhorses (cheaper, still vendor-diverse — a fine everyday council). Seats are peers, so synthesis weighs them equally.
+- **Mixed tier:** avoid as a rule — a light seat beside a flagship mostly adds noise and can't be weighted equally. Sane exceptions: a deliberate fast "sanity-check" seat, or the code-specialist 4th (light but specialized).
+- **Single vendor, multiple tiers ("vertical", e.g. Opus + Sonnet + Haiku):** the fallback when only one vendor is available (Claude Code) or for cost. Weak orthogonality — the seats share the vendor's blind spots and are capability-ordered, so the flagship usually dominates and the smaller seats rarely overturn it. Use it, but trust its agreement less.
 
 ## 3. Orthogonality Heuristics
 
