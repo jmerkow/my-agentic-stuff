@@ -2,16 +2,18 @@
 
 Roster discovery, orthogonality heuristics, and default council configurations for the `llm-council` skill. This is a reference for the **orchestrator** running the council (choosing seats and the chair) — council members themselves do not need it.
 
-> **Environment note.** This guidance assumes the Copilot agent harness (VS Code or the Copilot CLI), where subagents are launched via a `runSubagent` tool that accepts a `model` parameter formatted `"Model Name (Vendor)"`. If your environment does not expose a `model` parameter, ask the user for explicit model names or fall back to the default agent (no override) and note the reduced diversity.
+> **Environment note.** This guidance assumes a Copilot agent harness (VS Code or the Copilot CLI), where subagents launch via a `runSubagent` tool with a `model` parameter formatted `"Model Name (Vendor)"` and cross-vendor models are available. On **Claude Code**, seats launch via the `Task` tool against `.claude/agents/` and models are the Anthropic family only — the cross-vendor guidance below does not apply; use Panel-mode persona diversity (optionally across Opus / Sonnet / Haiku) instead. If no `model` parameter is available at all, switch to persona diversity rather than running identical seats.
 
-## 1. Model Discovery
+## 1. Model Discovery (Copilot harnesses)
 
-The harness has no list-models API. To discover the current roster:
+Copilot harnesses have no list-models API. To discover the current roster:
 
 1. Call `runSubagent` with an intentionally invalid `model` value (e.g., `"__invalid__"`).
 2. The error response lists all valid model names.
 3. Parse the roster from the error and cache it for the session.
 4. **Never hardcode the roster** — it is environment-specific and changes without notice.
+
+This probe is Copilot-specific. On Claude Code, do not probe — assume the Anthropic family and select seats by tier and persona instead.
 
 Example probe invocation (the model value is intentionally wrong):
 ```

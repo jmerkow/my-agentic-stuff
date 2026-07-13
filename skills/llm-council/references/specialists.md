@@ -55,6 +55,8 @@ A seat can target a named agent via `runSubagent(agentName=..., model=...)` inst
 
 Trade-off: agent-backed seats read the repo and use tools, so they carry more context than a bare persona — grounded, but less context-isolated. Keep this deliberate.
 
+**Portability:** these agent names are examples from one Copilot/engflow setup and are not guaranteed to exist in any harness (and do not exist on Claude Code). If a named agent is absent, fall back to the persona preamble alone. Persona seats are the portable path; agent seats are an optional upgrade where available.
+
 ## Suggested panel presets
 
 Mix lenses that don't overlap. Three seats is a good default.

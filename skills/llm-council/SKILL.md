@@ -2,10 +2,11 @@
 name: llm-council
 description: >
   Run an LLM council: pose a question to multiple orthogonal models and/or specialist
-  personas in parallel via runSubagent, anonymize and synthesize the responses with a
-  separate chair model. Use when the user wants diverse model perspectives, a panel of
-  specialist lenses (concise, skeptic, coder, prose), or cross-model review of a
-  high-stakes or ambiguous question, or asks to ask the council, panel, or multiple models.
+  personas in parallel (via the harness's subagent tool), anonymize and synthesize the
+  responses with a separate chair model. Use when the user wants diverse model
+  perspectives, a panel of specialist lenses (concise, skeptic, coder, prose), or
+  cross-model review of a high-stakes or ambiguous question, or asks to ask the council,
+  panel, or multiple models.
   Keywords: council, panel, specialists, personas, multiple models, diverse perspectives,
   ensemble, model comparison, cross-model review, fan-out, synthesize.
 ---
@@ -33,24 +34,33 @@ Do NOT use for every question. A council is heavier than a single model call —
 
 All modes keep seat independence (no seat sees another's answer) and use the same chair/synthesis step. Panel mode intentionally relaxes the "bare question, no framing" rule of Ensemble mode — that is the point, not a bug.
 
+## Portability (harness adapters)
+
+The packaging (`plugin.json`, `SKILL.md`, `references/`, `.claude-plugin/marketplace.json`) is portable, but the **runtime differs by harness**. Before executing, load [references/model-selection.md](references/model-selection.md) and [references/specialists.md](references/specialists.md), then pick the adapter:
+
+- **VS Code Copilot / Copilot CLI:** spawn seats with the `runSubagent` tool, an explicit `model` (`"Model Name (Vendor)"`), and optional `agentName`. Cross-vendor seats (Anthropic + Google + OpenAI) are available. Copilot CLI parity is assumed — verify `runSubagent` exists before relying on it.
+- **Claude Code:** seats spawn via the `Task` tool against agents under `.claude/agents/`; models are the Anthropic family only (no `(copilot)` suffix). Cross-vendor Ensemble mode is **not** available — use **Panel mode**, where diversity comes from personas (optionally across Opus / Sonnet / Haiku tiers).
+- **No subagent tool at all:** tell the user the council can't run; offer a single-model answer.
+
+Below, "spawn a seat" means the current harness's subagent call — not literally `runSubagent`.
+
 ## Roles
 
 - **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat sees ONLY the question (plus its own persona framing in Panel mode), never another seat's answer.
-- **Chair (synthesizer):** A separate model from a different vendor than the council majority. Receives the original question plus all anonymized responses. Never holds a council seat.
+- **Chair (synthesizer):** A model that did NOT produce any council answer — never one of the seats. Prefer a different vendor than the council; when there is no majority (e.g. the 3-vendor default) or only one vendor is available (Claude Code), pick any model/tier not used as a seat and note the reduced separation. Receives the question plus all anonymized responses.
 
 ## The 5-Step Flow
 
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- Default 3-seat council: Claude Sonnet 4.6 + Gemini 2.5 Pro + GPT-5.5 (cross-vendor, mid-tier)
-- Default 4-seat for code-heavy questions: add MAI-Code-1-Flash
-- Discover the live roster first via the invalid-model probe; treat seats as roles, not fixed names
-- `Auto` may chair but must never hold a council seat
-- Respect the `model` parameter override if the user specified seats explicitly
-- **Panel/Hybrid mode:** pick specialist lenses from [references/specialists.md](references/specialists.md) (or a preset panel there); optionally pair each with a distinct model, or target an existing agent (e.g. `eng-code-sub`, `Explore`) via `agentName`
+- Default council = 3 cross-vendor mid-tier **roles**: an Anthropic mid-tier + a Google Pro + an OpenAI current model; add a code-specialist 4th seat for code-heavy work. Resolve roles to concrete names at discovery time — do not hardcode.
+- On Copilot harnesses, discover the live roster first via the invalid-model probe. On Claude Code, the roster is the Anthropic family (see Portability) — use Panel mode.
+- A dynamic/auto-routing model (e.g. Copilot `Auto`) may chair but must never hold a seat (non-deterministic).
+- Respect the user's explicit model or persona choices if given.
+- **Panel/Hybrid mode:** pick specialist lenses from [references/specialists.md](references/specialists.md) (or a preset panel). Optionally pair each with a distinct model, or target an existing agent via `agentName` — but agent names like `eng-code-sub` / `Explore` are examples that may not exist; if absent, fall back to the persona preamble alone.
 
-**If `runSubagent` does not accept a `model` parameter in your environment:** ask the user for explicit model names, or fall back to the default agent (no override) and note that diversity is reduced.
+**If seats cannot be given distinct models** (harness has one model family, or the subagent tool has no `model` parameter): switch to Panel mode so diversity comes from personas. Do NOT silently run every seat on the same default model — that is a fake council with no error de-correlation. If neither distinct models nor personas are possible, tell the user and offer a single-model answer.
 
 Config knobs:
 - `council_size`: 3 (default), 4 for code-heavy
@@ -61,7 +71,7 @@ Config knobs:
 
 Spawn one `runSubagent` call per council seat. Run ALL in parallel.
 
-**Critical invariant — no cross-contamination:** No seat ever sees another seat's answer, your synthesis reasoning, or context the user didn't provide. This holds in every mode.
+**Critical invariant — no cross-contamination:** No seat ever sees another seat's answer, your synthesis reasoning, model identity, or context the user didn't provide. This holds in every mode. Isolation is NOT automatic: a full-agent seat with tool access may read the repo or search the web, quietly re-correlating the seats. For a faithful Ensemble, pass only the question text and prefer non-agentic (persona-only) seats; reserve tool-using agent seats for Panel mode, where framing is deliberately varied.
 
 The `model` parameter format is `"Model Name (Vendor)"` — e.g., `"Claude Sonnet 4.6 (copilot)"`. For agent-backed seats, also set `agentName` (e.g. `eng-code-sub`).
 
@@ -134,11 +144,13 @@ Adapt the number of `--- Response X ---` blocks to the actual number of survivor
 ### Step 5 — Present
 
 Return to the user:
-1. **Synthesized answer** (the chair's output, presented as the primary response)
-2. **Appendix — Council Details:**
-   - Council composition: which models were seated and which was the chair (de-anonymized for the user)
-   - Per-model responses: the original (un-anonymized) responses, labeled by model name
-   - If any seat failed: note which model failed and that it was excluded from synthesis
+1. **Synthesized answer** (the chair's output, as the primary response)
+2. **Appendix — Council Details (compact by default):**
+   - Council composition: which models/personas were seated and which chaired
+   - Any seat that failed and was excluded
+   - Full per-seat responses only when the user asks, the question is high-stakes, or the seats materially disagree — otherwise a one-line-per-seat gist
+
+Anonymization (Step 3) is only for the chair; the appendix may name models unless the user asked for a blind review.
 
 ## Graceful Degradation
 
@@ -153,8 +165,7 @@ Never block the entire council on a single seat failure.
 
 ## Notes
 
-- **Member isolation is not automatic.** If members run as a full agent with tool access, they may read the repo or pull in extra context — grounded, but a deviation from strict context isolation. For a faithful cold-read council, constrain members to answering from the bare question only.
-- Independence rationale (why no cross-contamination): Mixture of Agents (Wang et al. 2024) — cross-provider diversity outperforms single-provider ensembles.
-- Anonymization rationale: LLM-as-a-Judge (Zheng et al.) — randomizing order and stripping labels prevents position bias and self-enhancement bias.
+- Why independent first-pass answers: separate, uncontaminated seats reduce shared-context bias, so agreement becomes meaningful signal and disagreement surfaces blind spots (the Mixture-of-Agents finding). Why anonymize + shuffle for the chair: it removes position and self-enhancement bias (the LLM-as-a-Judge finding).
+- When seats strongly agree, treat it as possible correlated bias — not automatic truth — especially if they share a vendor.
 - Model discovery and orthogonal seat selection: [references/model-selection.md](references/model-selection.md).
 - Specialist personas and panel presets: [references/specialists.md](references/specialists.md).
