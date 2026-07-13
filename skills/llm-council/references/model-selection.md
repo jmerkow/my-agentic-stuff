@@ -34,24 +34,30 @@ The error message enumerates the valid model strings. The format is `"Model Name
 
 Note: All models use vendor `(copilot)` in the format string.
 
-## 2. Cross-Vendor Tiers (weight classes)
+## 2. Tiers (weight classes)
 
-Models fall into rough tiers across vendors. Pick seats by **matching** a tier (fair comparison) or **spanning** tiers (breadth). Output cost (credits per 1M) is a decent tier proxy — but Google prices below Anthropic/OpenAI at the same tier, so also judge within a vendor.
+Three tiers, by capability vs. cost:
+- **Flagship** — maximum reasoning, top cost; for hard or high-stakes work.
+- **Workhorse** — the everyday model: most of the quality at moderate cost and speed. The default when unsure.
+- **Light** — cheap and fast; for simple or bulk work.
 
-| Tier | Anthropic | Google | OpenAI | Microsoft |
+In most families the tier is baked into the name and holds across versions, so name the family and let the version float:
+
+| Vendor | Flagship | Workhorse | Light | Code |
 |---|---|---|---|---|
-| **Flagship** — heaviest reasoning, priciest | Opus 4.6 / 4.7 / 4.8 | Gemini 3.1 Pro (Preview) | GPT-5.5, GPT-5.6 **Sol** | — |
-| **Workhorse** — balanced cost/quality | Sonnet 4.6, Sonnet 5 | Gemini 2.5 Pro | GPT-5.4, GPT-5.6 **Terra** | — |
-| **Light** — cheap, fast | Haiku 4.5 | Gemini 3.5 Flash, Gemini 3 Flash (Preview) | GPT-5.6 **Luna**, GPT-5.4 mini, GPT-5 mini | — |
-| **Code specialist** | — | — | GPT-5.3-Codex | MAI-Code-1-Flash |
+| **Anthropic** | Opus | Sonnet | Haiku | — |
+| **Google** | Gemini Pro (latest) | Gemini Pro (prior) | Gemini Flash | — |
+| **OpenAI** | latest GPT / GPT-5.6 Sol | GPT-5.6 Terra | GPT mini / GPT-5.6 Luna | GPT-5.3-Codex |
+| **Microsoft** | — | — | MAI-Code | MAI-Code |
 
-- **The GPT-5.6 trio is three tiers, not three personas:** Sol ≈ flagship (output cost 3000), Terra ≈ workhorse (1500), Luna ≈ light (600). Same base — seat only one, chosen by the tier you want.
-- **Newer Sonnet is cheaper:** Sonnet 5 (output 1000) prices below Sonnet 4.6 (1500) — a strong, cheap workhorse.
-- **Google is cheaper per token** at each tier; don't read its lower price as a lower tier.
-- **MAI-Code-1-Flash is tools-only (no vision)** and light-tier — use it for code, not image/multimodal questions.
-- **Context windows vary within a tier** (e.g. Gemini 2.5 Pro is 173K while most flagships are ~1M) — check it if your input is large.
+- **Anthropic:** tier = name. Opus / Sonnet / Haiku keep their tier across versions (4.x, 5) — take the latest of the tier you want.
+- **Google:** only two tiers — **Pro** (heavy) and **Flash** (light). Latest Pro is a Preview build (3.1); 2.5 Pro is the stable one.
+- **OpenAI:** usually one full model per generation (5.4, 5.5) plus a **mini** (light). The exception is **5.6**, which splits into tiers — **Sol** flagship, **Terra** workhorse, **Luna** light. `GPT-5.3-Codex` is the code specialist.
+- **Microsoft:** `MAI-Code-1-Flash` — light, code-focused, tools-only (no vision).
 
-For a council, one seat per tier row across different vendors maximizes both capability and orthogonality; the default (§5) is one flagship each from Anthropic / Google / OpenAI.
+Cost tracks tier (flagship output ≈ 2500-3000 credits/1M, workhorse ≈ 1000-1500, light ≤ 900), and Google prices below the others at the same tier. Context also varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
+
+For a council, take the tier you want from 3 different vendors; the default (§5) is one flagship each from Anthropic / Google / OpenAI.
 
 ## 3. Orthogonality Heuristics
 
