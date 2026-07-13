@@ -56,7 +56,7 @@ In most families the tier is baked into the name and holds across versions, so n
 - **Microsoft:** `MAI-Code-1-Flash` — light and code-focused, tools-only (no vision).
 - **Coding is not a separate tier.** The strongest coders are the **flagships** (Opus, GPT-5.6 Sol), not the code-tuned models. `GPT-5.3-Codex` and `MAI-Code-1-Flash` are light, code-focused options — cheap and fast for routine or bulk code, and useful as a differently-tuned extra lens, but not a substitute for a flagship on hard problems.
 
-Cost tracks tier (flagship output ≈ 2500-3000 credits/1M, workhorse ≈ 1000-1500, light ≤ 900), and Google prices below the others at the same tier. Context also varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
+Cost roughly tracks tier — it's really a proxy for power, so choose by tier, not price. Context varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
 
 Per-model cards — grounded facts plus a subjective peer-rating `stats` block — are in [model-cards.yaml](model-cards.yaml).
 
@@ -79,7 +79,7 @@ Apply these rules in order:
    - Luna / Sol / Terra → one seat maximum
    - Opus 4.6 / 4.7 / 4.8 → one seat maximum
    - Gemini 3.5 Flash / Gemini 3 Flash → one seat maximum
-3. **Match tier to the job.** The default council uses current **flagships** (Opus, Gemini Pro, the latest GPT) for maximum capability. For cheaper, faster parallel fan-out, drop to the **workhorse** tier (Sonnet, Gemini 2.5 Pro, GPT-5.6 Terra) — the capability gap is usually smaller than the diversity gain from a third vendor. (Note: GPT-5.5 is flagship-priced, not a workhorse saving.) Either way, keep the light tier (Flash / Haiku / mini) off the core seats (see next rule).
+3. **Match tier to the job.** The default council uses current **flagships** (Opus, Gemini Pro, the latest GPT) for maximum capability. When the question doesn't need that, drop to the **workhorse** tier (Sonnet, Gemini 2.5 Pro, GPT-5.6 Terra) for faster fan-out — the capability gap is usually smaller than the diversity gain from a third vendor. (GPT-5.5 is flagship-tier despite the name; the workhorse GPT is Terra.) Either way, keep the light tier (Flash / Haiku / mini) off the core seats (see next rule).
 4. **Reserve small models for 4th+ seats.** Flash, mini, and Haiku add more noise than signal for complex reasoning in a 3-model council. Use them only in ≥4-model councils or for an explicit fast-sanity-check role.
 5. **Code questions: lead with flagships, not code-tuned models.** Flagships (Opus, GPT-5.6 Sol) are the strongest coders. A light code-tuned model (`GPT-5.3-Codex`, `MAI-Code-1-Flash`) is worth a 4th seat only as a cheap, differently-tuned lens — not as the primary code seat.
 6. **Exclude Auto from council seats.** `Auto`'s model selection is non-deterministic across parallel calls — it cannot contribute an independent, reproducible perspective. `Auto` may chair the synthesis step.
@@ -111,10 +111,14 @@ Use this table to avoid seating correlated models together:
 | 2 | Google Pro | Gemini 3.1 Pro (Preview) | Latest Google Pro; multimodal-first pretraining (only current Pro is a Preview build) |
 | 3 | OpenAI current | GPT-5.6 Sol | Latest OpenAI generation; Sol is its flagship-tier variant (Terra = workhorse, Luna = light) |
 
-This default favors the **latest, strongest** model per vendor. Swap for a cheaper or more stable council as needed:
-- **Cost / latency:** drop to the workhorse tier — Claude Sonnet 5, Gemini 2.5 Pro, GPT-5.6 Terra. Often nearly as good, and faster/cheaper for parallel fan-out. (GPT-5.5 is flagship-priced — not a saving.)
+This default favors the **latest, strongest** model per vendor. Swap for a lighter or more stable council as needed:
+- **Lower power / faster:** drop to the workhorse tier — Claude Sonnet 5, Gemini 2.5 Pro, GPT-5.6 Terra. Often nearly as good and faster for parallel fan-out. (GPT-5.5 is flagship-tier despite the name; the workhorse GPT is Terra.)
 - **Stability:** Gemini 3.1 Pro is a **Preview** build; for a documented, stable release use Gemini 2.5 Pro.
 - **Simplicity:** GPT-5.6 comes as three tiers (Sol = flagship, Terra = workhorse, Luna = light); this default uses Sol. Use GPT-5.5 instead to avoid the 5.6 line entirely.
+
+### 2-Model Council (quick second opinion)
+
+The lightest useful council: **two independent cold reads** on two different vendors (e.g. Opus + Gemini Pro, or a workhorse pair). Use it for a fast sanity check when a 3-seat panel is overkill. The chair (usually the calling agent) reconciles the two — with only two seats, disagreement means "look closer," not "majority wins."
 
 ### 4-Model Council (add a differently-tuned lens)
 

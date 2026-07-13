@@ -28,7 +28,7 @@ Do NOT use for every question. A council is heavier than a single model call —
 
 ## Two Modes
 
-- **Ensemble mode** — the same bare question goes to N diverse *models* (see [references/model-selection.md](references/model-selection.md)). Pure independence; maximizes error de-correlation. Use for factual/analytical questions where you want blind-spot coverage.
+- **Ensemble mode** — the same bare question goes to N diverse *models* (see [references/model-selection.md](references/model-selection.md)). Pure independence; maximizes error de-correlation. Use for factual/analytical questions where you want blind-spot coverage. The minimal Ensemble is **2 seats — two independent cold reads for a quick second opinion** (two different vendors); 3 is the default.
 - **Panel mode** — the question goes to N *specialists* (persona and/or agent lenses; see [references/specialists.md](references/specialists.md)), optionally each on a different model. Deliberately varies framing to get different *kinds* of feedback (concise vs. thorough, coder vs. prose). Use for reviews, designs, and judgment calls.
 - **Hybrid** — combine both axes: specialists each seated on a distinct model, varying lens *and* blind spots at once.
 
@@ -47,7 +47,7 @@ Below, "spawn a seat" means the current harness's subagent call — not literall
 ## Roles
 
 - **Council members:** N seats that answer independently. A seat is a `(model, persona/agent)` pairing — vary the model (Ensemble), the persona/agent (Panel), or both (Hybrid). Each seat sees ONLY the question (plus its own persona framing in Panel mode), never another seat's answer.
-- **Chair (synthesizer):** any model that is NOT one of the seats — that's the only hard rule. With the cross-vendor default the chair will share a vendor with some seat; that's expected, not a problem to flag — just don't reuse a seat's exact model. `Auto`, or a workhorse from any vendor, makes a fine chair. It receives the question plus every seat's response, each labeled with its model and persona.
+- **Chair (synthesizer):** reconciles the seats. **The calling (orchestrating) agent is itself a fine chair** — it produced none of the seat answers, so it already reads them cold, and it holds the most context to synthesize well; chair bias is low-stakes (the chair is mostly a mouthpiece), so no separate subagent is needed. Spawn a *separate* chair only for a fresh perspective — then use any model that isn't one of the seats (`Auto` or a workhorse is fine; sharing a vendor with a seat is OK). The chair sees the question plus every seat's response, labeled by model and persona.
 
 ## The 5-Step Flow
 
@@ -55,7 +55,7 @@ Below, "spawn a seat" means the current harness's subagent call — not literall
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
 - **Default:** 3 cross-vendor flagship **roles** — Opus (Anthropic) + Gemini Pro (Google) + latest GPT (OpenAI). Today those resolve to Opus 4.8 + Gemini 3.1 Pro (Preview) + GPT-5.6 Sol. The **roles** are authoritative; the names are just the current dated resolution — re-resolve them, don't trust them.
-- **Cheaper / faster:** drop to the workhorse tier — Sonnet / Gemini 2.5 Pro / GPT-5.6 Terra.
+- **Lighter / faster:** when the question doesn't need flagship power, drop to the workhorse tier — Sonnet / Gemini 2.5 Pro / GPT-5.6 Terra.
 - **Code-heavy:** the flagships already code best; optionally add a light code-tuned model (MAI-Code) as a cheap 4th lens.
 - **Cross-vendor is *preferred, not required*:** a same-vendor multi-tier council (Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses — it shares that vendor's blind spots, so weight its agreement accordingly.
 - **Pinning:** resolve roles to concrete names at run time (portable, survives churn). Name-pin exact models only for reproducibility or explicit model comparisons — and always record the resolved names in the appendix. See [references/model-selection.md](references/model-selection.md).
@@ -67,9 +67,10 @@ See [references/model-selection.md](references/model-selection.md) for roster di
 **If seats cannot be given distinct models** (harness has one model family, or the subagent tool has no `model` parameter): switch to Panel mode so diversity comes from personas. Do NOT silently run every seat on the same default model — that is a fake council with no error de-correlation. If neither distinct models nor personas are possible, tell the user and offer a single-model answer.
 
 Config knobs:
-- `council_size`: 3 (default), 4 for code-heavy
+- `council_size`: 2 (two cold reads — a quick second opinion), 3 (default), 4 (code-heavy)
 - `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "Gemini 3.1 Pro (Preview) (copilot)", "GPT-5.6 Sol (copilot)"]`) — a manual override can collapse the cross-vendor/tier spread; note that in the footer if it does
-- `synthesizer`: model for the chair step (default: `Auto`, or any model that isn't one of the seats)
+- `synthesizer`: chair model, only when spawning a *separate* chair (default: the calling agent itself; else `Auto` or any non-seat model)
+- `effort`: if the harness exposes a reasoning-effort level (medium / high / xhigh / max), raise it for hard or high-stakes councils. `runSubagent` has no effort parameter — set it at the harness/model level, or push depth in the prompt.
 
 ### Step 2 — Fan-Out (Independent Answering)
 
@@ -116,7 +117,7 @@ Gather every successful response and keep it **labeled** with its seat — the m
 
 ### Step 4 — Synthesize (Chair Step)
 
-Give the chair the question and every labeled response. The chair did not produce any of them, so it reads them cold. It returns two things:
+The chair — usually you, the calling agent (no separate subagent needed) — takes the question and every labeled response and reads them cold, having produced none of them. It returns two things:
 
 1. **Per-councilor stance** — one short paragraph per seat, in the chair's own words, capturing that councilor's position and what drives it. Label by model, plus persona when personas differ; skip persona labels when every seat shared one. Note where a councilor stands alone.
 2. **Synthesis** — where councilors agree, where they genuinely disagree (with a reasoned call on each), any unique point worth keeping, and a grounded bottom line. Don't just echo the most confident seat.
