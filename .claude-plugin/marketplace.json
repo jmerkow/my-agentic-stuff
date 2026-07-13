@@ -59,6 +59,11 @@
       "source": "./skills/work-search"
     },
     {
+      "name": "llm-council",
+      "description": "Pose a question to multiple orthogonal models in parallel and synthesize their independent responses.",
+      "source": "./skills/llm-council"
+    },
+    {
       "name": "engflow",
       "description": "Engineering workflow agents and skills for GitHub Copilot.",
       "source": {

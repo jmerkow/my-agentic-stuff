@@ -8,3 +8,4 @@ Thumbs.db
 
 # Per-skill private config (real values, never committed)
 private/
+.eng
