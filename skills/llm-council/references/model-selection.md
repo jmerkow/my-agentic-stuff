@@ -43,17 +43,18 @@ Three tiers, by capability vs. cost:
 
 In most families the tier is baked into the name and holds across versions, so name the family and let the version float:
 
-| Vendor | Flagship | Workhorse | Light | Code |
-|---|---|---|---|---|
-| **Anthropic** | Opus | Sonnet | Haiku | — |
-| **Google** | Gemini Pro (3.x) | Gemini Pro (2.x) | Gemini Flash | — |
-| **OpenAI** | latest GPT / GPT-5.6 Sol | GPT-5.6 Terra | GPT mini / GPT-5.6 Luna | GPT-5.3-Codex |
-| **Microsoft** | — | — | MAI-Code | MAI-Code |
+| Vendor | Flagship | Workhorse | Light |
+|---|---|---|---|
+| **Anthropic** | Opus | Sonnet | Haiku |
+| **Google** | Gemini Pro (3.x) | Gemini Pro (2.x) | Gemini Flash |
+| **OpenAI** | latest GPT / GPT-5.6 Sol | GPT-5.6 Terra | GPT mini / GPT-5.6 Luna |
+| **Microsoft** | — | — | MAI-Code |
 
 - **Anthropic:** tier = name. Opus / Sonnet / Haiku keep their tier across versions (4.x, 5) — take the latest of the tier you want.
 - **Google:** only two tiers — **Pro** (heavy) and **Flash** (light). Latest Pro is a Preview build (3.1); 2.5 Pro is the stable one.
-- **OpenAI:** usually one full model per generation (5.4, 5.5) plus a **mini** (light). The exception is **5.6**, which splits into tiers — **Sol** flagship, **Terra** workhorse, **Luna** light. `GPT-5.3-Codex` is the code specialist.
-- **Microsoft:** `MAI-Code-1-Flash` — light, code-focused, tools-only (no vision).
+- **OpenAI:** usually one full model per generation (5.4, 5.5) plus a **mini** (light). The exception is **5.6**, which splits into tiers — **Sol** flagship, **Terra** workhorse, **Luna** light.
+- **Microsoft:** `MAI-Code-1-Flash` — light and code-focused, tools-only (no vision).
+- **Coding is not a separate tier.** The strongest coders are the **flagships** (Opus, GPT-5.6 Sol), not the code-tuned models. `GPT-5.3-Codex` and `MAI-Code-1-Flash` are light, code-focused options — cheap and fast for routine or bulk code, and useful as a differently-tuned extra lens, but not a substitute for a flagship on hard problems.
 
 Cost tracks tier (flagship output ≈ 2500-3000 credits/1M, workhorse ≈ 1000-1500, light ≤ 900), and Google prices below the others at the same tier. Context also varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
 
@@ -78,7 +79,7 @@ Apply these rules in order:
    - Gemini 3.5 Flash / Gemini 3 Flash → one seat maximum
 3. **Match tier to the job.** The default council uses current **flagships** (Opus, Gemini Pro, the latest GPT) for maximum capability. For cheaper, faster parallel fan-out, drop to **mid-tier** (Sonnet, Gemini Pro over Flash, GPT-5.5) — the capability gap is usually smaller than the diversity gain from a third vendor. Either way, keep the small tier (Flash / Haiku / mini) off the core seats (see next rule).
 4. **Reserve small models for 4th+ seats.** Flash, mini, and Haiku add more noise than signal for complex reasoning in a 3-model council. Use them only in ≥4-model councils or for an explicit fast-sanity-check role.
-5. **MAI-Code-1-Flash as a code-specialist 4th seat.** Code-specialization produces a different error profile from general-instruction models. Add it as Seat 4 for code-heavy questions.
+5. **Code questions: lead with flagships, not code-tuned models.** Flagships (Opus, GPT-5.6 Sol) are the strongest coders. A light code-tuned model (`GPT-5.3-Codex`, `MAI-Code-1-Flash`) is worth a 4th seat only as a cheap, differently-tuned lens — not as the primary code seat.
 6. **Exclude Auto from council seats.** `Auto`'s model selection is non-deterministic across parallel calls — it cannot contribute an independent, reproducible perspective. `Auto` may chair the synthesis step.
 
 ## 4. Cluster Correlation Reference
@@ -113,16 +114,16 @@ This default favors the **latest, strongest** model per vendor. Swap for a cheap
 - **Stability:** Gemini 3.1 Pro is a **Preview** build; for a documented, stable release use Gemini 2.5 Pro.
 - **Simplicity:** GPT-5.6 comes as three tiers (Sol = flagship, Terra = workhorse, Luna = light); this default uses Sol. Use GPT-5.5 instead to avoid the 5.6 line entirely.
 
-### 4-Model Council (code-heavy questions)
+### 4-Model Council (add a differently-tuned lens)
 
-Add **MAI-Code-1-Flash** (Microsoft, code-specialist) as Seat 4. This adds a 4th vendor and a coding-specialist error profile.
+For code-heavy work the three flagships above are already your strongest coders. If you want a 4th seat, add a light code-tuned model as a cheap, differently-tuned lens (a 4th vendor and a different error profile) — not because it out-codes the flagships:
 
 | Seat | Role | Current model |
 |---|---|---|
 | 1 | Anthropic flagship | Claude Opus 4.8 |
 | 2 | Google Pro | Gemini 3.1 Pro (Preview) |
 | 3 | OpenAI current | GPT-5.6 Sol |
-| 4 | Microsoft code-specialist | MAI-Code-1-Flash |
+| 4 | Code-tuned lens (light) | MAI-Code-1-Flash (or GPT-5.3-Codex) |
 
 ### Updating for Roster Churn
 
