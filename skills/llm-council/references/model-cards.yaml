@@ -1,15 +1,16 @@
 # LLM model cards — grounded facts + peer-rating stats
 #
 # tier / cost / context / vision are OBSERVED facts (2026-07-13 roster).
+# cost = credits per 1M tokens, {in, out}.
 # stats are SUBJECTIVE peer ratings (1-10), the mean of a 3-model self-poll
 #   (Claude Opus 4.8, Gemini 3.1 Pro, GPT-5.6 Sol) on 2026-07-13 — NOT benchmarks.
-#   Raw per-councilor ballots: .eng/workstreams/llm-council/ratings/ (not shipped).
+#   See README.md (this dir); raw ballots: .eng/workstreams/llm-council/ratings/ (not shipped).
 # Re-poll and re-average when the roster changes; treat as a rough guide, not truth.
 models:
   - model: GPT-5.6 Sol
     vendor: OpenAI
     tier: flagship
-    cost_credits_per_1m: {in: 500, out: 3000}
+    cost: {in: 500, out: 3000}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -22,7 +23,7 @@ models:
   - model: Claude Opus 4.8
     vendor: Anthropic
     tier: flagship
-    cost_credits_per_1m: {in: 500, out: 2500}
+    cost: {in: 500, out: 2500}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -35,7 +36,7 @@ models:
   - model: Gemini 3.1 Pro (Preview)
     vendor: Google
     tier: flagship
-    cost_credits_per_1m: {in: 200, out: 1200}
+    cost: {in: 200, out: 1200}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -48,7 +49,7 @@ models:
   - model: Claude Sonnet 5
     vendor: Anthropic
     tier: workhorse
-    cost_credits_per_1m: {in: 200, out: 1000}
+    cost: {in: 200, out: 1000}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -61,7 +62,7 @@ models:
   - model: GPT-5.5
     vendor: OpenAI
     tier: flagship
-    cost_credits_per_1m: {in: 500, out: 3000}
+    cost: {in: 500, out: 3000}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -74,7 +75,7 @@ models:
   - model: GPT-5.6 Terra
     vendor: OpenAI
     tier: workhorse
-    cost_credits_per_1m: {in: 250, out: 1500}
+    cost: {in: 250, out: 1500}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -87,7 +88,7 @@ models:
   - model: Gemini 2.5 Pro
     vendor: Google
     tier: workhorse
-    cost_credits_per_1m: {in: 125, out: 1000}
+    cost: {in: 125, out: 1000}
     context: 173K
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -100,7 +101,7 @@ models:
   - model: Gemini 3.5 Flash
     vendor: Google
     tier: light
-    cost_credits_per_1m: {in: 150, out: 900}
+    cost: {in: 150, out: 900}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -113,7 +114,7 @@ models:
   - model: GPT-5.6 Luna
     vendor: OpenAI
     tier: light
-    cost_credits_per_1m: {in: 100, out: 600}
+    cost: {in: 100, out: 600}
     context: 1M
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -126,7 +127,7 @@ models:
   - model: Claude Haiku 4.5
     vendor: Anthropic
     tier: light
-    cost_credits_per_1m: {in: 100, out: 500}
+    cost: {in: 100, out: 500}
     context: 200K
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -139,7 +140,7 @@ models:
   - model: GPT-5 mini
     vendor: OpenAI
     tier: light
-    cost_credits_per_1m: {in: 25, out: 200}
+    cost: {in: 25, out: 200}
     context: 192K
     vision: true
     stats:  # subjective peer ratings, mean of 3 (1-10)
@@ -152,7 +153,7 @@ models:
   - model: MAI-Code-1-Flash
     vendor: Microsoft
     tier: light (code)
-    cost_credits_per_1m: {in: 75, out: 450}
+    cost: {in: 75, out: 450}
     context: 256K
     vision: false
     stats:  # subjective peer ratings, mean of 3 (1-10)
