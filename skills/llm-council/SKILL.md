@@ -70,7 +70,8 @@ Config knobs:
 - `council_size`: 2 (two cold reads — a quick second opinion), 3 (default), 4 (code-heavy)
 - `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "Gemini 3.1 Pro (Preview) (copilot)", "GPT-5.6 Sol (copilot)"]`) — a manual override can collapse the cross-vendor/tier spread; note that in the footer if it does
 - `synthesizer`: chair model, only when spawning a *separate* chair (default: the calling agent itself; else `Auto` or any non-seat model)
-- `effort`: if the harness exposes a reasoning-effort level (medium / high / xhigh / max), raise it for hard or high-stakes councils. `runSubagent` has no effort parameter — set it at the harness/model level, or push depth in the prompt.
+
+**Effort:** you can't set a seat's reasoning effort — `runSubagent` has no effort parameter, and a seat runs at the harness's default, which you neither control nor see. To make a seat think harder, pick a higher tier (a flagship reasons more than a mini) or ask for depth in the prompt ("reason step by step; check your work"). A global harness effort setting, if any, may not propagate to subagents — don't rely on it.
 
 ### Step 2 — Fan-Out (Independent Answering)
 
