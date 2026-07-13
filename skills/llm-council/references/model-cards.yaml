@@ -1,11 +1,5 @@
-# LLM model cards — grounded facts + peer-rating stats
-#
-# tier / cost / context / vision are OBSERVED facts (2026-07-13 roster).
-# cost = credits per 1M tokens, {in, out}.
-# stats are SUBJECTIVE peer ratings (1-10), the mean of a 3-model self-poll
-#   (Claude Opus 4.8, Gemini 3.1 Pro, GPT-5.6 Sol) on 2026-07-13 — NOT benchmarks.
-#   See README.md (this dir); raw ballots: .eng/workstreams/llm-council/ratings/ (not shipped).
-# Re-poll and re-average when the roster changes; treat as a rough guide, not truth.
+# Model cards: grounded facts (tier, cost, context, vision) + subjective peer-rating `stats`.
+# cost = credits per 1M tokens, {in, out}. See README.md for how `stats` were made and caveats.
 models:
   - model: GPT-5.6 Sol
     vendor: OpenAI
@@ -13,7 +7,7 @@ models:
     cost: {in: 500, out: 3000}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 10.0
       coding: 9.3
       prose: 9.0
@@ -26,7 +20,7 @@ models:
     cost: {in: 500, out: 2500}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 9.7
       coding: 9.3
       prose: 10.0
@@ -39,7 +33,7 @@ models:
     cost: {in: 200, out: 1200}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 9.3
       coding: 9.0
       prose: 8.0
@@ -52,7 +46,7 @@ models:
     cost: {in: 200, out: 1000}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 9.0
       coding: 9.3
       prose: 8.7
@@ -65,7 +59,7 @@ models:
     cost: {in: 500, out: 3000}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 9.0
       coding: 8.3
       prose: 8.3
@@ -78,7 +72,7 @@ models:
     cost: {in: 250, out: 1500}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 8.7
       coding: 8.7
       prose: 8.0
@@ -91,7 +85,7 @@ models:
     cost: {in: 125, out: 1000}
     context: 173K
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 7.7
       coding: 7.7
       prose: 7.0
@@ -104,7 +98,7 @@ models:
     cost: {in: 150, out: 900}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 6.7
       coding: 7.0
       prose: 6.0
@@ -117,7 +111,7 @@ models:
     cost: {in: 100, out: 600}
     context: 1M
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 6.3
       coding: 6.7
       prose: 7.0
@@ -130,7 +124,7 @@ models:
     cost: {in: 100, out: 500}
     context: 200K
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 6.0
       coding: 6.0
       prose: 6.7
@@ -143,7 +137,7 @@ models:
     cost: {in: 25, out: 200}
     context: 192K
     vision: true
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 5.0
       coding: 5.3
       prose: 5.0
@@ -156,7 +150,7 @@ models:
     cost: {in: 75, out: 450}
     context: 256K
     vision: false
-    stats:  # subjective peer ratings, mean of 3 (1-10)
+    stats:
       reasoning: 5.0
       coding: 8.0
       prose: 3.3
