@@ -55,7 +55,7 @@ Below, "spawn a seat" means the current harness's subagent call — not literall
 ### Step 1 — Select Council
 
 See [references/model-selection.md](references/model-selection.md) for roster discovery and seat selection. Key rules:
-- Default council = 3 mid-tier **roles**: an Anthropic mid-tier + a Google Pro + an OpenAI current model (add a code-specialist 4th for code-heavy work). Cross-vendor is *preferred, not required* — a same-vendor multi-tier council (e.g. Claude Opus + Sonnet + Haiku) is a valid fallback, and the only option on single-vendor harnesses; it just shares that vendor's blind spots, so weight its agreement accordingly.
+- Default council = 3 cross-vendor **roles** at the latest tier: an Anthropic flagship (Opus) + a Google Pro + an OpenAI current model — today Claude Opus 4.8 + Gemini 3.1 Pro (Preview) + a GPT-5.6 variant (e.g. Sol); add a code-specialist 4th for code-heavy work. Drop to mid-tier (Sonnet 5 / Gemini 2.5 Pro / GPT-5.5) for cheaper, faster fan-out. Cross-vendor is *preferred, not required* — a same-vendor multi-tier council (e.g. Opus + Sonnet + Haiku) is a valid fallback and the only option on single-vendor harnesses; it shares that vendor's blind spots, so weight its agreement accordingly.
 - **Pinning:** resolve roles to concrete names at run time (portable, survives churn). Name-pin exact models only for reproducibility or explicit model comparisons — and always record the resolved names in the appendix. See [references/model-selection.md](references/model-selection.md).
 - On Copilot harnesses, discover the live roster first via the invalid-model probe. On Claude Code, the roster is the Anthropic family (see Portability) — use Panel mode.
 - A dynamic/auto-routing model (e.g. Copilot `Auto`) may chair but must never hold a seat (non-deterministic).
@@ -66,7 +66,7 @@ See [references/model-selection.md](references/model-selection.md) for roster di
 
 Config knobs:
 - `council_size`: 3 (default), 4 for code-heavy
-- `models`: explicit list overrides defaults (e.g., `["Claude Sonnet 4.6 (copilot)", "Gemini 2.5 Pro (copilot)", "GPT-5.5 (copilot)"]`)
+- `models`: explicit list overrides defaults (e.g., `["Claude Opus 4.8 (copilot)", "Gemini 3.1 Pro (Preview) (copilot)", "GPT-5.6 Sol (copilot)"]`)
 - `synthesizer`: model for the chair step (default: a model/tier not used as a seat; prefer a different vendor, or `Auto`)
 
 ### Step 2 — Fan-Out (Independent Answering)
