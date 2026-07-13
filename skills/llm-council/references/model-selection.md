@@ -34,7 +34,26 @@ The error message enumerates the valid model strings. The format is `"Model Name
 
 Note: All models use vendor `(copilot)` in the format string.
 
-## 2. Orthogonality Heuristics
+## 2. Cross-Vendor Tiers (weight classes)
+
+Models fall into rough tiers across vendors. Pick seats by **matching** a tier (fair comparison) or **spanning** tiers (breadth). Output cost (credits per 1M) is a decent tier proxy — but Google prices below Anthropic/OpenAI at the same tier, so also judge within a vendor.
+
+| Tier | Anthropic | Google | OpenAI | Microsoft |
+|---|---|---|---|---|
+| **Flagship** — heaviest reasoning, priciest | Opus 4.6 / 4.7 / 4.8 | Gemini 3.1 Pro (Preview) | GPT-5.5, GPT-5.6 **Sol** | — |
+| **Workhorse** — balanced cost/quality | Sonnet 4.6, Sonnet 5 | Gemini 2.5 Pro | GPT-5.4, GPT-5.6 **Terra** | — |
+| **Light** — cheap, fast | Haiku 4.5 | Gemini 3.5 Flash, Gemini 3 Flash (Preview) | GPT-5.6 **Luna**, GPT-5.4 mini, GPT-5 mini | — |
+| **Code specialist** | — | — | GPT-5.3-Codex | MAI-Code-1-Flash |
+
+- **The GPT-5.6 trio is three tiers, not three personas:** Sol ≈ flagship (output cost 3000), Terra ≈ workhorse (1500), Luna ≈ light (600). Same base — seat only one, chosen by the tier you want.
+- **Newer Sonnet is cheaper:** Sonnet 5 (output 1000) prices below Sonnet 4.6 (1500) — a strong, cheap workhorse.
+- **Google is cheaper per token** at each tier; don't read its lower price as a lower tier.
+- **MAI-Code-1-Flash is tools-only (no vision)** and light-tier — use it for code, not image/multimodal questions.
+- **Context windows vary within a tier** (e.g. Gemini 2.5 Pro is 173K while most flagships are ~1M) — check it if your input is large.
+
+For a council, one seat per tier row across different vendors maximizes both capability and orthogonality; the default (§5) is one flagship each from Anthropic / Google / OpenAI.
+
+## 3. Orthogonality Heuristics
 
 A council's value comes from error coverage, not average accuracy. Two models are orthogonal when they disagree on the examples each gets wrong. Correlated models vote together even when wrong.
 
@@ -50,14 +69,14 @@ Apply these rules in order:
 5. **MAI-Code-1-Flash as a code-specialist 4th seat.** Code-specialization produces a different error profile from general-instruction models. Add it as Seat 4 for code-heavy questions.
 6. **Exclude Auto from council seats.** `Auto`'s model selection is non-deterministic across parallel calls — it cannot contribute an independent, reproducible perspective. `Auto` may chair the synthesis step.
 
-## 3. Cluster Correlation Reference
+## 4. Cluster Correlation Reference
 
 Use this table to avoid seating correlated models together:
 
 | Cluster | Correlation | Reason |
 |---|---|---|
 | Claude Opus 4.6 / 4.7 / 4.8 | HIGH | Sequential safety/quality updates on a shared base, same pretraining data and RLHF pipeline |
-| GPT-5.6 Luna / Sol / Terra | HIGH | Named variants of GPT-5.6 — likely persona- or domain-fine-tuned from shared base weights |
+| GPT-5.6 Luna / Sol / Terra | HIGH | Three tiers of a shared GPT-5.6 base (Luna light / Terra workhorse / Sol flagship) — seat only one |
 | GPT-5.4 mini / GPT-5.4 | HIGH | Contemporaneous generation; mini is a scaled-down variant |
 | Gemini 3.5 Flash / Gemini 3 Flash (Preview) | HIGH | Both Flash tier; 3 Flash is the preview predecessor |
 | Gemini 2.5 Pro / Gemini 3.1 Pro (Preview) | MODERATE | Generational gap is larger; 3.1 is preview |
@@ -65,7 +84,7 @@ Use this table to avoid seating correlated models together:
 | Any Anthropic vs. any Google vs. any OpenAI | LOW (desired) | Cross-vendor diversity |
 | MAI-Code-1-Flash vs. any of the above | LOW | 4th vendor, independent Microsoft training infrastructure |
 
-## 4. Default Councils
+## 5. Default Councils
 
 > **Verify before use.** The concrete model names below are an illustrative snapshot. Re-run the discovery probe (§1) and remap the roles to the live roster before each council. Treat the seats as **roles**, not fixed names — that is what survives roster churn.
 
@@ -75,12 +94,12 @@ Use this table to avoid seating correlated models together:
 |---|---|---|---|
 | 1 | Anthropic flagship | Claude Opus 4.8 | Strongest Anthropic reasoning; Constitutional AI gives distinctive biases |
 | 2 | Google Pro | Gemini 3.1 Pro (Preview) | Latest Google Pro; multimodal-first pretraining (only current Pro is a Preview build) |
-| 3 | OpenAI current | GPT-5.6 (a Luna/Sol/Terra variant, e.g. Sol) | Latest OpenAI generation; 5.6 ships only as named variants that share a base — pick one |
+| 3 | OpenAI current | GPT-5.6 Sol | Latest OpenAI generation; Sol is its flagship-tier variant (Terra = workhorse, Luna = light) |
 
 This default favors the **latest, strongest** model per vendor. Swap for a cheaper or more stable council as needed:
 - **Cost / latency:** drop to mid-tier — Claude Sonnet 5 (or 4.6), Gemini 2.5 Pro, GPT-5.5. Often nearly as good, and faster/cheaper for parallel fan-out.
 - **Stability:** Gemini 3.1 Pro is a **Preview** build; for a documented, stable release use Gemini 2.5 Pro.
-- **Ambiguity:** GPT-5.6 has three named variants (Luna/Sol/Terra) with no documented distinction; to avoid an arbitrary pick, use GPT-5.5.
+- **Simplicity:** GPT-5.6 comes as three tiers (Sol = flagship, Terra = workhorse, Luna = light); this default uses Sol. Use GPT-5.5 instead to avoid the 5.6 line entirely.
 
 ### 4-Model Council (code-heavy questions)
 
@@ -90,7 +109,7 @@ Add **MAI-Code-1-Flash** (Microsoft, code-specialist) as Seat 4. This adds a 4th
 |---|---|---|
 | 1 | Anthropic flagship | Claude Opus 4.8 |
 | 2 | Google Pro | Gemini 3.1 Pro (Preview) |
-| 3 | OpenAI current | GPT-5.6 (e.g. Sol) |
+| 3 | OpenAI current | GPT-5.6 Sol |
 | 4 | Microsoft code-specialist | MAI-Code-1-Flash |
 
 ### Updating for Roster Churn
@@ -101,7 +120,7 @@ When the roster changes, re-run the discovery probe and remap roles:
 - OpenAI current → latest GPT generation (if it ships only as named variants, pick one)
 - Code specialist → any code-tuned model from a vendor not already in the council
 
-## 5. Pinning Models
+## 6. Pinning Models
 
 Two ways to fix which models sit on the council:
 
