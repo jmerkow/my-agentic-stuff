@@ -16,6 +16,7 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 | `slop-check` | slop-check | Detect and fix AI slop in text |
 | `visual-design` | visual-design | Judge and improve visual design of static artifacts |
 | `work-search` | work-search | Search M365, internal eng knowledge, and MS docs |
+| `llm-council` | llm-council | Pose a question to multiple orthogonal models in parallel and synthesize their independent responses |
 | `engflow` | External GitHub plugin | Engineering workflow agents and skills |
 
 `build-deck` uses `visual-design` and `slop-check` if they're installed, but doesn't require them.

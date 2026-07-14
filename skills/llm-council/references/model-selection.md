@@ -1,0 +1,151 @@
+# Model Selection (reference)
+
+Roster discovery, orthogonality heuristics, and default council configurations for the `llm-council` skill. This is a reference for the **orchestrator** running the council (choosing seats and the chair) — council members themselves do not need it.
+
+> **Environment note.** This guidance assumes a Copilot agent harness (VS Code or the Copilot CLI), where subagents launch via a `runSubagent` tool with a `model` parameter formatted `"Model Name (Vendor)"` and cross-vendor models are available. On **Claude Code**, seats launch via the `Task` tool against `.claude/agents/` and models are the Anthropic family only — the cross-vendor guidance below does not apply; use Panel-mode persona diversity (optionally across Opus / Sonnet / Haiku) instead. If no `model` parameter is available at all, switch to persona diversity rather than running identical seats.
+
+## 1. Model Discovery (Copilot harnesses)
+
+Copilot harnesses have no list-models API. To discover the current roster:
+
+1. Call `runSubagent` with an intentionally invalid `model` value (e.g., `"__invalid__"`).
+2. The error response lists all valid model names.
+3. Parse the roster from the error and cache it for the session.
+4. **Never hardcode the roster** — it is environment-specific and changes without notice.
+
+This probe is Copilot-specific. On Claude Code, do not probe — assume the Anthropic family and select seats by tier and persona instead.
+
+Example probe invocation (the model value is intentionally wrong):
+```
+runSubagent(model="__invalid__", ...)
+```
+
+The error message enumerates the valid model strings. The format is `"Model Name (Vendor)"` — e.g., `"Claude Sonnet 4.6 (copilot)"`.
+
+**Example snapshot (2026-07-13 — illustrative only, not authoritative; re-discover per environment):**
+
+| Vendor | Models |
+|---|---|
+| Anthropic | Claude Opus 4.6, Claude Opus 4.7, Claude Opus 4.8, Claude Sonnet 4.6, Claude Sonnet 4.5, Claude Sonnet 5, Claude Haiku 4.5 |
+| Google | Gemini 3.1 Pro (Preview), Gemini 3.5 Flash, Gemini 3 Flash (Preview), Gemini 2.5 Pro |
+| OpenAI | GPT-5.3-Codex, GPT-5.4 mini, GPT-5.4, GPT-5.5, GPT-5.6 Luna, GPT-5.6 Sol, GPT-5.6 Terra, GPT-5 mini |
+| Microsoft (MAI) | MAI-Code-1-Flash |
+| Auto | Auto |
+
+Note: All models use vendor `(copilot)` in the format string.
+
+## 2. Tiers (weight classes)
+
+Three tiers, by capability vs. cost:
+- **Flagship** — maximum reasoning, top cost; for hard or high-stakes work.
+- **Workhorse** — the everyday model: most of the quality at moderate cost and speed. The default when unsure.
+- **Light** — cheap and fast; for simple or bulk work.
+
+In most families the tier is baked into the name and holds across versions, so name the family and let the version float:
+
+| Vendor | Flagship | Workhorse | Light |
+|---|---|---|---|
+| **Anthropic** | Opus | Sonnet | Haiku |
+| **Google** | Gemini Pro (3.x) | Gemini Pro (2.x) | Gemini Flash |
+| **OpenAI** | latest GPT / GPT-5.6 Sol | GPT-5.6 Terra | GPT mini / GPT-5.6 Luna |
+| **Microsoft** | — | — | MAI-Code |
+
+- **Anthropic:** tier = name. Opus / Sonnet / Haiku keep their tier across versions (4.x, 5) — take the latest of the tier you want.
+- **Google:** only two tiers — **Pro** (heavy) and **Flash** (light). Latest Pro is a Preview build (3.1); 2.5 Pro is the stable one.
+- **OpenAI:** usually one full model per generation (5.4, 5.5) plus a **mini** (light). The exception is **5.6**, which splits into tiers — **Sol** flagship, **Terra** workhorse, **Luna** light.
+- **Microsoft:** `MAI-Code-1-Flash` — light and code-focused, tools-only (no vision).
+- **Coding is not a separate tier.** The strongest coders are the **flagships** (Opus, GPT-5.6 Sol), not the code-tuned models. `GPT-5.3-Codex` and `MAI-Code-1-Flash` are light, code-focused options — cheap and fast for routine or bulk code, and useful as a differently-tuned extra lens, but not a substitute for a flagship on hard problems.
+
+Cost roughly tracks tier — it's really a proxy for power, so choose by tier, not price. Context varies within a tier (Gemini 2.5 Pro is 173K vs ~1M for most flagships) — check it for large inputs.
+
+Per-model cards — grounded facts plus a subjective peer-rating `stats` block — are in [model-cards.yaml](model-cards.yaml).
+
+### Which tiers to seat
+
+Vary the **vendor**, hold the **tier** — diversity should come from different labs, not from mixing strong and weak models.
+
+- **Same tier, cross-vendor (recommended):** three flagships or three workhorses, one per vendor — seats are peers, so synthesis weighs them equally. This is the 3-seat default.
+- **Mixed tier:** avoid as a rule — a light seat beside a flagship mostly adds noise and can't be weighted equally. Sane exceptions: a deliberate fast "sanity-check" seat, or the code-specialist 4th (light but specialized).
+- **Single vendor, multiple tiers ("vertical", e.g. Opus + Sonnet + Haiku):** the fallback when only one vendor is available (Claude Code) or for cost. Weak orthogonality — the seats share the vendor's blind spots and are capability-ordered, so the flagship usually dominates and the smaller seats rarely overturn it. Use it, but trust its agreement less.
+
+## 3. Orthogonality Heuristics
+
+A council's value comes from error coverage, not average accuracy. Two models are orthogonal when they disagree on the examples each gets wrong. Correlated models vote together even when wrong.
+
+Apply these rules in order:
+
+1. **Prefer cross-vendor, but it is not required.** Across 3 seats, 3 different vendors (Anthropic, Google, OpenAI) give the most orthogonality — different pipelines, alignment regimes, and documented failure modes. But a same-vendor multi-tier council is a legitimate fallback when cross-vendor isn't available (e.g. Claude Code) or when you want tighter cost/latency control: Anthropic in particular spans Opus / Sonnet / Haiku, which differ enough in scale to give useful (if correlated) spread. A same-vendor council shares that vendor's blind spots — weight its agreement accordingly.
+2. **Avoid same named-variant clusters.** Do not seat GPT-5.6 Luna AND GPT-5.6 Sol — they share the same vendor and generation-variant cluster. Pick at most one from any named-variant cluster:
+   - Luna / Sol / Terra → one seat maximum
+   - Opus 4.6 / 4.7 / 4.8 → one seat maximum
+   - Gemini 3.5 Flash / Gemini 3 Flash → one seat maximum
+3. **Match tier to the job.** The default council uses current **flagships** (Opus, Gemini Pro, the latest GPT) for maximum capability. When the question doesn't need that, drop to the **workhorse** tier (Sonnet, Gemini 2.5 Pro, GPT-5.6 Terra) for faster fan-out — the capability gap is usually smaller than the diversity gain from a third vendor. (GPT-5.5 is flagship-tier despite the name; the workhorse GPT is Terra.) Either way, keep the light tier (Flash / Haiku / mini) off the core seats (see next rule).
+4. **Reserve small models for 4th+ seats.** Flash, mini, and Haiku add more noise than signal for complex reasoning in a 3-model council. Use them only in ≥4-model councils or for an explicit fast-sanity-check role.
+5. **Code questions: lead with flagships, not code-tuned models.** Flagships (Opus, GPT-5.6 Sol) are the strongest coders. A light code-tuned model (`GPT-5.3-Codex`, `MAI-Code-1-Flash`) is worth a 4th seat only as a cheap, differently-tuned lens — not as the primary code seat.
+6. **Exclude Auto from council seats.** `Auto`'s model selection is non-deterministic across parallel calls — it cannot contribute an independent, reproducible perspective. `Auto` may chair the synthesis step.
+
+## 4. Cluster Correlation Reference
+
+Use this table to avoid seating correlated models together:
+
+| Cluster | Correlation | Reason |
+|---|---|---|
+| Claude Opus 4.6 / 4.7 / 4.8 | HIGH | Sequential safety/quality updates on a shared base, same pretraining data and RLHF pipeline |
+| GPT-5.6 Luna / Sol / Terra | HIGH | Three tiers of a shared GPT-5.6 base (Luna light / Terra workhorse / Sol flagship) — seat only one |
+| GPT-5.4 mini / GPT-5.4 | HIGH | Contemporaneous generation; mini is a scaled-down variant |
+| Gemini 3.5 Flash / Gemini 3 Flash (Preview) | HIGH | Both Flash tier; 3 Flash is the preview predecessor |
+| Gemini 2.5 Pro / Gemini 3.1 Pro (Preview) | MODERATE | Generational gap is larger; 3.1 is preview |
+| GPT-5.4 / GPT-5.5 / GPT-5.6 | MODERATE-LOW | Different training runs within same vendor |
+| Any Anthropic vs. any Google vs. any OpenAI | LOW (desired) | Cross-vendor diversity |
+| MAI-Code-1-Flash vs. any of the above | LOW | 4th vendor, independent Microsoft training infrastructure |
+
+## 5. Default Councils
+
+> **Verify before use.** The concrete model names below are an illustrative snapshot. Re-run the discovery probe (§1) and remap the roles to the live roster before each council. Treat the seats as **roles**, not fixed names — that is what survives roster churn.
+
+### 3-Model Default (cross-vendor)
+
+One flagship per vendor:
+
+| Seat | Role | Resolves to (example) |
+|---|---|---|
+| 1 | Anthropic flagship | Claude Opus 4.8 |
+| 2 | OpenAI flagship | GPT-5.6 Sol |
+| 3 | Google flagship | Gemini 3.1 Pro (Preview) |
+
+Vendor priority is Anthropic → OpenAI → Google, so a **2-seat** council drops Google (Anthropic + OpenAI) and Google joins only at the 3rd seat. Swap seats as needed:
+- **Lower power / faster:** drop to the workhorse tier — Claude Sonnet 5, Gemini 2.5 Pro, GPT-5.6 Terra. Often nearly as good and faster for parallel fan-out. (GPT-5.5 is flagship-tier despite the name; the workhorse GPT is Terra.)
+- **Stability:** Gemini 3.1 Pro is a **Preview** build; for a documented, stable release use Gemini 2.5 Pro.
+- **Simplicity:** GPT-5.6 comes as three tiers (Sol = flagship, Terra = workhorse, Luna = light); this default uses Sol. Use GPT-5.5 instead to avoid the 5.6 line entirely.
+
+### 2-Model Council (quick second opinion)
+
+The lightest useful council: **two independent cold reads** from the two primary vendors — **Anthropic + OpenAI** (e.g. Opus + a GPT flagship), not Google, regardless of which vendor the calling agent runs. Use it for a fast sanity check when a 3-seat panel is overkill. The chair is usually the calling agent (or one of the two vendors) — with only two seats, disagreement means "look closer," not "majority wins."
+
+### 4-Model Council (add a differently-tuned lens)
+
+For code-heavy work the default seats already code well. If you want a 4th seat, add a light code-tuned model as a cheap, differently-tuned lens (a different error profile) — not because it out-codes them:
+
+| Seat | Role | Current model |
+|---|---|---|
+| 1 | Anthropic flagship | Claude Opus 4.8 |
+| 2 | OpenAI flagship | GPT-5.6 Sol |
+| 3 | Google flagship | Gemini 3.1 Pro (Preview) |
+| 4 | Code-tuned lens (light) | MAI-Code-1-Flash (or GPT-5.3-Codex) |
+
+### Updating for Roster Churn
+
+When the roster changes, re-run the discovery probe and remap roles:
+- Anthropic flagship → latest Opus (mid-tier alternative: latest Sonnet)
+- Google Pro → latest Gemini Pro (prefer a non-Preview build if one exists)
+- OpenAI current → latest GPT generation (if it ships only as named variants, pick one)
+- Code specialist → any code-tuned model from a vendor not already in the council
+
+## 6. Pinning Models
+
+Two ways to fix which models sit on the council:
+
+- **Role-pinned (default, portable).** Store seats as roles — "Anthropic mid-tier", "Google Pro", "OpenAI current" — and resolve them to concrete names at run time from the live roster. Survives roster churn; the same council definition works across environments.
+- **Name-pinned (reproducible).** Store exact names (e.g. `Claude Sonnet 4.6`). Use only when you need reproducibility — benchmarking, or explicitly comparing named models — because pinned names go stale as models are retired.
+
+Whichever you use, **record the exact resolved model names (and the chair) in the run's appendix.** A role-pinned run is only reproducible after the fact if you captured what the roles resolved to. Pin the chair the same way you pin the seats.
