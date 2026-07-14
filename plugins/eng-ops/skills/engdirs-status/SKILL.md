@@ -10,7 +10,7 @@ Audit of `.eng/` git repos. Reports branch, ahead/behind, and dirty files.
 
 ## Procedure
 
-**Private config:** Default scan root is `~/Code`. If `~/.copilot/skills/engdirs-status/config.md` exists, use the scan roots and ADO org listed there (pass roots as args to `audit.sh`).
+**Private config:** Default scan root is `~/Code`. If `~/.copilot/engdirs-status/config.md` exists, use the scan roots and ADO org listed there (pass roots as args to `audit.sh`).
 
 ```bash
 bash scripts/audit.sh
@@ -38,4 +38,4 @@ The agent presents the table to the user.
 ## References
 
 - `~/.copilot/engagent/skills/eng-push/SKILL.md` — sets up EngDirs push (initial config, not for routine pushes)
-- If `~/.copilot/skills/engdirs-status/troubleshooting.md` exists, consult it for environment-specific push/auth recovery steps.
+- If `~/.copilot/engdirs-status/troubleshooting.md` exists, consult it for environment-specific push/auth recovery steps.

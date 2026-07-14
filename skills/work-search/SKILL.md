@@ -218,7 +218,7 @@ Apply these during and after all queries:
 
 After collecting items, categorize by project:
 
-Customize this mapping to your own projects. If `~/.copilot/skills/work-search/config.md` exists, use the categorization table there instead.
+Customize this mapping to your own projects. If `~/.copilot/work-search/config.md` exists, use the categorization table there instead.
 
 | Signal | Project |
 |--------|---------|

@@ -38,7 +38,7 @@ bash ~/.copilot/skills/collect/scripts/collect.sh my-host
 
 Output goes to `/tmp/chronicle/<host>/<source>/session-store.db*`.
 
-**Private hosts:** if `~/.copilot/skills/collect/hosts.md` exists, use the SSH host names listed there as the collect.sh args instead of the placeholder above.
+**Private hosts:** if `~/.copilot/sessions/hosts.md` exists, use the SSH host names listed there as the collect.sh args instead of the placeholder above.
 
 ### 2. Verify schema
 
