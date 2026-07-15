@@ -58,7 +58,6 @@ class FlowList(list):
 yaml.SafeDumper.add_representer(
     FlowList, lambda d, data: d.represent_sequence("tag:yaml.org,2002:seq", data, flow_style=True)
 )
-FLOW_KEYS = {"tools", "agents"}
 
 
 def read_agent(path: Path) -> frontmatter.Post:
@@ -160,6 +159,8 @@ def commit_store(store: Path, message: str) -> tuple[str, bool]:
         git(store, "init", "-q")
     git(store, "add", "-A")
     status = git(store, "status", "--porcelain")
+    if status.returncode != 0:
+        return f"store: git error — {status.stderr.strip() or 'not a usable git store'}", False
     if not status.stdout.strip():
         return "store: nothing to commit", True
     r = git(store, "commit", "-q", "-m", message)
@@ -276,6 +277,11 @@ def cmd_assign(args) -> int:
         return 2
 
     only = set(args.agents) if args.agents else None
+    if only:
+        unknown = only - set(assignments)
+        if unknown:
+            print(f"✗ unknown agent name(s) not in assignments.yaml: {sorted(unknown)}")
+            return 2
     plans, hard_errors = [], []
     for agent, groups in assignments.items():
         if only and agent not in only:
@@ -334,7 +340,10 @@ def cmd_check(args) -> int:
     the fix is `assign --write`. Read-only."""
     store, toolsets_path, assignments_path, states_dir = resolve_paths(args)
     agents_dir = Path(args.agents_dir)
-    toolsets = load_toolsets(toolsets_path) if toolsets_path.exists() else {}
+    if not toolsets_path.exists():
+        print(f"✗ toolsets file not found: {toolsets_path}")
+        return 2
+    toolsets = load_toolsets(toolsets_path)
     assignments = {}
     if assignments_path.exists():
         assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
@@ -461,6 +470,9 @@ def cmd_reconcile(args) -> int:
     CLI can't see the session, so paste/pipe the Configure-Tools list via --ui <file> or
     stdin (DrAgent, tools:['*'], can enumerate the live roster). Read-only."""
     store, toolsets_path, _a, _s = resolve_paths(args)
+    if not toolsets_path.exists():
+        print(f"✗ toolsets file not found: {toolsets_path}")
+        return 2
     toolsets = load_toolsets(toolsets_path)
     store_leaves = {t for g in toolsets.values() for t in (g.get("tools") or [])
                     if "/" in t and not t.endswith("/*")}
@@ -536,6 +548,9 @@ def cmd_fmt(args) -> int:
     `<type>_<grouping>` group names carry the structure. Preview by default; --write to commit."""
     store, toolsets_path, _a, _s = resolve_paths(args)
     path = Path(args.file).expanduser() if getattr(args, "file", None) else toolsets_path
+    if not path.exists():
+        print(f"✗ toolset file not found: {path}")
+        return 2
     text = path.read_text(encoding="utf-8")
     reflowed = emit_toolset(load_toolsets(path))
     if reflowed == text:

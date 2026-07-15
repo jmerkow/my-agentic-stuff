@@ -44,7 +44,9 @@ rest are VS Code-only. You run a custom agent by picking it from the **agents dr
 
 **The name gap (what confuses everyone).** A tool has TWO names:
 - **config name** — what goes in `tools:` and toolsets: `server/tool` (e.g. `workiq/ask`,
-  `s360-breeze/get_kpi_health_stats`). Built-ins are bare (`read`, `edit`, `search`, …).
+  `s360-breeze/get_kpi_health_stats`). Built-in tools use the same shape (`read/readFile`,
+  `edit/createFile`); the bare names `read`/`edit`/… are toolset **groups** that expand to those
+  concrete leaves. `todo` is the lone bare single-tool.
 - **runtime name** — what the live tool is called in a session: `mcp_<server>_<tool>`
   (e.g. `mcp_workiq_mcp_se_ask`). The server segment can differ from the config alias
   (`s360-breeze` ⇄ `mcp_server_fo`).
