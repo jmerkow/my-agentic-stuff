@@ -1,0 +1,9 @@
+{
+  "name": "my",
+  "description": "Workspace topology knowledge for a my-workspace root. Marker: my-workspace.yaml at root (index and only permitted loose file). Skills: workspace (validate and reconcile topology), worktree (convention-aware worktree setup).",
+  "version": "0.3.0",
+  "skills": [
+    "./skills/workspace",
+    "./skills/worktree"
+  ]
+}
