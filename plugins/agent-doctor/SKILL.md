@@ -81,8 +81,8 @@ isn't in *that agent's* `tools:`. That's half 2, not half 1.
 above), not your config. Search the tracker before hand-editing: `gh search issues --repo
 microsoft/vscode "<symptom>"` — treat it as a first-class diagnostic step and record new findings here.
 
-Answering half 1 needs a session that sees the *whole* live roster, which is why DrAgent runs
-unrestricted — its persona covers that.
+Answering half 1 needs a session that sees the *whole* live roster — which is why **DrAgent** (this
+plugin's doctor agent, run with no `tools:` restriction) exists; its persona covers the rest.
 
 ## Default: doctor mode (diagnose first, change only when asked)
 
@@ -93,13 +93,15 @@ would be. Investigate and explain; don't write until the user asks you to apply 
 - **Diagnose (read-only — the default):** read the agent file + its assignment, check drift vs
   baseline (`check`), and reason about the tool (config-name vs runtime-name; is it live in the
   session at all?). Safe to run anytime.
-- **Change (only when the user asks to apply a fix):** `assign --write`, `restore`, `save`. These
-  edit agent files or the store — always preview the diff, confirm intent, then write.
+- **Change (only when the user asks to apply a fix):** `assign --write` / `restore` edit **agent
+  files** (preview the diff, confirm, then `--write`); `save`/`fmt` update the **store** (baseline /
+  toolset). Confirm intent before any write.
 
 ## Model
 
-- **`*.toolsets.jsonc`** (VS Code toolsets file, auto-loaded from `User/prompts/`) defines named
-  **groups**. The group NAME encodes a safety tier:
+- **The toolset file** (`toolsets.toolsets.jsonc` in the store; VS Code auto-loads any
+  `*.toolsets.jsonc` from `User/prompts/`) defines named **groups**. The group NAME encodes a
+  safety tier:
 
   | tier | naming | meaning |
   |---|---|---|
@@ -108,8 +110,8 @@ would be. Investigate and explain; don't write until the user asks you to apply 
   | mutation | `write_*` | external, others see it |
   | destructive | `write_*_delete` | ⚠️ delete / not-undoable |
 
-  `~presets` compose groups (groups-of-groups); builtins and MCP servers are themselves ordinary
-  leaf-listing groups (VS Code also resolves the bare builtin names natively). Tiers organize how you
+  `~presets` compose groups (groups-of-groups); the bare builtin names also resolve natively in VS
+  Code. Tiers organize how you
   **grant** capability; they are **not**
   enforced at runtime — keep the labels honest (a `_safe` group must genuinely stay in your outbox).
 
@@ -179,7 +181,7 @@ for the symptom (see the two-halves note) before touching config.
 
 **2 — "A plugin update overwrote my tools."** `check` (file vs assignment). Anything OUT OF SYNC →
 `assign --write` to regenerate from intent. `restore <agent>` for the last-known-good file first if
-you want it. Intent survived because it lives in the store, not the agent file.
+you want it.
 
 **3 — "Onboard a new MCP server."** Start the server. As DrAgent (unrestricted), read your own live tools
 for the new `mcp_<server>_*` entries. For each: derive the config name (`server/tool`) and classify
@@ -242,4 +244,4 @@ Comparisons are set-based, so the two formats never conflict.
 - After a plugin reinstall or MCP change: `check` (in sync with intent?) then `assign --write`.
 - `restore` is the undo if an install scrambled an agent. git history + `agent-states/` are the
   backup — there is no `backup/` dir (use `/tmp` for a one-off raw copy).
-- Add a new server/builtin tool directly to its toolset group (the only bare builtin is `todo`).
+- Add a new server/builtin tool directly to its toolset group.
