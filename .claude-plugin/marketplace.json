@@ -86,6 +86,13 @@
       "source": "./",
       "strict": false,
       "skills": ["./skills/work-search"]
+    },
+    {
+      "name": "tech-search",
+      "description": "Search internal engineering knowledge (ES Chat, EngHub, Stack Internal, Microsoft Learn) for technical and internal-tool questions.",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/tech-search"]
     }
   ]
 }
