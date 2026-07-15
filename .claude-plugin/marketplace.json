@@ -29,6 +29,11 @@
       "source": "./plugins/decks"
     },
     {
+      "name": "my",
+      "description": "Validate and reconcile a my-workspace topology, plus convention-aware worktree setup.",
+      "source": "./plugins/my"
+    },
+    {
       "name": "diagram-help",
       "description": "Lightweight reference for Mermaid and SVG diagram rendering gotchas.",
       "source": "./skills/diagram-help"
