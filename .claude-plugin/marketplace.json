@@ -59,6 +59,11 @@
       "source": "./skills/work-search"
     },
     {
+      "name": "agent-doctor",
+      "description": "Keep agent tool-lists correct as plugins install and MCP servers change — group→agent assignments, mechanical expansion, drift warnings. Ships DrAgent + the agent-doctor skill.",
+      "source": "./plugins/agent-doctor"
+    },
+    {
       "name": "llm-council",
       "description": "Pose a question to multiple orthogonal models in parallel and synthesize their independent responses.",
       "source": "./skills/llm-council"
