@@ -468,7 +468,7 @@ def cmd_reconcile(args) -> int:
     CASING (store id differs from the live tool only by case — VS Code silent-fails on it),
     then real NEW (in picker, not store) and GONE (in store, not picker), per server. The
     CLI can't see the session, so paste/pipe the Configure-Tools list via --ui <file> or
-    stdin (DrAgent, tools:['*'], can enumerate the live roster). Read-only."""
+    stdin (DrAgent runs with all tools — `tools:` omitted — so it can enumerate the live roster). Read-only."""
     store, toolsets_path, _a, _s = resolve_paths(args)
     if not toolsets_path.exists():
         print(f"✗ toolsets file not found: {toolsets_path}")
