@@ -58,7 +58,7 @@ Nested entries like `repoX/subdir` are optional — add them **only when asked**
 ## Inspect
 
 ```bash
-uv run skills/workspace/scripts/validate.py [workspace-root] [--json]
+uv run <skill>/scripts/validate.py [workspace-root] [--json]
 ```
 
 Report output verbatim, then a one-sentence summary: pass/fail + violation count. Add `--json` when you need to parse results reliably (e.g. paths with spaces). If `validate.py` is unavailable, manually check `my-workspace.yaml` exists at root; list root dirs; for each, verify it's in the index and has `.git` unless `vc_exception` is set.

@@ -19,8 +19,8 @@ Collect: target repo, branch name, base branch (default `origin/main`). Show the
 
 ```
 Proposed actions:
-  FETCH   git -C $ROOT/$REPO fetch origin
-  CREATE  $ROOT/$REPO.worktrees/$BRANCH/  (worktree add -b $BRANCH origin/main)
+  FETCH   git -C "$ROOT/$REPO" fetch origin
+  CREATE  "$ROOT/$REPO.worktrees/$BRANCH/"  (worktree add -b "$BRANCH" "$BASE")
 ```
 
 Get explicit approval, then run preflight:

@@ -33,10 +33,15 @@ def load_index(index_path: Path) -> dict[str, object]:
 def emit_error(message: str, root: Path | None, as_json: bool) -> int:
     """Report a fatal error, as JSON when requested, and return exit code 1."""
     if as_json:
-        payload = {"root": str(root) if root else None, "status": "ERROR", "error": message}
+        payload = {
+            "root": str(root) if root else None,
+            "status": "ERROR",
+            "error": message,
+            "issues": {},
+        }
         print(json.dumps(payload, indent=2))
     else:
-        print(message)
+        print(f"ERROR: {message}")
     return 1
 
 
@@ -64,9 +69,13 @@ def main() -> int:
             issues[name].add("ERROR: malformed index entry (needs a description)")
 
     # Single pass over the root: collect dirs, flag loose files and unindexed dirs.
+    try:
+        root_names = sorted(os.listdir(root))
+    except OSError as exc:
+        return emit_error(f"could not list workspace root: {exc}", root, args.json)
     top_level_index = {name for name in index if "/" not in name}
     root_dirs: list[str] = []
-    for name in sorted(os.listdir(root)):
+    for name in root_names:
         if name == "my-workspace.yaml":
             continue
         if (root / name).is_dir():
