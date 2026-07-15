@@ -53,7 +53,7 @@ rest are VS Code-only. You run a custom agent by picking it from the **agents dr
 
 Same tool, two names — which is why "is it connected?" is confusing and why you can't just eyeball
 one against the other. There's no lookup file for the runtime↔config map — infer it from the server
-prefix, and when unsure check your live tools (that's what DrAgent's all-tools session is for).
+prefix, and when unsure check your live tools in the session.
 
 **Why a tool list needs managing at all** (open VS Code bugs): a toolset *reference* containing MCP
 tools doesn't resolve in `tools:` — only built-ins do ([#298131](https://github.com/microsoft/vscode/issues/298131))
@@ -77,18 +77,12 @@ re-applied.
 The classic trap: an agent reports "server not connected" when the server is actually live — it just
 isn't in *that agent's* `tools:`. That's half 2, not half 1.
 
-**Both halves check out but it still misbehaves → suspect a VS Code bug.** Tool live *and* in
-`tools:` yet not working (or a whole class like built-ins won't resolve)? That's usually a known VS
-Code defect, not your config — agent-doctor exists *because* of such bugs
-([#298131](https://github.com/microsoft/vscode/issues/298131) / #308887 / #314020 / #321765). Search
-the tracker before hand-editing anything: `gh search issues --repo microsoft/vscode "<symptom>"` (or
-the web issues page). Treat "search microsoft/vscode issues" as a first-class diagnostic step, and
-record any new finding here.
+**Both halves check out but it still misbehaves → suspect a known VS Code bug** (like the ones
+above), not your config. Search the tracker before hand-editing: `gh search issues --repo
+microsoft/vscode "<symptom>"` — treat it as a first-class diagnostic step and record new findings here.
 
-**This is why DrAgent runs with all tools** (no `tools:` restriction — omitting the field grants
-everything) — it can see the whole live roster in its own
-session, so it can tell half 1 from half 2 and can enumerate a newly-started server's tools for
-onboarding. Great power, narrow job: it stays in its lane (diagnose + maintain tools), nothing else.
+Answering half 1 needs a session that sees the *whole* live roster, which is why DrAgent runs
+unrestricted — its persona covers that.
 
 ## Default: doctor mode (diagnose first, change only when asked)
 
@@ -101,10 +95,6 @@ would be. Investigate and explain; don't write until the user asks you to apply 
   session at all?). Safe to run anytime.
 - **Change (only when the user asks to apply a fix):** `assign --write`, `restore`, `save`. These
   edit agent files or the store — always preview the diff, confirm intent, then write.
-
-Typical loop: user reports *"agent X can't use tool Y"* → check whether the tool is live in the
-session vs merely missing from the agent's list → explain the gap and the `assignments.yaml` fix →
-**only if they say go**, edit `assignments.yaml` + `assign --write`.
 
 ## Model
 
@@ -191,7 +181,7 @@ for the symptom (see the two-halves note) before touching config.
 `assign --write` to regenerate from intent. `restore <agent>` for the last-known-good file first if
 you want it. Intent survived because it lives in the store, not the agent file.
 
-**3 — "Onboard a new MCP server."** Start the server. As DrAgent (all tools; `tools:` omitted), read your own live tools
+**3 — "Onboard a new MCP server."** Start the server. As DrAgent (unrestricted), read your own live tools
 for the new `mcp_<server>_*` entries. For each: derive the config name (`server/tool`) and classify
 by effect into a tier (`read_*` / `write_*` / `write_*_delete`). Define the `read_/write_` group(s)
 in the toolset listing those concrete `server/tool` leaves. Then assign the group where wanted and
