@@ -603,12 +603,12 @@ def main() -> int:
 
     rc = sub.add_parser("reconcile", help="diff live picker roster (--ui/stdin) vs store toolset, per server; read-only")
     rc.add_argument("--ui", help="file with the pasted Configure-Tools roster (default: stdin)")
-    rc.add_argument("--store", default=str(DEFAULT_STORE)); rc.add_argument("--toolsets")
+    rc.add_argument("--store", default=str(DEFAULT_STORE), help=f"store dir (default {DEFAULT_STORE})"); rc.add_argument("--toolsets")
     rc.set_defaults(func=cmd_reconcile)
 
     fm = sub.add_parser("fmt", help="reflow the toolset jsonc to canonical per-group form")
     fm.add_argument("--file", help="toolset file to reflow (default: <store>/toolsets.toolsets.jsonc)")
-    fm.add_argument("--write", action="store_true"); fm.add_argument("--store", default=str(DEFAULT_STORE))
+    fm.add_argument("--write", action="store_true"); fm.add_argument("--store", default=str(DEFAULT_STORE), help=f"store dir (default {DEFAULT_STORE})")
     fm.add_argument("--toolsets")
     fm.set_defaults(func=cmd_fmt)
 
