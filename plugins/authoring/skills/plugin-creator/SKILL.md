@@ -5,14 +5,13 @@ description: >
   VS Code and the GitHub Copilot CLI. Plugins are file-based bundles that
   ship custom agents, agent skills, hooks, MCP servers, and slash commands
   via a single plugin.json manifest. Use when scaffolding a new plugin
-  directory, authoring plugin.json or marketplace.json, wiring
-  chat.pluginLocations or chat.plugins.marketplaces in VS Code settings,
-  installing a plugin from a local path or Git URL, registering a plugin
-  marketplace, or debugging why a plugin's components are not loading.
+  directory, authoring plugin.json, wiring chat.pluginLocations in VS Code
+  settings, installing a plugin from a local path or Git URL, or debugging why
+  a plugin's components are not loading. To publish or register a plugin
+  marketplace, use the marketplace-creator skill.
   Keywords: Copilot plugins, VS Code agent plugins, Copilot CLI plugins,
-  plugin.json, marketplace.json, chat.pluginLocations,
-  chat.plugins.marketplaces, copilot plugin install, .mcp.json, SKILL.md,
-  .agent.md, hooks, MCP servers, plugin marketplace, local plugin install.
+  plugin.json, chat.pluginLocations, copilot plugin install, .mcp.json,
+  SKILL.md, .agent.md, hooks, MCP servers, local plugin install.
 ---
 
 # Plugin Creator
@@ -24,7 +23,7 @@ This skill follows the official Copilot plugin docs:
 
 Both surfaces use the **same plugin format** (a directory with a `plugin.json` manifest). A single plugin can be installed by both VS Code Copilot and Copilot CLI.
 
-For the full field reference, lifecycle events, marketplace schema, and gotchas, load [references/agent-plugin-reference.md](references/agent-plugin-reference.md). If you encounter a plugin shaped for Claude Code or OpenPlugin, load [references/other-platforms.md](references/other-platforms.md) for orientation.
+For the full field reference, lifecycle events, and gotchas, load [references/agent-plugin-reference.md](references/agent-plugin-reference.md). If you encounter a plugin shaped for Claude Code or OpenPlugin, load [references/other-platforms.md](references/other-platforms.md) for orientation. To **distribute** a plugin through a marketplace (authoring `marketplace.json`, registering `chat.plugins.marketplaces`, `copilot plugin marketplace add`), use the **marketplace-creator** skill.
 
 > **Last verified:** 2026-06-17. Agent plugins are a Preview feature, so there is no stable version to pin. See [references/sources.md](references/sources.md) for the full source list, verification date, and tooling versions. Re-verify against those docs if behavior differs.
 
@@ -154,7 +153,6 @@ When publishing changes, **bump `version` in `plugin.json`** so update checks pi
 
 - From a marketplace: Extensions view → search `@agentPlugins`.
 - From a Git URL: command palette → `Chat: Install Plugin From Source`.
-- From a local marketplace clone: add a `file:///` URI to `chat.plugins.marketplaces`.
 - Plugins installed by the Copilot CLI (under `~/.copilot/installed-plugins/`) automatically appear in VS Code's Agent Plugins view; no separate registration needed.
 
 **Copilot CLI**:
@@ -167,22 +165,13 @@ copilot plugin install https://github.com/owner/repo.git
 copilot plugin enable PLUGIN-NAME
 copilot plugin disable PLUGIN-NAME
 copilot plugin update --all
-copilot plugin marketplace add OWNER/REPO          # add a marketplace
-copilot plugin marketplace add /path/to/local      # local marketplace
 ```
 
-Default Copilot CLI marketplaces (registered out of the box): `copilot-plugins`, `awesome-copilot`.
+For registering or creating a marketplace (`chat.plugins.marketplaces`, `copilot plugin marketplace add`), use the **marketplace-creator** skill.
 
 ## Distributing a plugin
 
-To distribute, add the plugin to a marketplace by creating `marketplace.json`. The recommended location is `.github/plugin/marketplace.json` in a Git repository. Each entry in the `plugins` array references a plugin directory. See [references/agent-plugin-reference.md § marketplace.json](references/agent-plugin-reference.md) for the schema.
-
-Reference marketplaces:
-
-- [github/copilot-plugins](https://github.com/github/copilot-plugins)
-- [github/awesome-copilot](https://github.com/github/awesome-copilot)
-
-To recommend plugins from a project, add `extraKnownMarketplaces` and `enabledPlugins` to `.claude/settings.json` or `.github/copilot/settings.json`; VS Code surfaces these as `@agentPlugins @recommended` in the Extensions view.
+To distribute a plugin, add it to a marketplace by creating `marketplace.json` (recommended path: `.claude-plugin/marketplace.json`). This is covered end-to-end by the **marketplace-creator** skill, including the marketplace schema, source forms, plugin source layouts, registration, and workspace recommendations.
 
 ## Troubleshooting
 

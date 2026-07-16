@@ -1,0 +1,11 @@
+{
+  "name": "authoring",
+  "description": "Create, review, and troubleshoot GitHub Copilot agents, skills, and plugins.",
+  "version": "0.2.0",
+  "skills": [
+    "./skills/agent-refiner",
+    "./skills/skill-creator",
+    "./skills/plugin-creator",
+    "./skills/marketplace-creator"
+  ]
+}

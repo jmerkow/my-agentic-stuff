@@ -97,14 +97,20 @@ When fixing, follow these rules:
 
 #### Em dashes
 
-Em dashes flag at `level: 0`. Bold lead-in labels like `**Label** —` are exempt and will not fire. When an em dash is flagged, do NOT mechanically substitute a comma, semicolon, or period. The dash is almost always there because two clauses have a real relationship. Rephrase the sentence so that relationship is expressed without the dash.
+Em dashes flag at `level: 0`. Bold lead-in labels like `**Label** —` are exempt and will not fire. When an em dash is flagged, do NOT do a punctuation swap (`—` → `,`/`;`/`.`). That misses the real issue. Figure out whether the ideas belong together, then express that relationship directly:
+
+1. Integrate both ideas into one natural sentence when they belong together.
+2. Split into two sentences only when the clauses are genuinely independent.
+3. Turn a mid-sentence definition into a parenthetical or a colon list.
+
+A comma, semicolon, or period is a last resort only after a real rewrite.
 
 - ❌ `This was hard — we shipped anyway.`
 - ✅ `Despite the difficulty, we shipped on schedule.`
 
 ## Level Guide
 
-Each finding carries a **rule ID** (the category, e.g. `fake-authority`, `em-dash-prose`) and a numeric **level**. Multiple rule IDs can share a level. Output is grouped by rule ID, sorted highest level first.
+Each finding carries a **rule ID** (the category, e.g. `fake-authority`, `em-dash-prose`) and a numeric **level**. Multiple rule IDs can share a level. Text output is grouped by level (highest first), then by rule ID; within a rule, findings that share the same suggestion, fix type, and note are collapsed into one entry that lists every location.
 
 | Level | Meaning | Action |
 |-------|---------|--------|

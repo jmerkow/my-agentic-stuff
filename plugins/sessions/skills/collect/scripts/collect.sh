@@ -31,18 +31,31 @@ copy_local() {
 
 copy_remote() {
   local host="$1"
+  # Resolve remote $HOME once. Modern scp uses the SFTP protocol and does NOT
+  # run a remote shell, so a literal "$HOME" in the path never expands. We must
+  # pass an absolute path instead.
+  local remote_home
+  remote_home="$(ssh "$host" 'printf %s "$HOME"' 2>/dev/null)"
+  if [[ -z "$remote_home" ]]; then
+    echo "  [fail] $host: cannot resolve remote \$HOME (ssh failed)"
+    return 1
+  fi
   for entry in "${LOCAL_SOURCES[@]}"; do
     local label="${entry%%:*}"
     local rel="${entry#*:}"
     rel="${rel#$HOME/}"
-    local remote_path="\$HOME/$rel"
-    if ssh "$host" "test -f $remote_path" 2>/dev/null; then
+    local remote_path="$remote_home/$rel"
+    if ssh "$host" "test -f '$remote_path'" 2>/dev/null; then
       local out="$DEST/$host/$label"
       mkdir -p "$out"
-      scp -q "$host:$remote_path" "$out/" 2>/dev/null
-      scp -q "$host:${remote_path}-shm" "$out/" 2>/dev/null
-      scp -q "$host:${remote_path}-wal" "$out/" 2>/dev/null
-      echo "  [ok] $host:$label -> $out/"
+      if scp -q "$host:$remote_path" "$out/"; then
+        # -shm/-wal are optional; their absence is not a failure.
+        scp -q "$host:${remote_path}-shm" "$out/" 2>/dev/null
+        scp -q "$host:${remote_path}-wal" "$out/" 2>/dev/null
+        echo "  [ok] $host:$label -> $out/"
+      else
+        echo "  [fail] $host:$label scp failed for $remote_path"
+      fi
     fi
   done
 }

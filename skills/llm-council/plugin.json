@@ -1,0 +1,7 @@
+{
+  "name": "llm-council",
+  "description": "Pose a question to multiple orthogonal models in parallel and synthesize their independent responses.",
+  "skills": [
+    "./"
+  ]
+}

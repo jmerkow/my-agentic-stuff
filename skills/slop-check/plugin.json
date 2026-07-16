@@ -1,0 +1,7 @@
+{
+  "name": "slop-check",
+  "description": "Detect and fix AI slop in prose, docs, and status writing.",
+  "skills": [
+    "./"
+  ]
+}

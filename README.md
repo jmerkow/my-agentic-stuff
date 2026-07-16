@@ -6,18 +6,20 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 
 | Plugin | Skills | What it's for |
 |---|---|---|
-| `authoring` | agent-refiner, skill-creator, plugin-creator | Author and refine Copilot customizations |
+| `authoring` | agent-refiner, skill-creator, plugin-creator | Create, review, and troubleshoot Copilot agents, skills, and plugins |
+| `eng-ops` | engdirs-status, worktree-setup | Audit `.eng/` repo state and set up isolated git worktrees |
+| `sessions` | collect | Inspect and query Copilot session history |
 | `decks` | build-deck | Build presentation decks as SVG slides packaged into `.pptx` |
-| `eng-ops` | engdirs-status, worktree-setup | Git worktree and `.eng/` repo-state tooling |
-| `engflow` | EngAgent external plugin | Engineering workflow agents and skills |
-| `sessions` | chronicle-collect | Inspect and query Copilot session history |
 | `code-review` | code-review | Local dual sub-agent code review, no PR |
+| `diagram-help` | diagram-help | Mermaid and SVG diagram rendering reference |
 | `pandoc-docx` | pandoc-docx | Convert markdown to styled `.docx` |
 | `slop-check` | slop-check | Detect and fix AI slop in text |
 | `visual-design` | visual-design | Judge and improve visual design of static artifacts |
 | `work-search` | work-search | Search M365, internal eng knowledge, and MS docs |
+| `llm-council` | llm-council | Pose a question to multiple orthogonal models in parallel and synthesize their independent responses |
+| `engflow` | External GitHub plugin | Engineering workflow agents and skills |
 
-`decks` uses `visual-design` and `slop-check` if they're installed, but doesn't require them.
+`build-deck` uses `visual-design` and `slop-check` if they're installed, but doesn't require them.
 
 ## Install
 
@@ -58,7 +60,6 @@ Fork and clone the repo, then register the **local path** as the source. Install
 ```bash
 git clone https://github.com/<you>/my-agentic-stuff
 cd my-agentic-stuff
-git submodule update --init --recursive  # needed for submodule-backed plugins like engflow
 copilot plugin marketplace add "$PWD"
 copilot plugin install slop-check@my-agentic-stuff
 ```
@@ -75,7 +76,7 @@ To iterate: edit a skill, then re-run `copilot plugin update` (CLI) or reinstall
 
 ### Install individual plugins
 
-Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`. Bundles (`authoring`, `eng-ops`) install all their skills at once. `engflow` installs the external EngAgent plugin. The remaining entries install a single skill.
+Each plugin installs by name: `copilot plugin install <plugin>@my-agentic-stuff`. `engflow` installs the external GitHub-backed EngAgent plugin. The grouped entries bundle multiple skills under one plugin, and the remaining entries install one skill from its own source directory.
 
 > The old `rsync` installer (`install.sh`) is **deprecated**. It still works for mirroring skills directly into `~/.copilot/skills/`, but plugins are the supported path now. See [INSTALL-RSYNC.md](INSTALL-RSYNC.md).
 
@@ -87,17 +88,20 @@ my-agentic-stuff/
 ├── ADDING.md
 ├── INSTALL-RSYNC.md                 # deprecated rsync installer docs
 ├── install.sh                       # deprecated
-├── scripts/validate-marketplace.py  # manifest validator
-├── .claude-plugin/marketplace.json  # Claude marketplace manifest
-├── catalog/                         # external plugin submodules
-│   └── EngAgent/                    # provides the engflow plugin
-└── skills/                          # canonical skills, shared across plugins
-    ├── build-deck/                  # each has its own SKILL.md
-    ├── slop-check/
-    └── ...                          # one directory per skill
+├── scripts/validate-marketplace.py  # marketplace and plugin manifest validator
+├── .claude-plugin/marketplace.json  # marketplace manifest
+├── plugins/                         # grouped multi-skill plugins
+│   ├── authoring/
+│   ├── decks/
+│   ├── eng-ops/
+│   └── sessions/
+└── skills/                          # single-skill plugins
+    ├── code-review/
+    ├── diagram-help/
+    └── ...
 ```
 
-Most plugin entries use `source: "./"` and reference their skills in place (`./skills/<name>`), so a skill lives once under `skills/` and any plugin can pull it in without copying. External plugins can live under `catalog/` as submodules and point `source` at the plugin directory they provide. The authoritative marketplace manifest is `.claude-plugin/marketplace.json`.
+Each local plugin entry points at either a grouped plugin directory under `plugins/` or a single-skill plugin directory under `skills/`, each with a top-level `plugin.json`. External plugins can use a GitHub `source` object instead of a local path. The authoritative marketplace manifest is `.claude-plugin/marketplace.json`.
 
 ## Adding stuff
 
@@ -105,7 +109,8 @@ See [ADDING.md](ADDING.md) for the steps to add a skill or plugin to the marketp
 
 ## Conventions
 
-- One directory per skill under `skills/`. The `name` in `SKILL.md` matches the directory name.
+- Single-skill plugins live under `skills/`. Grouped plugins live under `plugins/<plugin>/skills/`. The `name` in `SKILL.md` matches the skill directory name.
+- Each single-skill plugin directory has a top-level `plugin.json` with `skills: ["./"]`. Each grouped plugin directory has one top-level `plugin.json` listing its member skill paths.
 - Skills should be self-contained. Companion skills like `slop-check` and `visual-design` are used only if present.
 - Skill scripts go in `<skill>/scripts/`.
 - A skill's example or smoke test goes in `<skill>/example/`.

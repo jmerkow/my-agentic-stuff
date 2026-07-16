@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate .claude-plugin/marketplace.json. Exit 0 if OK, 1 on any problem."""
+"""Validate marketplace entries and their plugin.json manifests."""
 import json
 import re
 import sys
@@ -7,6 +7,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / ".claude-plugin" / "marketplace.json"
+ENTRY_COMPONENT_FIELDS = {
+    "agents",
+    "commands",
+    "extensions",
+    "hooks",
+    "lspServers",
+    "mcpServers",
+    "rules",
+    "skills",
+}
+
+
+def load_json(path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON in {path.relative_to(ROOT)}: {exc}") from exc
 
 
 def skill_name(skill_md):
@@ -17,9 +34,61 @@ def skill_name(skill_md):
     return m.group(1).strip("\"'") if m else None
 
 
+def as_string_list(value):
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        return value
+    return None
+
+
+def path_escapes_root(rel):
+    path = Path(rel)
+    return path.is_absolute() or ".." in path.parts
+
+
+def validate_object_source(name, source, errors):
+    if source.get("source") != "github":
+        errors.append(f"{name}: object source must set `source` to 'github'")
+    if not source.get("repo"):
+        errors.append(f"{name}: object source must set `repo`")
+    for field in ("path", "ref", "sha"):
+        value = source.get(field)
+        if value is not None and not isinstance(value, str):
+            errors.append(f"{name}: object source `{field}` must be a string")
+
+
+def validate_skill_paths(plugin_name, plugin_dir, skills, errors):
+    skill_paths = as_string_list(skills)
+    if skill_paths is None:
+        errors.append(f"{plugin_name}: plugin.json `skills` must be a string or string array")
+        return
+    if not skill_paths:
+        errors.append(f"{plugin_name}: plugin.json must list at least one skill path")
+        return
+    for rel in skill_paths:
+        if path_escapes_root(rel):
+            errors.append(f"{plugin_name}: plugin.json skill path escapes plugin root: {rel}")
+            continue
+        skill_dir = plugin_dir / rel
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            errors.append(f"{plugin_name}: missing SKILL.md at {skill_md.relative_to(ROOT)}")
+            continue
+        declared = skill_name(skill_md)
+        if declared and declared != skill_dir.name:
+            errors.append(f"{plugin_name}: SKILL.md name '{declared}' != dir '{skill_dir.name}'")
+
+
 def main():
     errors, seen = [], set()
-    plugins = json.loads(MANIFEST.read_text(encoding="utf-8")).get("plugins") or []
+    try:
+        plugins = load_json(MANIFEST).get("plugins") or []
+    except ValueError as exc:
+        print(f"FAIL: {exc}")
+        return 1
     if not plugins:
         return print("FAIL: no `plugins` array") or 1
 
@@ -34,33 +103,36 @@ def main():
         source = plugin.get("source")
         if not source:
             errors.append(f"{name}: missing `source`")
+        elif isinstance(source, dict):
+            validate_object_source(name, source, errors)
+        elif path_escapes_root(source):
+            errors.append(f"{name}: source path escapes marketplace root: {source}")
+            continue
 
-        skills = plugin.get("skills") or []
-        for rel in (source, *skills):
-            if isinstance(rel, str) and ".." in rel.split("/"):
-                errors.append(f"{name}: path escapes root with '..': {rel}")
+        entry_components = sorted(ENTRY_COMPONENT_FIELDS.intersection(plugin))
+        if entry_components:
+            fields = ", ".join(entry_components)
+            errors.append(f"{name}: move marketplace component fields into source plugin.json: {fields}")
 
-        if skills:
-            for rel in skills:
-                skill_md = ROOT / rel / "SKILL.md"
-                if not skill_md.is_file():
-                    errors.append(f"{name}: missing SKILL.md at {rel}")
-                elif (declared := skill_name(skill_md)) and declared != Path(rel).name:
-                    errors.append(f"{name}: SKILL.md name '{declared}' != dir '{Path(rel).name}'")
-        elif source:
-            source_dir = ROOT / source
-            plugin_json = next(
-                (source_dir / rel for rel in (".claude-plugin/plugin.json", "plugin.json") if (source_dir / rel).is_file()),
-                None,
-            )
-            if not plugin_json:
-                errors.append(f"{name}: no skills listed and no plugin.json under source")
-            elif plugin.get("strict") is False:
-                errors.append(f"{name}: strict false conflicts with source plugin.json")
-            else:
-                declared = json.loads(plugin_json.read_text(encoding="utf-8")).get("name")
-                if declared and declared != name:
-                    errors.append(f"{name}: plugin.json name '{declared}' != marketplace name")
+        if not source or isinstance(source, dict):
+            continue
+        source_dir = ROOT / source
+        plugin_json = source_dir / "plugin.json"
+        if not source_dir.is_dir():
+            errors.append(f"{name}: source directory not found: {source}")
+            continue
+        if not plugin_json.is_file():
+            errors.append(f"{name}: missing plugin.json at {plugin_json.relative_to(ROOT)}")
+            continue
+        try:
+            plugin_manifest = load_json(plugin_json)
+        except ValueError as exc:
+            errors.append(f"{name}: {exc}")
+            continue
+        declared = plugin_manifest.get("name")
+        if declared != name:
+            errors.append(f"{name}: plugin.json name '{declared}' != marketplace name")
+        validate_skill_paths(name, source_dir, plugin_manifest.get("skills"), errors)
 
     for err in errors:
         print(f"  - {err}")
