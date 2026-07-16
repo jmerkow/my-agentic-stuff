@@ -1,6 +1,6 @@
 ---
 name: tech-search
-description: Search internal engineering knowledge for technical and internal-tool questions. Use when asking an engineering-systems question (es chat, eschat, es-chat), searching EngHub or eng.ms (eng hub, enghub, eng-hub), finding a TSG, schema, onboarding guide, or source link, figuring out why an internal tool or MCP path does not work, finding a known setting or solution for an internal system, or running a /tech-search lookup. Also triggers on: stack overflow, stackoverflow for teams, internal Q&A, internal engineering how-to. Does NOT cover personal M365 activity — use work-search for that.
+description: Search internal engineering knowledge for technical and internal-tool questions. Use when asking an engineering-systems question (es chat, eschat, es-chat), searching EngHub or eng.ms (eng hub, enghub, eng-hub), finding a TSG, schema, onboarding guide, or source link, figuring out why an internal tool or MCP path does not work, finding a known setting or solution for an internal system, or running a /tech-search lookup. Also triggers on: stack overflow, stackoverflow for teams, internal Q&A, internal engineering how-to. Covers internal engineering and technical knowledge, tools, and troubleshooting; does NOT cover personal M365 activity such as mail, calendar, Teams messages, or meeting summaries.
 ---
 
 # Tech Search
