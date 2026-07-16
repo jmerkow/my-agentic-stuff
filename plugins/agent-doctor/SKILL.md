@@ -53,7 +53,7 @@ rest are VS Code-only. You run a custom agent by picking it from the **agents dr
 
 Same tool, two names — which is why "is it connected?" is confusing and why you can't just eyeball
 one against the other. There's no lookup file for the runtime↔config map — infer it from the server
-prefix, and when unsure check your live tools (that's what DrAgent's `['*']` is for).
+prefix, and when unsure check your live tools in the session.
 
 **Why a tool list needs managing at all** (open VS Code bugs): a toolset *reference* containing MCP
 tools doesn't resolve in `tools:` — only built-ins do ([#298131](https://github.com/microsoft/vscode/issues/298131))
@@ -77,9 +77,12 @@ re-applied.
 The classic trap: an agent reports "server not connected" when the server is actually live — it just
 isn't in *that agent's* `tools:`. That's half 2, not half 1.
 
-**This is why DrAgent runs with `tools: ['*']`** — it can see the whole live roster in its own
-session, so it can tell half 1 from half 2 and can enumerate a newly-started server's tools for
-onboarding. Great power, narrow job: it stays in its lane (diagnose + maintain tools), nothing else.
+**Both halves check out but it still misbehaves → suspect a known VS Code bug** (like the ones
+above), not your config. Search the tracker before hand-editing: `gh search issues --repo
+microsoft/vscode "<symptom>"` — treat it as a first-class diagnostic step and record new findings here.
+
+Answering half 1 needs a session that sees the *whole* live roster — which is why **DrAgent** (this
+plugin's doctor agent, run with no `tools:` restriction) exists; its persona covers the rest.
 
 ## Default: doctor mode (diagnose first, change only when asked)
 
@@ -90,17 +93,15 @@ would be. Investigate and explain; don't write until the user asks you to apply 
 - **Diagnose (read-only — the default):** read the agent file + its assignment, check drift vs
   baseline (`check`), and reason about the tool (config-name vs runtime-name; is it live in the
   session at all?). Safe to run anytime.
-- **Change (only when the user asks to apply a fix):** `assign --write`, `restore`, `save`. These
-  edit agent files or the store — always preview the diff, confirm intent, then write.
-
-Typical loop: user reports *"agent X can't use tool Y"* → check whether the tool is live in the
-session vs merely missing from the agent's list → explain the gap and the `assignments.yaml` fix →
-**only if they say go**, edit `assignments.yaml` + `assign --write`.
+- **Change (only when the user asks to apply a fix):** `assign --write` / `restore` edit **agent
+  files** (preview the diff, confirm, then `--write`); `save`/`fmt` update the **store** (baseline /
+  toolset). Confirm intent before any write.
 
 ## Model
 
-- **`*.toolsets.jsonc`** (VS Code toolsets file, auto-loaded from `User/prompts/`) defines named
-  **groups**. The group NAME encodes a safety tier:
+- **The toolset file** (`toolsets.toolsets.jsonc` in the store; VS Code auto-loads any
+  `*.toolsets.jsonc` from `User/prompts/`) defines named **groups**. The group NAME encodes a
+  safety tier:
 
   | tier | naming | meaning |
   |---|---|---|
@@ -109,8 +110,8 @@ session vs merely missing from the agent's list → explain the gap and the `ass
   | mutation | `write_*` | external, others see it |
   | destructive | `write_*_delete` | ⚠️ delete / not-undoable |
 
-  `~presets` compose groups (groups-of-groups); builtins and MCP servers are themselves ordinary
-  leaf-listing groups (VS Code also resolves the bare builtin names natively). Tiers organize how you
+  `~presets` compose groups (groups-of-groups); the bare builtin names also resolve natively in VS
+  Code. Tiers organize how you
   **grant** capability; they are **not**
   enforced at runtime — keep the labels honest (a `_safe` group must genuinely stay in your outbox).
 
@@ -175,12 +176,14 @@ Adapt these — they're the shape, not a script.
 **1 — "Agent X can't use tool Y."** Answer the two halves. Server not live → say so (start it). Live
 but missing from `tools:` → find which group grants it (grep the toolset), add that group to X in
 `assignments.yaml`, `assign --write X`. No group grants it yet → it's a new tool: do recipe 3 first.
+Live *and* already listed but still broken → suspect a VS Code bug: search `microsoft/vscode` issues
+for the symptom (see the two-halves note) before touching config.
 
 **2 — "A plugin update overwrote my tools."** `check` (file vs assignment). Anything OUT OF SYNC →
 `assign --write` to regenerate from intent. `restore <agent>` for the last-known-good file first if
-you want it. Intent survived because it lives in the store, not the agent file.
+you want it.
 
-**3 — "Onboard a new MCP server."** Start the server. As DrAgent (`['*']`), read your own live tools
+**3 — "Onboard a new MCP server."** Start the server. As DrAgent (unrestricted), read your own live tools
 for the new `mcp_<server>_*` entries. For each: derive the config name (`server/tool`) and classify
 by effect into a tier (`read_*` / `write_*` / `write_*_delete`). Define the `read_/write_` group(s)
 in the toolset listing those concrete `server/tool` leaves. Then assign the group where wanted and
@@ -241,4 +244,4 @@ Comparisons are set-based, so the two formats never conflict.
 - After a plugin reinstall or MCP change: `check` (in sync with intent?) then `assign --write`.
 - `restore` is the undo if an install scrambled an agent. git history + `agent-states/` are the
   backup — there is no `backup/` dir (use `/tmp` for a one-off raw copy).
-- Add a new server/builtin tool directly to its toolset group (the only bare builtin is `todo`).
+- Add a new server/builtin tool directly to its toolset group.
