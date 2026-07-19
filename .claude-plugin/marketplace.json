@@ -64,6 +64,11 @@
       "source": "./skills/work-search"
     },
     {
+      "name": "tech-search",
+      "description": "Search internal engineering knowledge (ES Chat, EngHub, Stack Internal, Microsoft Learn) for technical and internal-tool questions.",
+      "source": "./skills/tech-search"
+    },
+    {
       "name": "agent-doctor",
       "description": "Keep agent tool-lists correct as plugins install and MCP servers change — group→agent assignments, mechanical expansion, drift warnings. Ships DrAgent + the agent-doctor skill.",
       "source": "./plugins/agent-doctor"
