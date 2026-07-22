@@ -45,6 +45,26 @@ doc skills appear.
 - **`uv run scripts/extract_comments.py <file.docx>`** — list comments with author, date, text, and
   the anchored span.
 
+## Core operations
+
+Three operations come up constantly, independent of the authoring lifecycle below:
+
+1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>` → author,
+   date, text, and the anchored span.
+2. **Convert a `.docx` to readable text** — `pandoc doc.docx -t markdown` (structure) or
+   `pandoc doc.docx -t plain --wrap=none` (one paragraph per line, for diffing). Add
+   `--track-changes=accept` for the accepted view of a doc carrying tracked changes. (Image/layout
+   rendering isn't available here — text only.)
+3. **Reconcile a reviewed `.docx` against the local markdown** — see exactly what the doc-side edits
+   were by rendering *both* sides through pandoc's plain writer (so formatting noise cancels), then
+   diffing:
+   ```bash
+   pandoc canonical.docx -t plain --wrap=none --track-changes=accept > /tmp/canon.txt
+   pandoc source.md      -t plain --wrap=none                        > /tmp/md.txt
+   diff /tmp/md.txt /tmp/canon.txt
+   ```
+   Apply the deltas back into the markdown (the source of truth), then regenerate for the next round.
+
 ## Phase 1 — Author the doc the first time
 
 Create the doc from a markdown source, then share it with reviewers.
@@ -127,24 +147,6 @@ manager/reviewer's comments must be preserved.
    - Decode the base64 to a file, then run `uv run scripts/extract_comments.py <file.docx>`.
    - Verify the decoded bytes look right: a real `.docx` starts with `PK` (a zip). If it starts
      with `d0 cf 11 e0` it is an OLE2 container — see diagnostics below.
-
-## Convert a doc to text & reconcile against the markdown source
-
-- **Read a `.docx` as text** (content, not formatting — image/layout rendering isn't available here):
-  ```bash
-  pandoc doc.docx -t markdown            # structure preserved
-  pandoc doc.docx -t plain --wrap=none   # one paragraph per line, for diffing
-  ```
-  Add `--track-changes=accept` to read the *accepted* view of a doc carrying tracked changes (keeps
-  insertions, drops deletions).
-- **Reconcile a reviewed `.docx` against the local markdown** — to see exactly what the doc-side
-  edits were. Run *both* sides through pandoc's plain writer so formatting noise cancels, then diff:
-  ```bash
-  pandoc canonical.docx -t plain --wrap=none --track-changes=accept > /tmp/canon.txt
-  pandoc source.md      -t plain --wrap=none                        > /tmp/md.txt
-  diff /tmp/md.txt /tmp/canon.txt
-  ```
-  Apply the deltas back into the markdown (the source of truth), then regenerate for the next round.
 
 ## Diagnostics — when reads fail
 
