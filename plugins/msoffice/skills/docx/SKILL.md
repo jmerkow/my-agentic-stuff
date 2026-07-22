@@ -42,15 +42,16 @@ doc skills appear.
 - **SharePoint file tools** (team sites): metadata + binary / text file reads.
 - **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
   to markdown / plain text for reading and diffing.
-- **`uv run scripts/extract_comments.py <file.docx>`** — list comments with author, date, text, and
-  the anchored span.
+- **`uv run scripts/extract_comments.py <file.docx>`** — list comment threads (author, date, text,
+  resolved state, and the anchored segment); add `--json` for structured output.
 
 ## Core operations
 
 Three operations come up constantly, independent of the authoring lifecycle below:
 
-1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>` → author,
-   date, text, and the anchored span.
+1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>`. Add `--json`
+   for structured output: per-comment id, author, date, text, `resolved` state, and the anchored
+   `segment` (used to locate the comment in the markdown; a `[head, tail]` pair when the span is long).
 2. **Convert a `.docx` to readable text** — `pandoc doc.docx -t markdown` (structure) or
    `pandoc doc.docx -t plain --wrap=none` (one paragraph per line, for diffing). Add
    `--track-changes=accept` for the accepted view of a doc carrying tracked changes. (Image/layout
@@ -120,19 +121,9 @@ Compare.
 
 ### Always write a new file — never overwrite the canonical in place
 
-The regenerated revised doc is a **new file** (`*-REVISED.docx`) that you merge via Compare. Don't
-overwrite the canonical directly — it's unreliable (and was a long debugging session):
-
-- **Graph in-place upload** (an upload-session call) and a **local file replace** (`cp` over the
-  OneDrive mount) both **hang or conflict when the doc is open in Word** (file lock). The doc must be
-  fully closed.
-- OneDrive has **propagation lag** (cloud serves the old bytes for a while after a local write) and a
-  **stale-local-copy conflict** risk — overwriting an unsynced local file spawns a
-  "…-conflicted copy". SharePoint also re-saves docx server-side, so byte size shifts; **verify by
-  content, not size.**
-
-Word **Compare** sidesteps all of that and yields reviewer-friendly tracked changes — ideal when a
-manager/reviewer's comments must be preserved.
+The regenerated revised doc is a **new file** (`*-REVISED.docx`) you merge via Compare — which also
+keeps the Original's comments. **Never overwrite the canonical directly;** in-place writes are
+unreliable (file locks, propagation lag, conflicted copies) — see *Gotchas*.
 
 > **Editing a `.docx` in place** (surgical body edits without the regenerate loop) is deferred to a
 > separate skill — not covered here yet.
@@ -148,9 +139,9 @@ manager/reviewer's comments must be preserved.
    - Verify the decoded bytes look right: a real `.docx` starts with `PK` (a zip). If it starts
      with `d0 cf 11 e0` it is an OLE2 container — see diagnostics below.
 
-## Diagnostics — when reads fail
+## Gotchas
 
-Keep an eye out for these; check before assuming the document is broken.
+Things that bite you — check before assuming a document is broken or an operation failed.
 
 - **`MPC -32001: Session not found`** — the MCP server's session expired. It is not an input
   error. Ask the user to restart that specific MCP server (mail, OneDrive, Word, etc.), then retry.
@@ -173,3 +164,7 @@ Keep an eye out for these; check before assuming the document is broken.
 - **Local OneDrive copies (`/mnt/c/Users/.../OneDrive - .../`)** may be **unsynced stubs** (Files
   On-Demand) or a locked/partial file while Word has it open. Symptoms: unchanged size, or `file`
   reports `0 words / 0 pages`. Prefer the cloud bytes over a suspect local copy.
+- **Writing a `.docx` in place is unreliable.** A Graph in-place upload (upload-session) or a local
+  `cp` over the OneDrive mount **hangs or conflicts when the doc is open in Word** (file lock), and
+  overwriting an unsynced local file spawns a "…-conflicted copy". SharePoint re-saves server-side,
+  so byte size shifts — **verify by content, not size.** Use the regenerate → Compare loop instead.
