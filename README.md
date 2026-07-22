@@ -12,7 +12,7 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 | `decks` | build-deck | Build presentation decks as SVG slides packaged into `.pptx` |
 | `code-review` | code-review | Local dual sub-agent code review, no PR |
 | `diagram-help` | diagram-help | Mermaid and SVG diagram rendering reference |
-| `pandoc-docx` | pandoc-docx | Convert markdown to styled `.docx` |
+| `msoffice` | docx, pandocx | Read/edit/troubleshoot Word docs in OneDrive/SharePoint; markdown→`.docx` |
 | `slop-check` | slop-check | Detect and fix AI slop in text |
 | `visual-design` | visual-design | Judge and improve visual design of static artifacts |
 | `work-search` | work-search | Search M365, internal eng knowledge, and MS docs |

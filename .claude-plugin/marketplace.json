@@ -44,9 +44,9 @@
       "source": "./skills/code-review"
     },
     {
-      "name": "pandoc-docx",
-      "description": "Convert markdown files to styled .docx using pandoc.",
-      "source": "./skills/pandoc-docx"
+      "name": "msoffice",
+      "description": "Read, edit, and troubleshoot Microsoft Office documents in OneDrive/SharePoint, plus markdown-to-docx generation (Word/.docx + pandoc).",
+      "source": "./plugins/msoffice"
     },
     {
       "name": "slop-check",

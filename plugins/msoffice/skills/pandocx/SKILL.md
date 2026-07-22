@@ -1,5 +1,5 @@
 ---
-name: pandoc-docx
+name: pandocx
 description: Convert markdown files to styled .docx using pandoc with a bundled reference template. Use when the user asks to generate a Word document, convert markdown to docx, or export a document.
 ---
 
