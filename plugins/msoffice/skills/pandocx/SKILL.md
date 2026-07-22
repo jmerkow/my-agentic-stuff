@@ -10,7 +10,9 @@ Convert markdown to styled `.docx` using pandoc with the bundled reference templ
 ## Command
 
 ```bash
-pandoc <input>.md -o <output>.docx --from=markdown+fancy_lists --reference-doc=<skill-dir>/assets/template.docx
+pandoc <input>.md -o <output>.docx --from=markdown+fancy_lists \
+  --reference-doc=<skill-dir>/assets/template.docx \
+  --metadata author="<author>"
 ```
 
 Where `<skill-dir>` is the directory containing this SKILL.md.
@@ -18,6 +20,7 @@ Where `<skill-dir>` is the directory containing this SKILL.md.
 ## Rules
 
 - Always use `--reference-doc` pointing to `assets/template.docx` in this skill's directory.
+- Stamp the **Author** with `--metadata author="<author>"` (pandoc writes `dc:creator`). Never infer `<author>` without the user's confirmation; omit the flag if unknown.
 - Keep `+fancy_lists` in `--from` so lettered/roman markers (`a.`, `b.`, `i.`, `ii.`) render as real Word lists and round-trip cleanly.
 - Strip YAML frontmatter if pandoc chokes on it. Pipe through `sed '1{/^---$/,/^---$/d}'` first.
 - Output file goes next to the input file unless the user specifies otherwise.
@@ -43,8 +46,15 @@ and a footnote. Convert it to see what the template produces:
 
 ```bash
 pandoc examples/template-fancy.md -o /tmp/template-fancy.docx \
-  --from=markdown+fancy_lists --reference-doc=assets/template.docx
+  --from=markdown+fancy_lists --reference-doc=assets/template.docx \
+  --metadata author="<author>"
 ```
+
+The `--metadata author="<author>"` flag stamps the doc's Author (`dc:creator`), which pre-fills
+Word's **Compare → "Label changes with"** field so the redline is attributed without prompting.
+
+- `git config user.name` is a reasonable starting point for `<author>`, but there may be others
+  (the user's M365/display name, or the doc's existing metadata). Confirm with the user before stamping.
 
 ## Styles the template defines
 

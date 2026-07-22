@@ -52,8 +52,11 @@ Create the doc from a markdown source, then share it with reviewers.
 2. **Generate the `.docx`** with pandoc (see the `pandocx` skill for the reference template):
    ```bash
    pandoc plan.md -o Plan-DRAFT.docx --from=markdown+fancy_lists \
-     --reference-doc="/path/to/style-template.docx"
+     --reference-doc="/path/to/style-template.docx" \
+     --metadata author="<author>"
    ```
+   - Set `--metadata author="<author>"` so Word Compare attributes the redline (see `pandocx`).
+     Confirm the name with the user first; don't auto-use `git config user.name`.
    - Once you have a house-styled `.docx`, **that file doubles as the style reference** for every
      future regeneration — no separate template needed, and Phase 2 redlines stay clean.
    - Targeting a synced OneDrive folder? Write straight to the local mount
@@ -91,12 +94,15 @@ Best when there's a markdown mirror of the doc and/or the edit volume is large.
    ```bash
    pandoc plan.md -o plan-REVISED.docx \
      --from=markdown+fancy_lists \
-     --reference-doc="/path/to/Canonical-DRAFT.docx"
+     --reference-doc="/path/to/Canonical-DRAFT.docx" \
+     --metadata author="<author>"
    ```
 3. **Verify the regenerated docx actually contains the edits** — unzip `word/document.xml` and grep
    for a few expected phrases. Catches stale regenerations.
 4. **Compare in Word → Review → Compare → Compare:** *Original* = canonical DRAFT, *Revised* = the
-   regenerated file. Under **More → Show changes → Comments**, keep the **Original's** comments.
+   regenerated file. Under **More → Show changes → Comments**, keep the **Original's** comments. The
+   revised doc's Author (set when generating it — see `pandocx`) pre-fills **"Label changes with"**, so
+   the redline is attributed to the author automatically instead of prompting each time.
 5. **Accept/Reject** the tracked changes in the merged result — that becomes the new canonical.
    (Deleted text stays visible with strikethrough, and still appears in extractor output because it
    lives in `<w:del>`, until **Accept All Changes**.)
