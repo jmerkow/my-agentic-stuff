@@ -42,8 +42,8 @@ doc skills appear.
 - **SharePoint file tools** (team sites): metadata + binary / text file reads.
 - **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
   to markdown / plain text for reading and diffing.
-- **`scripts/extract_comments.py <file.docx>`** — list comments with author, date, text, and the
-  anchored span. Backed by **python-docx** (`pip install python-docx`).
+- **`uv run scripts/extract_comments.py <file.docx>`** — list comments with author, date, text, and
+  the anchored span. Backed by **python-docx**, declared inline (PEP 723) so `uv` auto-installs it.
 
 > Writing python-docx code? If Context7 is available, pull its current docs first (`resolve
 > python-docx`) — the comments / tracked-changes API changed recently and stale memory gets it wrong.
@@ -127,7 +127,7 @@ manager/reviewer's comments must be preserved.
    - `getFileOrFolderMetadataByUrl(url)` → note `size`, `file.mimeType`, `irmEnabled`,
      `irmEffectivelyEnabled`, and the item `id`.
    - Read the small binary file by `id` (OneDrive or the SharePoint equivalent) → base64 bytes.
-   - Decode the base64 to a file, then run `scripts/extract_comments.py <file.docx>`.
+   - Decode the base64 to a file, then run `uv run scripts/extract_comments.py <file.docx>`.
    - Verify the decoded bytes look right: a real `.docx` starts with `PK` (a zip). If it starts
      with `d0 cf 11 e0` it is an OLE2 container — see diagnostics below.
 

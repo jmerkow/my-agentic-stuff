@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.9"
+# dependencies = ["python-docx"]
+# ///
 """Extract comments (author, date, text, and anchored span) from a Word .docx.
 
-Usage:
-    extract_comments.py <file.docx>
+Usage (uv auto-installs python-docx from the inline metadata above):
+    uv run extract_comments.py <file.docx>
 
 Comment metadata and text come from python-docx; the anchored body span (the
 text a comment points at) is read from the document body's
 commentRangeStart/End markers, which python-docx does not expose directly.
-
-Requires: pip install python-docx
 """
 import sys
 
@@ -45,7 +47,7 @@ def main() -> int:
     try:
         from docx import Document
     except ImportError:
-        print("Requires python-docx:  pip install python-docx")
+        print("Requires python-docx. Run via uv:  uv run extract_comments.py <file.docx>")
         return 2
 
     try:
