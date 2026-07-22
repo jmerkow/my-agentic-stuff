@@ -19,9 +19,10 @@ Where `<skill-dir>` is the directory containing this SKILL.md.
 
 ## Rules
 
-- Always use `--reference-doc` pointing to `assets/template.docx` in this skill's directory.
+- Default `--reference-doc` to `assets/template.docx` in this skill's directory. To match an existing document's styles (e.g. regenerating a doc for Word Compare), point it at that `.docx` instead.
 - Stamp the **Author** with `--metadata author="<author>"` (pandoc writes `dc:creator`). Never infer `<author>` without the user's confirmation; omit the flag if unknown.
 - Keep `+fancy_lists` in `--from` so lettered/roman markers (`a.`, `b.`, `i.`, `ii.`) render as real Word lists and round-trip cleanly.
+- **Separate list items with a blank line** (loose lists); tight lists render in pandoc's cramped `Compact` style, which looks malformed for multi-sentence bullets.
 - Strip YAML frontmatter if pandoc chokes on it. Pipe through `sed '1{/^---$/,/^---$/d}'` first.
 - Output file goes next to the input file unless the user specifies otherwise.
 - If multiple files are requested, convert each separately.

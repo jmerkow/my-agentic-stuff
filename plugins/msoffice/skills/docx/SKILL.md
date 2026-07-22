@@ -49,20 +49,12 @@ Create the doc from a markdown source, then share it with reviewers.
 
 1. **Write the content in markdown** and keep it in the repo — this is the **source of truth** for
    the life of the doc (Phase 2 edits happen here too, not in the `.docx`).
-2. **Generate the `.docx`** with pandoc (see the `pandocx` skill for the reference template):
-   ```bash
-   pandoc plan.md -o Plan-DRAFT.docx --from=markdown+fancy_lists \
-     --reference-doc="/path/to/style-template.docx" \
-     --metadata author="<author>"
-   ```
-   - Set `--metadata author="<author>"` so Word Compare attributes the redline (see `pandocx`).
-     Confirm the name with the user first; don't auto-use `git config user.name`.
-   - Once you have a house-styled `.docx`, **that file doubles as the style reference** for every
-     future regeneration — no separate template needed, and Phase 2 redlines stay clean.
+2. **Generate the `.docx` from the markdown** with the `pandocx` skill (bundled house template,
+   author stamping, and list handling all live there).
+   - The generated `.docx` then **doubles as the style reference** for every future regeneration —
+     Phase 2 redlines stay clean with no separate template.
    - Targeting a synced OneDrive folder? Write straight to the local mount
      (`/mnt/c/Users/<user>/OneDrive - .../...`) and let OneDrive sync — avoids the flaky upload tools.
-   - **Separate list items with a blank line** (loose lists); tight lists render in pandoc's cramped
-     "Compact" style, which looks malformed for multi-sentence bullets.
 3. **Share the `.docx`** with reviewers (OneDrive/SharePoint). From here it's the *canonical* doc
    that may come back with comments → Phase 2.
 
@@ -88,15 +80,9 @@ Best when there's a markdown mirror of the doc and/or the edit volume is large.
 
 1. **Edit the markdown, not the docx.** It's diffable, revertable, and in git — iterate freely here.
    Keep the markdown mirror in the repo as the source of truth.
-2. **Regenerate the revised `.docx` from the markdown**, using the canonical `.docx` itself as the
-   style reference (no separate template needed) so the redline shows *content* diffs, not
-   formatting noise:
-   ```bash
-   pandoc plan.md -o plan-REVISED.docx \
-     --from=markdown+fancy_lists \
-     --reference-doc="/path/to/Canonical-DRAFT.docx" \
-     --metadata author="<author>"
-   ```
+2. **Regenerate the revised `.docx` from the markdown** with the `pandocx` skill, but point its
+   `--reference-doc` at the canonical `.docx` itself (not the bundled template) so the redline shows
+   *content* diffs, not formatting noise.
 3. **Verify the regenerated docx actually contains the edits** — unzip `word/document.xml` and grep
    for a few expected phrases. Catches stale regenerations.
 4. **Compare in Word → Review → Compare → Compare:** *Original* = canonical DRAFT, *Revised* = the
