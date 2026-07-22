@@ -34,12 +34,15 @@ doc skills appear.
 > SharePoint) rather than by a specific server alias.
 
 - **Documents tool** (`GetDocumentContent`) — takes a sharing URL, returns document text **and
-  comments**. Fastest path when it works. Only handles clean, unencrypted OOXML `.docx`.
+  comments** (but **not** comment authors/dates — read `word/comments.xml` via `extract_comments.py`
+  for attribution). Fastest path when it works. Only handles clean, unencrypted OOXML `.docx`.
 - **OneDrive file tools** (personal `*-my.sharepoint.com/personal/...`): `getFileOrFolderMetadataByUrl`,
   `readSmallBinaryFile…` (base64, <5 MB), `readSmallTextFile…`.
 - **SharePoint file tools** (team sites): metadata + binary / text file reads.
 - **pandoc** — generate `.docx` from markdown. See the `pandocx` skill.
 - **`scripts/extract_comments.py <file.docx>`** — pull comments + anchored text from a local `.docx`.
+- **`scripts/extract_body.py <file.docx>`** — dump body paragraphs (accepted-changes view: keeps
+  `<w:ins>`, drops `<w:del>`). Pairs with the reverse reconcile in Phase 2.
 - **`scripts/edit_docx.py <in.docx> <out.docx> [--drop-para PHRASE] [--replace OLD=>NEW]`** — edit a
   local `.docx` body while preserving comments; refuses to orphan a comment anchor. See below.
 
@@ -113,6 +116,17 @@ comment-anchored paragraph** (use `--force` to override) and **fails if any comm
 orphaned** — confirm the summary shows `comment anchors: N -> N  OK`. Then merge via Compare (step 4
 above) the same way.
 
+### Reverse reconcile — fold doc-side edits back into the markdown
+
+When the reviewer edited the **canonical `.docx` directly** (not the markdown), pull those edits back
+so the markdown stays the source of truth:
+
+1. `scripts/extract_body.py canonical.docx > canon.txt` — the doc's current body (accepted view).
+2. Render the current markdown to a throwaway `.docx` (via `pandocx`, clean template) and
+   `scripts/extract_body.py that.docx > md.txt`.
+3. `diff md.txt canon.txt` — shows exactly the doc-side edits.
+4. Apply those deltas back into the markdown by hand, then regenerate for the next Compare.
+
 ### Do NOT write the edit back in place
 
 Writing straight to the canonical file is unreliable (and was a long debugging session):
@@ -155,7 +169,9 @@ Keep an eye out for these; check before assuming the document is broken.
     **non-encrypting label** (e.g. "General") in Word, then re-save.
   - **Legacy Word 97-2003 `.doc`.** Also `d0cf11e0`, but no DRM streams. Happens when Word opens a
     file in **Compatibility Mode** and a plain Save writes `.doc` while keeping the `.docx`
-    extension. Fix: **File → Info → Convert** (or Save As → "Word Document (.docx)").
+    extension. Fix: **File → Info → Convert** (or Save As → "Word Document (.docx)"). Headless (no
+    Word): `soffice --headless --convert-to docx <file>` (LibreOffice) — but this fails on
+    IRM-encrypted files, which need RMS rights.
 - **Stale content after a re-save (propagation lag).** Right after a Word save/label change, the
   metadata can update (new size, `irmEnabled: false`) while the **content endpoints still serve the
   old bytes** — `GetDocumentContent` keeps erroring and the binary read returns the previous
@@ -164,3 +180,8 @@ Keep an eye out for these; check before assuming the document is broken.
 - **Local OneDrive copies (`/mnt/c/Users/.../OneDrive - .../`)** may be **unsynced stubs** (Files
   On-Demand) or a locked/partial file while Word has it open. Symptoms: unchanged size, or `file`
   reports `0 words / 0 pages`. Prefer the cloud bytes over a suspect local copy.
+- **Comments look doubled after Compare.** A Word Compare/merge artifact in the *canonical*, not
+  pandoc — pandoc always writes an **empty** `word/comments.xml` (0 `<w:comment>`), so the
+  regenerated revised side never injects comments (and the canonical is safe as `--reference-doc`).
+  Before comparing, confirm the revised `.docx` has zero `<w:comment>`; a clean **Save As** of the
+  canonical collapses duplicated threads.
