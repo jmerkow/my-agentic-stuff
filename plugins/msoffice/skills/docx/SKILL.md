@@ -42,16 +42,17 @@ doc skills appear.
 - **SharePoint file tools** (team sites): metadata + binary / text file reads.
 - **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
   to markdown / plain text for reading and diffing.
-- **`uv run scripts/extract_comments.py <file.docx>`** — list comment threads (author, date, text,
-  resolved state, and the anchored segment); add `--json` for structured output.
+- **`uv run scripts/extract_comments.py <file.docx>`** — extract comment threads to a JSON file
+  (`<file>.comments.json` by default): author, date, text, resolved state, anchored segment.
 
 ## Core operations
 
 Three operations come up constantly, independent of the authoring lifecycle below:
 
-1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>`. Add `--json`
-   for structured output: per-comment id, author, date, text, `resolved` state, and the anchored
-   `segment` (used to locate the comment in the markdown; a `[head, tail]` pair when the span is long).
+1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>` writes
+   `<file>.comments.json` beside the doc (per-comment id, author, date, text, `resolved` state, and
+   the anchored `segment` used to locate it in the markdown — a `[head, tail]` pair when the span is
+   long). Use `--out PATH` to write it next to the markdown instead; `--stdout` to pipe.
 2. **Convert a `.docx` to readable text** — `pandoc doc.docx -t markdown` (structure) or
    `pandoc doc.docx -t plain --wrap=none` (one paragraph per line, for diffing). Add
    `--track-changes=accept` for the accepted view of a doc carrying tracked changes. (Image/layout

@@ -7,8 +7,9 @@
 the anchored segment (so the comment can be located in the source markdown).
 
 Usage (uv auto-installs python-docx from the inline metadata above):
-    uv run extract_comments.py <file.docx>            # human-readable
-    uv run extract_comments.py <file.docx> --json     # structured JSON array
+    uv run extract_comments.py <file.docx>              # writes <file>.comments.json + prints summary
+    uv run extract_comments.py <file.docx> --out FILE   # write the JSON to a chosen path
+    uv run extract_comments.py <file.docx> --stdout     # print JSON to stdout (write no file)
 
 Each JSON entry is one comment thread:
     {
@@ -27,6 +28,7 @@ Word-authored docs (commentsExtended.xml); when absent, each comment is its own
 unresolved thread.
 """
 import json
+import os
 import sys
 import zipfile
 
@@ -180,8 +182,20 @@ def print_text(threads) -> None:
 
 def main() -> int:
     argv = sys.argv[1:]
-    as_json = "--json" in argv
-    files = [a for a in argv if not a.startswith("-")]
+    to_stdout = False
+    out = None
+    files = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--stdout":
+            to_stdout = True
+        elif a == "--out":
+            out = argv[i + 1] if i + 1 < len(argv) else None
+            i += 1
+        elif not a.startswith("-"):
+            files.append(a)
+        i += 1
     if len(files) != 1:
         print(__doc__)
         return 2
@@ -207,10 +221,17 @@ def main() -> int:
         return 1
 
     threads = build_threads(doc, path)
-    if as_json:
+    if to_stdout:
         print(json.dumps(threads, indent=2, ensure_ascii=False))
-    else:
-        print_text(threads)
+        return 0
+
+    if out is None:
+        out = os.path.splitext(path)[0] + ".comments.json"
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(threads, f, indent=2, ensure_ascii=False)
+    print_text(threads)
+    resolved = sum(1 for t in threads if t["resolved"])
+    print(f"\n→ wrote {len(threads)} comment threads ({resolved} resolved) to {out}")
     return 0
 
 
