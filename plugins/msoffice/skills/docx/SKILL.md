@@ -43,10 +43,7 @@ doc skills appear.
 - **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
   to markdown / plain text for reading and diffing.
 - **`uv run scripts/extract_comments.py <file.docx>`** — list comments with author, date, text, and
-  the anchored span. Backed by **python-docx**, declared inline (PEP 723) so `uv` auto-installs it.
-
-> Writing python-docx code? If Context7 is available, pull its current docs first (`resolve
-> python-docx`) — the comments / tracked-changes API changed recently and stale memory gets it wrong.
+  the anchored span.
 
 ## Phase 1 — Author the doc the first time
 
