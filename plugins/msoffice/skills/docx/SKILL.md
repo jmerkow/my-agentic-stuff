@@ -1,16 +1,18 @@
 ---
 name: docx
 description: >-
-  Read, inspect, edit, and troubleshoot Microsoft Word documents stored on OneDrive/SharePoint —
-  extract text and comments from Word .docx files, generate .docx from markdown, edit a document's
-  body WITHOUT losing its comments, and diagnose access failures. Use when: reading or downloading a
-  Word doc from a OneDrive/SharePoint sharing link; pulling review comments out of a document;
-  exporting markdown to a styled Word doc; making body edits to a reviewed doc while preserving its
-  comments; or hitting errors like "Session not found" (MPC -32001), "encrypted, IRM, or legacy .doc
-  format", or a stale/empty local OneDrive copy. Keywords: docx, Word, OneDrive, SharePoint,
-  GetDocumentContent, comments, IRM, sensitivity label, compatibility mode, session not found,
-  pandoc, base64 binary read, edit docx, preserve comments, Word Compare, redline, tracked changes,
-  commentRangeStart.
+  Read, convert, revise, and troubleshoot Microsoft Word documents stored on OneDrive/SharePoint —
+  extract comments (with authors/dates) from a .docx, convert a .docx to markdown/plain text an
+  agent can read, revise a reviewed doc by regenerating from its markdown source and merging with
+  Word Compare (comments preserved), reconcile a reviewed .docx against the local markdown, and
+  diagnose access failures. Use when: reading or downloading a Word doc from a OneDrive/SharePoint
+  sharing link; pulling review comments out of a document; converting a .docx to text; diffing a
+  reviewed doc against its markdown source; exporting markdown to a styled Word doc; or hitting
+  errors like "Session not found" (MPC -32001), "encrypted, IRM, or legacy .doc format", or a
+  stale/empty local OneDrive copy. Keywords: docx, Word, OneDrive, SharePoint, GetDocumentContent,
+  comments, IRM, sensitivity label, compatibility mode, session not found, pandoc, convert docx to
+  markdown, reconcile, diff, python-docx, base64 binary read, preserve comments, Word Compare,
+  redline, tracked changes, commentRangeStart.
 ---
 
 # Word (.docx)
@@ -38,8 +40,13 @@ doc skills appear.
 - **OneDrive file tools** (personal `*-my.sharepoint.com/personal/...`): `getFileOrFolderMetadataByUrl`,
   `readSmallBinaryFile…` (base64, <5 MB), `readSmallTextFile…`.
 - **SharePoint file tools** (team sites): metadata + binary / text file reads.
-- **pandoc** — generate `.docx` from markdown. See the `pandocx` skill.
-- **`scripts/extract_comments.py <file.docx>`** — pull comments + anchored text from a local `.docx`.
+- **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
+  to markdown / plain text for reading and diffing.
+- **`scripts/extract_comments.py <file.docx>`** — list comments with author, date, text, and the
+  anchored span. Backed by **python-docx** (`pip install python-docx`).
+
+> Writing python-docx code? If Context7 is available, pull its current docs first (`resolve
+> python-docx`) — the comments / tracked-changes API changed recently and stale memory gets it wrong.
 
 ## Phase 1 — Author the doc the first time
 
@@ -123,6 +130,24 @@ manager/reviewer's comments must be preserved.
    - Decode the base64 to a file, then run `scripts/extract_comments.py <file.docx>`.
    - Verify the decoded bytes look right: a real `.docx` starts with `PK` (a zip). If it starts
      with `d0 cf 11 e0` it is an OLE2 container — see diagnostics below.
+
+## Convert a doc to text & reconcile against the markdown source
+
+- **Read a `.docx` as text** (content, not formatting — image/layout rendering isn't available here):
+  ```bash
+  pandoc doc.docx -t markdown            # structure preserved
+  pandoc doc.docx -t plain --wrap=none   # one paragraph per line, for diffing
+  ```
+  Add `--track-changes=accept` to read the *accepted* view of a doc carrying tracked changes (keeps
+  insertions, drops deletions).
+- **Reconcile a reviewed `.docx` against the local markdown** — to see exactly what the doc-side
+  edits were. Run *both* sides through pandoc's plain writer so formatting noise cancels, then diff:
+  ```bash
+  pandoc canonical.docx -t plain --wrap=none --track-changes=accept > /tmp/canon.txt
+  pandoc source.md      -t plain --wrap=none                        > /tmp/md.txt
+  diff /tmp/md.txt /tmp/canon.txt
+  ```
+  Apply the deltas back into the markdown (the source of truth), then regenerate for the next round.
 
 ## Diagnostics — when reads fail
 
