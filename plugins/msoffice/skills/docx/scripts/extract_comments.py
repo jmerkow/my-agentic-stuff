@@ -15,16 +15,20 @@ Each JSON entry is one comment thread:
     {
       "id": "3",                      # comment ref id — the handle back into the docx
       "resolved": false,              # from commentsExtended.xml (w15:done)
+      "context_hint": {               # what the comment sits on — orientation, NOT a locator
+        "marks": "the highlighted text",        # null for a point anchor
+        "surrounding_text": "the containing paragraph"
+      },
       "comments": [                   # the thread, root first
         {"id": "3", "author": "Alice", "date": "2026-07-22", "text": "..."}
       ]
     }
 
-There is deliberately no anchor/locator field. The anchored text is not a
-reliable way to find a comment in the markdown source: reviewers anchor to
-repeated phrases, single words, or nothing at all, and any anchor goes stale the
-moment the markdown is edited. Use the id with --context to pull the anchor and
-its containing paragraph out of the original docx when you actually need it.
+`context_hint` tells you what a comment is about; do not use it to find the
+comment in the markdown source. Reviewers anchor to repeated phrases, single
+words, or nothing at all, and any anchor goes stale the moment the markdown is
+edited. `--context ID` prints the same thing for one comment straight from the
+docx, for when all you have is an id.
 
 Comment metadata/text come from python-docx; thread links (w15:paraIdParent) and
 resolved state (w15:done) are read from the raw parts, which python-docx does not
@@ -39,6 +43,9 @@ import zipfile
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 W14 = "{http://schemas.microsoft.com/office/word/2010/wordml}"
 W15 = "{http://schemas.microsoft.com/office/word/2012/wordml}"
+
+# Anchors can swallow a whole table; keep the hint readable.
+HINT_MAX_CHARS = 500
 
 
 def _norm(text: str) -> str:
@@ -67,18 +74,29 @@ def anchored_spans(doc) -> dict:
     return {cid: _norm("".join(parts)) for cid, parts in buf.items()}
 
 
-def print_context(doc, cid: str) -> int:
-    """Show what a comment is anchored to: the marked text and its paragraph(s)."""
-    anchor = anchored_spans(doc).get(cid)
-    paras = [
+def _clip(text: str):
+    if not text:
+        return None
+    return text if len(text) <= HINT_MAX_CHARS else text[:HINT_MAX_CHARS] + " …"
+
+
+def containing_paragraphs(doc, cid: str) -> list:
+    """Body paragraphs that carry this comment's range start or reference."""
+    return [
         _norm(p.text)
-        for i, p in enumerate(doc.paragraphs)
+        for p in doc.paragraphs
         if any(
             el.get(W + "id") == cid
             for el in p._p.iter()
             if el.tag in (W + "commentRangeStart", W + "commentReference")
         )
     ]
+
+
+def print_context(doc, cid: str) -> int:
+    """Show what a comment is anchored to: the marked text and its paragraph(s)."""
+    anchor = anchored_spans(doc).get(cid)
+    paras = containing_paragraphs(doc, cid)
     if anchor is None and not paras:
         print(f"No comment with id {cid!r} found in this document.")
         return 1
@@ -137,7 +155,7 @@ def thread_meta(path: str) -> dict:
 
 
 def build_threads(doc, path):
-    """Return ordered list of thread dicts: {id, resolved, comments}."""
+    """Return ordered list of thread dicts: {id, resolved, context_hint, comments}."""
     by_id = {}
     order = []
     for c in doc.comments:
@@ -150,6 +168,7 @@ def build_threads(doc, path):
             "text": _norm(c.text),
         }
     meta = thread_meta(path)
+    spans = anchored_spans(doc)
 
     # Group replies under their root.
     children: dict = {}
@@ -164,9 +183,15 @@ def build_threads(doc, path):
     threads = []
     for root in roots:
         members = [root] + children.get(root, [])
+        anchor = next((spans.get(m, "") for m in members if spans.get(m)), "")
+        paras = containing_paragraphs(doc, root)
         threads.append({
             "id": root,
             "resolved": bool(meta.get(root, {}).get("resolved")),
+            "context_hint": {
+                "marks": _clip(anchor),
+                "surrounding_text": _clip(" ".join(paras)),
+            },
             "comments": [by_id[m] for m in members],
         })
     return threads
@@ -176,7 +201,11 @@ def print_text(threads) -> None:
     print(f"COMMENT THREADS: {len(threads)}")
     for t in threads:
         mark = "RESOLVED" if t["resolved"] else "open"
-        print(f"\n[#{t['id']} {mark}]")
+        marks = t["context_hint"]["marks"]
+        if marks and len(marks) > 80:
+            marks = marks[:80] + " …"
+        on = f" on: “{marks}”" if marks else ""
+        print(f"\n[#{t['id']} {mark}]{on}")
         for c in t["comments"]:
             stamp = f" {c['date']}" if c["date"] else ""
             print(f"    [{c['author']}{stamp}] {c['text']}")

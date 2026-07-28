@@ -43,22 +43,23 @@ doc skills appear.
 - **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
   to markdown / plain text for reading and diffing.
 - **`uv run scripts/extract_comments.py <file.docx>`** — extract comment threads to a JSON file
-  (`<file>.comments.json` by default): id, author, date, text, resolved state. Add `--context ID`
-  to look up what a given comment is anchored to.
+  (`<file>.comments.json` by default): id, author, date, text, resolved state, and a `context_hint`.
+  `--context ID` prints the same context for a single comment when all you have is an id.
 
 ## Core operations
 
 Three operations come up constantly, independent of the authoring lifecycle below:
 
 1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>` writes
-   `<file>.comments.json` beside the doc: per-comment id, author, date, text, and `resolved` state.
-   `--out PATH` writes it elsewhere; `--stdout` pipes it.
+   `<file>.comments.json` beside the doc: per-comment id, author, date, text, `resolved` state, and
+   a `context_hint` of `{marks, surrounding_text}` — the text the comment sits on and its containing
+   paragraph. `--out PATH` writes it elsewhere; `--stdout` pipes it; `--context ID` prints the
+   context for one comment straight from the docx.
 
-   The output carries **no locator** — the anchored text can't reliably find a comment in the
-   markdown (reviewers anchor to repeated phrases, single words, or nothing, and any anchor goes
-   stale as soon as the markdown is edited). Work from the comment text, and when you need to know
-   what a comment sits on, look it up by id: `--context ID` prints the marked text and its
-   containing paragraph straight from the docx.
+   **`context_hint` is orientation, not a locator.** Use it to understand what a comment is about;
+   don't use it to find the spot in the markdown. Reviewers anchor to repeated phrases, single
+   words, or nothing at all, and any anchor goes stale as soon as the markdown is edited — work from
+   the comment's meaning instead, and go back to the docx by `id` for anything ambiguous.
 2. **Convert a `.docx` to readable text** — `pandoc doc.docx -t markdown` (structure) or
    `pandoc doc.docx -t plain --wrap=none` (one paragraph per line, for diffing). Add
    `--track-changes=accept` for the accepted view of a doc carrying tracked changes. (Image/layout
