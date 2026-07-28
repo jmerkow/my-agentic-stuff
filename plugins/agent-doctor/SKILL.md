@@ -192,7 +192,7 @@ $AD save --all
 # Report only UNASSIGNED agent files as paste-ready assignments.yaml stubs
 $AD discover
 
-# Add extra scan dirs for one run (repeatable; added to `discover_dirs`)
+# Also scan these dirs for THIS RUN (repeatable; not saved to `discover_dirs`)
 $AD discover --dir <plugin>/agents --dir <other>/agents
 
 # Reflow the toolset jsonc to canonical form (preview; --write to apply + commit)

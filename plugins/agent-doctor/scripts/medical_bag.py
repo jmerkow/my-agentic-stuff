@@ -91,13 +91,15 @@ def load_toolsets(path: Path) -> dict:
 
 
 def bare_allow_list(toolsets: dict) -> set[str]:
-    """Union of slash-less tokens declared by underscore-prefixed allow-list groups."""
+    """Union of slash-less tokens declared by underscore-prefixed allow-list groups.
+    Entries containing "/" are ignored: those are ordinary `server/tool` leaves, and letting
+    them in here would bypass the shape rules in `leaf_is_valid` (notably the wildcard ban)."""
     allowed: set[str] = set()
     for name, body in toolsets.items():
         if not name.startswith("_"):
             continue
         tools = body.get("tools", []) if isinstance(body, dict) else []
-        allowed.update(tool for tool in tools if isinstance(tool, str))
+        allowed.update(tool for tool in tools if isinstance(tool, str) and "/" not in tool)
     return allowed
 
 
@@ -523,16 +525,18 @@ def cmd_check(args) -> int:
 def cmd_restore(args) -> int:
     store, toolsets_path, assignments_path, states_dir = resolve_paths(args)
     agent = args.agent
-    assigned_agents: dict[str, dict] = {}
-    if assignments_path.exists() and toolsets_path.exists():
-        assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
-        toolsets = load_toolsets(toolsets_path)
-        errs, assigned_agents = validate_assignments(assignments, toolsets, bare_allow_list(toolsets))
-        if errs:
-            print("ASSIGNMENT ERRORS (fix before running):")
-            for e in errs:
-                print(f"  ✗ {e}")
+    for label, pth in (("assignments", assignments_path), ("toolsets", toolsets_path)):
+        if not pth.exists():
+            print(f"✗ {label} file not found: {pth}")
             return 2
+    assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
+    toolsets = load_toolsets(toolsets_path)
+    errs, assigned_agents = validate_assignments(assignments, toolsets, bare_allow_list(toolsets))
+    if errs:
+        print("ASSIGNMENT ERRORS (fix before running):")
+        for e in errs:
+            print(f"  ✗ {e}")
+        return 2
     state = load_state(states_dir, agent)
     if state is None:
         print(f"{agent}: no committed state to restore from")
@@ -833,7 +837,8 @@ def main() -> int:
     d.add_argument("--toolsets")
     d.add_argument("--assignments")
     d.add_argument("--dir", action="append", metavar="DIR",
-                   help="extra dir to scan; repeatable (--dir a --dir b). Added to `discover_dirs`.")
+                   help="also scan this dir for THIS RUN; repeatable (--dir a --dir b). "
+                        "Not written back to assignments.yaml.")
     d.set_defaults(func=cmd_discover)
 
     rc = sub.add_parser("reconcile", help="diff live picker roster (--ui/stdin) vs store toolset, per server; read-only")
