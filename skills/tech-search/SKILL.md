@@ -20,6 +20,12 @@ Search internal engineering knowledge for technical, tool, and system questions 
 
 ## Strategy
 
+Think in roles, not fixed tools — each source below plays one, and so do tools not listed here:
+
+- **Orient** — get a fast synthesized read and find which system or doc owns the answer (ES Chat). Iterative: ask, read, follow up.
+- **Ground** — pull the authoritative primary source and verify before citing (EngHub for internal docs/TSGs; Microsoft Learn for public products; a library-docs tool like context7 for third-party frameworks).
+- **Peer / troubleshoot** — how others actually solved it: niche fixes, gotchas, known bugs (Stack Internal; also issue trackers or other Q&A).
+
 ```
 orient  ─────  ES Chat  (often answers outright)
 ground  ─────  EngHub   (authoritative doc + ADO/GitHub source link)
@@ -27,6 +33,7 @@ parallel ────  Stack Internal (niche / troubleshooting)  ·  Microsoft L
 ```
 
 - **It's a suggestion, not a pipeline.** If you already know the service, or that it's a niche troubleshooting issue, skip ES Chat and go straight to EngHub or Stack Internal.
+- **These four are a starting point, not the whole toolbox.** Reach for anything that fills a role — context7 or other doc search for external libraries, issue trackers for prior troubleshooting.
 - **Run Stack Internal early and in parallel**, not as a fallback — for internal-tool gotchas it often carries the decisive detail.
 - **Ground before you cite:** `fetch` the EngHub page (then `get_source_link` for the origin) before repeating a claim or acting on it.
 
