@@ -79,6 +79,11 @@
       "source": "./skills/llm-council"
     },
     {
+      "name": "ado-okrs",
+      "description": "Layout and authoring conventions for tracking quarterly OKRs on an Azure DevOps board.",
+      "source": "./skills/ado-okrs"
+    },
+    {
       "name": "engflow",
       "description": "Engineering workflow agents and skills for GitHub Copilot.",
       "source": {

@@ -1,0 +1,7 @@
+{
+  "name": "ado-okrs",
+  "description": "Layout and authoring conventions for tracking quarterly OKRs on an Azure DevOps board.",
+  "skills": [
+    "./"
+  ]
+}
