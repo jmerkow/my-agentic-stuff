@@ -43,10 +43,11 @@ rest are VS Code-only. You run a custom agent by picking it from the **agents dr
 `@`-mention). **Only ever touch `tools:` — leave the rest.**
 
 **The name gap (what confuses everyone).** A tool has TWO names:
-- **config name** — what goes in `tools:` and toolsets: `server/tool` (e.g. `workiq/ask`,
-  `s360-breeze/get_kpi_health_stats`). Built-in tools use the same shape (`read/readFile`,
-  `edit/createFile`); the bare names `read`/`edit`/… are toolset **groups** that expand to those
-  concrete leaves. `todo` is the lone bare single-tool.
+- **config name** — what goes in `tools:` and toolsets: either `server/tool` (e.g. `workiq/ask`,
+  `s360-breeze/get_kpi_health_stats`) or a slash-less token explicitly allow-listed for the
+  harness (today `_vscode` allows `agent` and `todo`). Built-in tools use the same shape
+  (`read/readFile`, `edit/createFile`); the bare names `read`/`edit`/… are toolset **groups**
+  that expand to those concrete leaves.
 - **runtime name** — what the live tool is called in a session: `mcp_<server>_<tool>`
   (e.g. `mcp_workiq_mcp_se_ask`). The server segment can differ from the config alias
   (`s360-breeze` ⇄ `mcp_server_fo`).
@@ -110,13 +111,39 @@ would be. Investigate and explain; don't write until the user asks you to apply 
   | mutation | `write_*` | external, others see it |
   | destructive | `write_*_delete` | ⚠️ delete / not-undoable |
 
-  `~presets` compose groups (groups-of-groups); the bare builtin names also resolve natively in VS
-  Code. Tiers organize how you
+  `~presets` compose groups (groups-of-groups). Top-level groups whose key starts with `_` are a
+  separate allow-list tree for slash-less `tools:` tokens that VS Code accepts verbatim; keep one
+  per harness (`_vscode` now, `_copilot`/`_claude` later). They are not normal capability groups:
+  never assign them to an agent and never reference them from another group's `tools` array.
+  Tiers organize how you
   **grant** capability; they are **not**
   enforced at runtime — keep the labels honest (a `_safe` group must genuinely stay in your outbox).
 
-- **`assignments.yaml`** maps `agent-name → [groups]`. This is the **source of truth for intent**,
-  kept **separate from the agent files** so a plugin update can't wipe it.
+- **`assignments.yaml`** is the **source of truth for intent**, kept **separate from the agent
+  files** so a plugin update can't wipe it. It now uses an `agents:` list of records:
+
+```yaml
+agents:
+  - filepath: ~/.copilot/installed-plugins/my-agentic-stuff/engflow/agents/eng.agent.md
+    groups: [~common, ~internal]
+```
+
+  Agent identity is the **filename stem** of `filepath` (`eng.agent.md` → `eng`). Stems must be
+  unique; duplicate stems are a hard error.
+
+  `discover_dirs:` is an optional top-level list of directories for `discover` to scan by default:
+
+```yaml
+discover_dirs:
+  - ~/.copilot/installed-plugins/my-agentic-stuff/engflow/agents
+
+agents:
+  - filepath: ~/.copilot/installed-plugins/my-agentic-stuff/engflow/agents/eng.agent.md
+    groups: [~common, ~internal]
+```
+
+  It is read only by `discover`; `assign`, `check`, `restore`, and `save` still resolve agents
+  strictly from each record's `filepath`.
 
 - **`agent-doctor assign`** expands each agent's assigned groups to leaf tool IDs (BFS) and writes
   them into `tools:` — but only if every leaf is structurally valid (else it hard-errors). Agent
@@ -143,7 +170,7 @@ AD="uv run $S"
 # ── Diagnose (read-only — the default doctor posture) ──────────────────────────
 
 # Compare each agent's file to its assignment (+ note baseline drift)
-$AD check --agents-dir <plugin>/agents
+$AD check
 
 # "Are our tools current?" — diff the live picker roster vs the store toolset (paste/pipe it)
 $AD reconcile --ui picker.txt        # or: pbpaste | $AD reconcile
@@ -151,16 +178,22 @@ $AD reconcile --ui picker.txt        # or: pbpaste | $AD reconcile
 # ── Change (only when the user asks to apply a fix — these write) ──────────────
 
 # Reconcile agents to assignments — PREVIEW (diff only, no write)
-$AD assign --agents-dir <plugin>/agents
+$AD assign
 # ...then actually write + save baseline + commit the store
-$AD assign --agents-dir <plugin>/agents --write
+$AD assign --write
 
 # Undo: write an agent's committed baseline back into its file (preview, then --write)
-$AD restore eng --agents-dir <plugin>/agents
-$AD restore eng --agents-dir <plugin>/agents --write
+$AD restore eng
+$AD restore eng --write
 
 # Establish/update the baseline from the current files
-$AD save --all --agents-dir <plugin>/agents
+$AD save --all
+
+# Report only UNASSIGNED agent files as paste-ready assignments.yaml stubs
+$AD discover
+
+# Add extra scan dirs for one run (repeatable; added to `discover_dirs`)
+$AD discover --dir <plugin>/agents --dir <other>/agents
 
 # Reflow the toolset jsonc to canonical form (preview; --write to apply + commit)
 $AD fmt
@@ -191,19 +224,21 @@ in the toolset listing those concrete `server/tool` leaves. Then assign the grou
 judgment — show the proposed grouping and get a nod before writing.
 
 **4 — "Provision a new agent for job Z."** From Z, pick the minimum capabilities → the matching
-groups (read the toolset's group descriptions). Add `<agent>: [groups]` to `assignments.yaml`,
-`assign --write <agent>`. Start narrow; widen when something is actually blocked (that's how eng got
+groups (read the toolset's group descriptions). Add an `agents:` record with the target `filepath`
+and `groups` to `assignments.yaml`, `assign --write <agent>`. Start narrow; widen when something is actually blocked (that's how eng got
 `read_s360`/`write_s360`).
 
 ## Validation: hard errors
 
-`assign` **pre-validates** assignments (each agent → a list; each entry a defined group, a raw
-leaf `server/tool`, or the bare builtin `todo`) and validates every expanded leaf:
+`assign` **pre-validates** assignments (`agents:` must be a list of `{filepath, groups}` records;
+`filepath` must end with `.agent.md`; each `groups` entry must be a defined group or a raw leaf,
+and underscore-prefixed allow-list groups cannot be assigned) and validates every expanded leaf:
 
-- **Hard error → nothing is written** (fix the config): a bare token that isn't a defined group,
-  a `/`-leaf, or `todo` — a dangling/typo'd group ref; a missing agent file; a malformed assignment
-  (`eng: ~common` instead of a list); a `server/*` wildcard (list concrete leaves instead). Blocks
-  even with `--write`.
+- **Hard error → nothing is written** (fix the config): a bare token that isn't allow-listed by an
+  underscore-prefixed group and isn't a defined group; a `_` group assigned directly; a `_` group
+  referenced from another group's `tools`; a malformed `server/tool` leaf such as `server/*`; a
+  missing agent file; malformed `assignments.yaml`; duplicate filename stems. Legacy flat
+  `name: [groups]` assignments are rejected until migrated. Blocks even with `--write`.
 
 After every write the file is **re-parsed and the tool set verified** against intent; a mismatch
 aborts. Nothing is auto-added — a genuinely new tool is introduced deliberately via recipe 3
@@ -214,14 +249,16 @@ aborts. Nothing is auto-added — a genuinely new tool is introduced deliberatel
 ```
 ~/.copilot/agent-doctor/          # a git repo; writes auto-commit → history + drift baseline
   toolsets.toolsets.jsonc         # canonical groups + ~presets (also deployed to User/prompts/)
-  assignments.yaml                # agent → [groups]  (intent; survives plugin reinstalls)
+  assignments.yaml                # agents: [{filepath, groups}]  (intent; survives plugin reinstalls)
   agent-states/<agent>.json       # committed baseline (sorted, one-per-line) + restore source
 ```
 
 Builtins and MCP servers are **ordinary leaf-listing groups** in the toolset (a `read` group lists
 `read/readFile`…; an `enghub` group lists `enghub/fetch`…). `expand` is a **pure flatten** of group
-composition into concrete leaf IDs — no wildcards, no separate lookup table. A bare token that isn't
-a group (e.g. `todo`) is left as-is. `assign`/`check`
+composition into concrete leaf IDs — no wildcards, no separate lookup table — and it never recurses
+into underscore-prefixed allow-list groups. Leaf validity is now: allow-listed bare token or
+`server/tool`. The old hardcoded builtin list is gone; the allow-list lives in store data.
+`assign`/`check`
 print a **per-server** diff (changed servers only, with tool names) so you can read a change at the
 altitude you edit.
 
@@ -237,9 +274,8 @@ Comparisons are set-based, so the two formats never conflict.
 
 ## Conventions
 
-- **One agents dir at a time.** Commands take a single `--agents-dir`; there's no multi-plugin
-  discovery or duplicate-name detection yet — point it at one plugin's `agents/` and keep agent
-  names unique across the dirs you manage.
+- Agent identity is always the `filepath` stem. Resolution reads each assigned `filepath`
+  directly; `discover_dirs` and `--dir` affect only `discover`.
 - Edit **groups** (toolset) and **assignments**, never an agent's `tools:` by hand — re-run `assign`.
 - After a plugin reinstall or MCP change: `check` (in sync with intent?) then `assign --write`.
 - `restore` is the undo if an install scrambled an agent. git history + `agent-states/` are the
