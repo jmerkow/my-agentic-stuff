@@ -90,16 +90,23 @@ def load_toolsets(path: Path) -> dict:
     return json5.loads(path.read_text(encoding="utf-8"))
 
 
+def is_qualified_leaf(value: object) -> bool:
+    """A `server/tool` id: exactly one slash, both sides non-empty, no wildcard."""
+    if not isinstance(value, str):
+        return False
+    parts = value.split("/")
+    return len(parts) == 2 and all(parts) and "*" not in parts
+
+
 def bare_allow_list(toolsets: dict) -> set[str]:
-    """Union of slash-less tokens declared by underscore-prefixed allow-list groups.
-    Entries containing "/" are ignored: those are ordinary `server/tool` leaves, and letting
-    them in here would bypass the shape rules in `leaf_is_valid` (notably the wildcard ban)."""
+    """Union of the slash-less tokens declared by underscore-prefixed allow-list groups.
+    `server/tool` entries are skipped: those are ordinary leaves and are validated by shape."""
     allowed: set[str] = set()
     for name, body in toolsets.items():
         if not name.startswith("_"):
             continue
         tools = body.get("tools", []) if isinstance(body, dict) else []
-        allowed.update(tool for tool in tools if isinstance(tool, str) and "/" not in tool)
+        allowed.update(t for t in tools if isinstance(t, str) and t and "/" not in t)
     return allowed
 
 
@@ -132,12 +139,9 @@ def expand(toolsets: dict, start_keys: list[str]) -> tuple[list[str], list[str]]
 
 
 def leaf_is_valid(leaf: str, allowed_bare: set[str]) -> bool:
-    """A real leaf: `server/tool` (one slash, both sides non-empty, no wildcard) or a bare
-    token allow-listed by underscore-prefixed groups."""
-    if leaf in allowed_bare:
-        return True
-    parts = leaf.split("/")
-    return len(parts) == 2 and all(parts) and "*" not in parts
+    """A slash-bearing leaf must be a well-formed `server/tool`; a slash-less one must be
+    declared by an underscore-prefixed allow-list group."""
+    return is_qualified_leaf(leaf) if "/" in leaf else leaf in allowed_bare
 
 
 # ── assignment pre-validation ────────────────────────────────────────────────
@@ -241,7 +245,7 @@ def validate_assignments(assignments: dict, toolsets: dict, allowed_bare: set[st
                 errs.append(f"{target}: non-string entry {group!r}")
             elif group in toolsets and group.startswith("_"):
                 errs.append(f"{target}: '{group}' is an allow-list group and cannot be assigned directly")
-            elif group in toolsets or "/" in group or group in allowed_bare:
+            elif group in toolsets or is_qualified_leaf(group) or group in allowed_bare:
                 continue
             else:
                 errs.append(f"{target}: '{group}' is not a defined group or valid leaf (typo?)")
