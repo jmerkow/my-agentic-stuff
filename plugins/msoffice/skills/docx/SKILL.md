@@ -43,16 +43,22 @@ doc skills appear.
 - **pandoc** — generate `.docx` from markdown (see the `pandocx` skill) and convert a `.docx` back
   to markdown / plain text for reading and diffing.
 - **`uv run scripts/extract_comments.py <file.docx>`** — extract comment threads to a JSON file
-  (`<file>.comments.json` by default): author, date, text, resolved state, anchored segment.
+  (`<file>.comments.json` by default): id, author, date, text, resolved state. Add `--context ID`
+  to look up what a given comment is anchored to.
 
 ## Core operations
 
 Three operations come up constantly, independent of the authoring lifecycle below:
 
 1. **Get comments from a `.docx`** — `uv run scripts/extract_comments.py <file.docx>` writes
-   `<file>.comments.json` beside the doc (per-comment id, author, date, text, `resolved` state, and
-   the anchored `segment` used to locate it in the markdown — a `[head, tail]` pair when the span is
-   long). Use `--out PATH` to write it next to the markdown instead; `--stdout` to pipe.
+   `<file>.comments.json` beside the doc: per-comment id, author, date, text, and `resolved` state.
+   `--out PATH` writes it elsewhere; `--stdout` pipes it.
+
+   The output carries **no locator** — the anchored text can't reliably find a comment in the
+   markdown (reviewers anchor to repeated phrases, single words, or nothing, and any anchor goes
+   stale as soon as the markdown is edited). Work from the comment text, and when you need to know
+   what a comment sits on, look it up by id: `--context ID` prints the marked text and its
+   containing paragraph straight from the docx.
 2. **Convert a `.docx` to readable text** — `pandoc doc.docx -t markdown` (structure) or
    `pandoc doc.docx -t plain --wrap=none` (one paragraph per line, for diffing). Add
    `--track-changes=accept` for the accepted view of a doc carrying tracked changes. (Image/layout

@@ -3,29 +3,33 @@
 # requires-python = ">=3.9"
 # dependencies = ["python-docx"]
 # ///
-"""Extract comments from a Word .docx — author, date, text, resolved state, and
-the anchored segment (so the comment can be located in the source markdown).
+"""Extract comments from a Word .docx — author, date, text, and resolved state.
 
 Usage (uv auto-installs python-docx from the inline metadata above):
     uv run extract_comments.py <file.docx>              # writes <file>.comments.json + prints summary
     uv run extract_comments.py <file.docx> --out FILE   # write the JSON to a chosen path
     uv run extract_comments.py <file.docx> --stdout     # print JSON to stdout (write no file)
+    uv run extract_comments.py <file.docx> --context 3  # look up what comment #3 is anchored to
 
 Each JSON entry is one comment thread:
     {
-      "id": "3",                      # root comment ref id — go back to the docx for more
-      "segment": "the highlighted text",   # or ["head words", "tail words"] if long; null if none
+      "id": "3",                      # comment ref id — the handle back into the docx
       "resolved": false,              # from commentsExtended.xml (w15:done)
       "comments": [                   # the thread, root first
         {"id": "3", "author": "Alice", "date": "2026-07-22", "text": "..."}
       ]
     }
 
-Comment metadata/text come from python-docx; the anchored segment, thread links
-(w15:paraIdParent) and resolved state (w15:done) are read from the raw parts,
-which python-docx does not expose. Thread/resolved data only exists in real
-Word-authored docs (commentsExtended.xml); when absent, each comment is its own
-unresolved thread.
+There is deliberately no anchor/locator field. The anchored text is not a
+reliable way to find a comment in the markdown source: reviewers anchor to
+repeated phrases, single words, or nothing at all, and any anchor goes stale the
+moment the markdown is edited. Use the id with --context to pull the anchor and
+its containing paragraph out of the original docx when you actually need it.
+
+Comment metadata/text come from python-docx; thread links (w15:paraIdParent) and
+resolved state (w15:done) are read from the raw parts, which python-docx does not
+expose. Thread/resolved data only exists in real Word-authored docs
+(commentsExtended.xml); when absent, each comment is its own unresolved thread.
 """
 import json
 import os
@@ -35,9 +39,6 @@ import zipfile
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 W14 = "{http://schemas.microsoft.com/office/word/2010/wordml}"
 W15 = "{http://schemas.microsoft.com/office/word/2012/wordml}"
-
-SEGMENT_MAX_CHARS = 200
-HEADTAIL_WORDS = 12
 
 
 def _norm(text: str) -> str:
@@ -66,15 +67,26 @@ def anchored_spans(doc) -> dict:
     return {cid: _norm("".join(parts)) for cid, parts in buf.items()}
 
 
-def segment_for(text: str):
-    """The locator used to find the anchor in the markdown: full text if short,
-    else a [head, tail] pair; None if there's no anchored text."""
-    if not text:
-        return None
-    if len(text) <= SEGMENT_MAX_CHARS:
-        return text
-    words = text.split()
-    return [" ".join(words[:HEADTAIL_WORDS]), " ".join(words[-HEADTAIL_WORDS:])]
+def print_context(doc, cid: str) -> int:
+    """Show what a comment is anchored to: the marked text and its paragraph(s)."""
+    anchor = anchored_spans(doc).get(cid)
+    paras = [
+        _norm(p.text)
+        for i, p in enumerate(doc.paragraphs)
+        if any(
+            el.get(W + "id") == cid
+            for el in p._p.iter()
+            if el.tag in (W + "commentRangeStart", W + "commentReference")
+        )
+    ]
+    if anchor is None and not paras:
+        print(f"No comment with id {cid!r} found in this document.")
+        return 1
+    print(f"COMMENT #{cid}")
+    print(f"  marks: {anchor!r}" if anchor else "  marks: (nothing — point anchor)")
+    for p in paras:
+        print(f"  in paragraph: {p}")
+    return 0
 
 
 def _read_part(zf, name):
@@ -125,7 +137,7 @@ def thread_meta(path: str) -> dict:
 
 
 def build_threads(doc, path):
-    """Return ordered list of thread dicts: {id, segment, resolved, comments}."""
+    """Return ordered list of thread dicts: {id, resolved, comments}."""
     by_id = {}
     order = []
     for c in doc.comments:
@@ -138,7 +150,6 @@ def build_threads(doc, path):
             "text": _norm(c.text),
         }
     meta = thread_meta(path)
-    spans = anchored_spans(doc)
 
     # Group replies under their root.
     children: dict = {}
@@ -153,10 +164,8 @@ def build_threads(doc, path):
     threads = []
     for root in roots:
         members = [root] + children.get(root, [])
-        anchor = next((spans.get(m, "") for m in members if spans.get(m)), "")
         threads.append({
             "id": root,
-            "segment": segment_for(anchor),
             "resolved": bool(meta.get(root, {}).get("resolved")),
             "comments": [by_id[m] for m in members],
         })
@@ -166,15 +175,8 @@ def build_threads(doc, path):
 def print_text(threads) -> None:
     print(f"COMMENT THREADS: {len(threads)}")
     for t in threads:
-        seg = t["segment"]
-        if isinstance(seg, list):
-            loc = f"\u201c{seg[0]} … {seg[1]}\u201d"
-        elif seg:
-            loc = f"\u201c{seg}\u201d"
-        else:
-            loc = "(no anchored text — see docx)"
         mark = "RESOLVED" if t["resolved"] else "open"
-        print(f"\n[#{t['id']} {mark}] on: {loc}")
+        print(f"\n[#{t['id']} {mark}]")
         for c in t["comments"]:
             stamp = f" {c['date']}" if c["date"] else ""
             print(f"    [{c['author']}{stamp}] {c['text']}")
@@ -184,6 +186,7 @@ def main() -> int:
     argv = sys.argv[1:]
     to_stdout = False
     out = None
+    context_id = None
     files = []
     i = 0
     while i < len(argv):
@@ -192,6 +195,9 @@ def main() -> int:
             to_stdout = True
         elif a == "--out":
             out = argv[i + 1] if i + 1 < len(argv) else None
+            i += 1
+        elif a == "--context":
+            context_id = argv[i + 1] if i + 1 < len(argv) else None
             i += 1
         elif not a.startswith("-"):
             files.append(a)
@@ -219,6 +225,9 @@ def main() -> int:
                 "(irmEnabled / irmEffectivelyEnabled) and see the docx SKILL.md."
             )
         return 1
+
+    if context_id is not None:
+        return print_context(doc, context_id)
 
     threads = build_threads(doc, path)
     if to_stdout:
