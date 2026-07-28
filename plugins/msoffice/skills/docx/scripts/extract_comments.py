@@ -181,8 +181,19 @@ def build_threads(doc, path):
             roots.append(cid)
 
     threads = []
+
+    def members_of(cid, seen):
+        """The comment and all its descendants, depth-first in document order."""
+        if cid in seen:
+            return []
+        seen.add(cid)
+        out = [cid]
+        for child in children.get(cid, []):
+            out.extend(members_of(child, seen))
+        return out
+
     for root in roots:
-        members = [root] + children.get(root, [])
+        members = members_of(root, set())
         anchor = next((spans.get(m, "") for m in members if spans.get(m)), "")
         paras = containing_paragraphs(doc, root)
         threads.append({

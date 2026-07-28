@@ -2,7 +2,7 @@
 name: docx
 description: >-
   Read, convert, revise, and troubleshoot Microsoft Word documents stored on OneDrive/SharePoint —
-  extract comments (with authors/dates) from a .docx, convert a .docx to markdown/plain text an
+  extract comments (with authors/dates) from a .docx, convert a .docx to markdown/plain text that an
   agent can read, revise a reviewed doc by regenerating from its markdown source and merging with
   Word Compare (comments preserved), reconcile a reviewed .docx against the local markdown, and
   diagnose access failures. Use when: reading or downloading a Word doc from a OneDrive/SharePoint
