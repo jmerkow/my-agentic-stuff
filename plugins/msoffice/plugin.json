@@ -1,0 +1,9 @@
+{
+  "name": "msoffice",
+  "description": "Read, edit, and troubleshoot Microsoft Office documents stored in OneDrive/SharePoint, plus markdown-to-docx generation.",
+  "version": "0.1.0",
+  "skills": [
+    "./skills/docx",
+    "./skills/pandocx"
+  ]
+}
