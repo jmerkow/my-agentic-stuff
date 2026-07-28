@@ -5,8 +5,8 @@
 # ///
 """agent-doctor — keep agent tool-lists correct as plugins install and MCP servers change.
 
-Intent lives in `assignments.yaml` (agent -> tool GROUPS), kept in the STORE separate from the
-agent files so a plugin update can't wipe it. A `*.toolsets.jsonc` defines groups (the name
+Intent lives in `assignments.yaml` (`agents:` records with `filepath` + tool GROUPS), kept in the
+STORE separate from the agent files so a plugin update can't wipe it. A `*.toolsets.jsonc` defines groups (the name
 encodes a human-facing tier: read_/write_/write_*_safe/write_*_delete) and `~presets` compose
 them. `assign` expands each agent's groups to leaf tool IDs (BFS) and writes them into `tools:`
 — but ONLY if every expanded leaf is structurally valid. A dangling/typo'd group reference is a
@@ -14,22 +14,24 @@ HARD ERROR and is never written (we fix the config, not hide it).
 
 STORE (a git repo; default ~/.copilot/agent-doctor):
   toolsets.toolsets.jsonc     canonical toolset (also deployed to VS Code prompts/)
-  assignments.yaml            agent -> [groups]
+    assignments.yaml            agents: [{filepath, groups}]
   agent-states/<agent>.json   committed drift baseline + restore source (sorted, one-per-line)
 Writes to the store are auto-committed.
 
 Commands:
   assign    Reconcile agents to assignments. Preview by default; --write to apply + commit.
   check     Compare each agent's file to its assignment (and note baseline drift). Read-only.
+    discover  Scan configured/overridden dirs and print only UNASSIGNED filepath stubs.
   restore   Write an agent's committed state back into its file (undo). --write to apply.
   save      Snapshot current agent tools: into the state baseline and commit.
   reconcile Diff the live tool-picker roster (--ui/stdin) vs the store toolset, per server
             (exact-case): NEW (in picker, not store) / GONE (in store, not picker). Read-only.
   fmt       Reflow the toolset jsonc to canonical per-group form (drops comments; names carry structure).
 
-Leaf validity: a leaf is VALID if it contains "/" (server/tool) or is the bare builtin `todo`.
-Anything else bare is an unresolved group ref → error. A genuinely new tool is added deliberately
-to a toolset group, so a typo can never silently become a "valid" tool.
+Leaf validity: a leaf is VALID if it contains "/" (server/tool) or is a slash-less token named
+by an underscore-prefixed allow-list group in the toolset store. Anything else bare is an
+unresolved group ref → error. A genuinely new tool is added deliberately to a toolset group, so a
+typo can never silently become a "valid" tool.
 """
 
 from __future__ import annotations
@@ -47,6 +49,7 @@ import json5
 import yaml
 
 DEFAULT_STORE = Path.home() / ".copilot" / "agent-doctor"
+AGENT_FILE_SUFFIX = ".agent.md"
 
 
 # ── frontmatter round-trip (python-frontmatter parse; compact tools: via FlowList) ──
@@ -87,19 +90,44 @@ def load_toolsets(path: Path) -> dict:
     return json5.loads(path.read_text(encoding="utf-8"))
 
 
-def expand(toolsets: dict, start_keys: list[str]) -> list[str]:
+def is_qualified_leaf(value: object) -> bool:
+    """A `server/tool` id: exactly one slash, both sides non-empty, no wildcard."""
+    if not isinstance(value, str):
+        return False
+    parts = value.split("/")
+    return len(parts) == 2 and all(parts) and "*" not in parts
+
+
+def bare_allow_list(toolsets: dict) -> set[str]:
+    """Union of the slash-less tokens declared by underscore-prefixed allow-list groups.
+    `server/tool` entries are skipped: those are ordinary leaves and are validated by shape."""
+    allowed: set[str] = set()
+    for name, body in toolsets.items():
+        if not name.startswith("_"):
+            continue
+        tools = body.get("tools", []) if isinstance(body, dict) else []
+        allowed.update(t for t in tools if isinstance(t, str) and t and "/" not in t)
+    return allowed
+
+
+def expand(toolsets: dict, start_keys: list[str]) -> tuple[list[str], list[str]]:
     """Pure flatten of group composition to leaf tool IDs.
       - a defined toolset group -> recurse into its `tools`
       - anything else           -> a leaf (kept as-is)
     Ordered, deduped, cycle-guarded. No wildcard/registry resolution: builtins and servers
-    are ordinary leaf-listing groups in the toolset."""
+    are ordinary leaf-listing groups in the toolset. Underscore-prefixed groups are allow-lists
+    only and may not be referenced from normal groups."""
     seen_sets: set[str] = set()
     seen_leaves: set[str] = set()
     leaves: list[str] = []
+    errs: list[str] = []
     queue = deque(start_keys)
     while queue:
         item = queue.popleft()
         if item in toolsets:
+            if item.startswith("_"):
+                errs.append(f"'{item}' is an allow-list group and cannot be referenced from a group's tools")
+                continue
             if item in seen_sets:
                 continue
             seen_sets.add(item)
@@ -107,45 +135,131 @@ def expand(toolsets: dict, start_keys: list[str]) -> list[str]:
         elif item not in seen_leaves:
             seen_leaves.add(item)
             leaves.append(item)
-    return leaves
+    return leaves, errs
 
 
-# ── bare-builtin allow-list ──────────────────────────────────────────────────
-# Builtins/servers are leaf-listing toolset groups now, so the only slash-less leaf that
-# legitimately appears is `todo`. Anything else bare is a typo → hard error.
-BARE_BUILTINS = frozenset({"todo"})
-
-
-def leaf_is_valid(leaf: str) -> bool:
-    """A real leaf: `server/tool` (one slash, both sides non-empty, no wildcard) or a bare
-    builtin in BARE_BUILTINS (e.g. `todo`)."""
-    if leaf in BARE_BUILTINS:
-        return True
-    parts = leaf.split("/")
-    return len(parts) == 2 and all(parts) and "*" not in parts
+def leaf_is_valid(leaf: str, allowed_bare: set[str]) -> bool:
+    """A slash-bearing leaf must be a well-formed `server/tool`; a slash-less one must be
+    declared by an underscore-prefixed allow-list group."""
+    return is_qualified_leaf(leaf) if "/" in leaf else leaf in allowed_bare
 
 
 # ── assignment pre-validation ────────────────────────────────────────────────
 
-def validate_assignments(assignments: dict, toolsets: dict) -> list[str]:
-    """Structural checks BEFORE expansion. Each agent -> list; each entry a defined group,
-    a raw leaf (`server/tool`), or a bare builtin. Else a typo/error."""
-    errs: list[str] = []
-    if not isinstance(assignments, dict):
-        return ["assignments.yaml must be a mapping of agent -> [groups]"]
-    for agent, groups in assignments.items():
-        if not isinstance(groups, list):
-            errs.append(f"{agent}: assignment must be a LIST, got {type(groups).__name__} "
-                        f"(did you write `{agent}: {groups}` instead of a list?)")
+def agent_stem_from_path(path: Path) -> str:
+    name = path.name
+    if not name.endswith(AGENT_FILE_SUFFIX):
+        raise ValueError(f"filepath must end with {AGENT_FILE_SUFFIX}: {path}")
+    return name[: -len(AGENT_FILE_SUFFIX)]
+
+
+def home_relative_path(path: Path) -> str:
+    expanded = path.expanduser()
+    try:
+        return "~/" + str(expanded.relative_to(Path.home()))
+    except ValueError:
+        return str(expanded)
+
+
+def discover_agents(agents_dirs: list[str]) -> list[Path]:
+    discovered: list[Path] = []
+    seen_paths: set[Path] = set()
+    for agents_dir in agents_dirs:
+        root = Path(agents_dir).expanduser()
+        if not root.exists():
             continue
-        for g in groups:
-            if not isinstance(g, str):
-                errs.append(f"{agent}: non-string entry {g!r}")
-            elif g in toolsets or "/" in g or g in BARE_BUILTINS:
+        for path in sorted(root.glob(f"*{AGENT_FILE_SUFFIX}")):
+            resolved = path.resolve()
+            if resolved in seen_paths:
+                continue
+            seen_paths.add(resolved)
+            discovered.append(path)
+    return discovered
+
+
+def load_discover_dirs(assignments: dict) -> tuple[list[str], list[str]]:
+    discover_dirs = assignments.get("discover_dirs")
+    if discover_dirs is None:
+        return [], []
+    if not isinstance(discover_dirs, list):
+        return [], ["assignments.yaml field `discover_dirs` must be a LIST of directory paths"]
+
+    errs: list[str] = []
+    normalized: list[str] = []
+    for index, value in enumerate(discover_dirs):
+        if not isinstance(value, str):
+            errs.append(f"discover_dirs[{index}]: directory path must be a STRING")
+            continue
+        normalized.append(value)
+    return normalized, errs
+
+
+def validate_assignments(assignments: dict, toolsets: dict, allowed_bare: set[str]) -> tuple[list[str], dict[str, dict]]:
+    """Structural checks BEFORE expansion. assignments.yaml must have an `agents:` list with
+    `{filepath, groups}` records. Agent identity is the filepath stem."""
+    errs: list[str] = []
+    agents_by_stem: dict[str, dict] = {}
+    if not isinstance(assignments, dict):
+        return ["assignments.yaml must be a mapping with an `agents:` list"], agents_by_stem
+    _discover_dirs, discover_dir_errs = load_discover_dirs(assignments)
+    errs.extend(discover_dir_errs)
+    if "agents" not in assignments:
+        non_discover_keys = [key for key in assignments if key != "discover_dirs"]
+        if non_discover_keys and all(isinstance(assignments[key], list) for key in non_discover_keys):
+            return [
+                "assignments.yaml uses the legacy `name: [groups]` format; migrate to `agents:` records with `filepath` and `groups`"
+            ], agents_by_stem
+        return ["assignments.yaml must be a mapping with an `agents:` list"], agents_by_stem
+
+    entries = assignments.get("agents")
+    if not isinstance(entries, list):
+        return ["assignments.yaml field `agents` must be a LIST of `{filepath, groups}` records"], agents_by_stem
+
+    for index, entry in enumerate(entries):
+        label = f"agents[{index}]"
+        if not isinstance(entry, dict):
+            errs.append(f"{label}: entry must be a mapping with `filepath` and `groups`")
+            continue
+
+        filepath = entry.get("filepath")
+        groups = entry.get("groups")
+        if not isinstance(filepath, str):
+            errs.append(f"{label}: filepath must be a STRING")
+            continue
+
+        agent_path = Path(filepath).expanduser()
+        try:
+            agent = agent_stem_from_path(agent_path)
+        except ValueError as exc:
+            errs.append(f"{label}: {exc}")
+            agent = None
+
+        if not isinstance(groups, list):
+            target = agent or filepath
+            errs.append(f"{target}: groups must be a LIST, got {type(groups).__name__}")
+            continue
+
+        target = agent or filepath
+        for group in groups:
+            if not isinstance(group, str):
+                errs.append(f"{target}: non-string entry {group!r}")
+            elif group in toolsets and group.startswith("_"):
+                errs.append(f"{target}: '{group}' is an allow-list group and cannot be assigned directly")
+            elif group in toolsets or is_qualified_leaf(group) or group in allowed_bare:
                 continue
             else:
-                errs.append(f"{agent}: '{g}' is not a defined group, builtin, or leaf (typo?)")
-    return errs
+                errs.append(f"{target}: '{group}' is not a defined group or valid leaf (typo?)")
+
+        if agent is None:
+            continue
+        if agent in agents_by_stem:
+            errs.append(
+                f"{label}: duplicate agent stem '{agent}' also used by {agents_by_stem[agent]['filepath']}"
+            )
+            continue
+        agents_by_stem[agent] = {"filepath": filepath, "path": agent_path, "groups": list(groups)}
+
+    return errs, agents_by_stem
 
 
 # ── git ──────────────────────────────────────────────────────────────────────
@@ -265,11 +379,11 @@ def cmd_assign(args) -> int:
             print(f"✗ {label} file not found: {pth}")
             return 2
     toolsets = load_toolsets(toolsets_path)
+    allowed_bare = bare_allow_list(toolsets)
     assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
-    agents_dir = Path(args.agents_dir)
 
     # 1) pre-validate assignments structurally
-    errs = validate_assignments(assignments, toolsets)
+    errs, agent_specs = validate_assignments(assignments, toolsets, allowed_bare)
     if errs:
         print("ASSIGNMENT ERRORS (fix before running):")
         for e in errs:
@@ -278,20 +392,22 @@ def cmd_assign(args) -> int:
 
     only = set(args.agents) if args.agents else None
     if only:
-        unknown = only - set(assignments)
+        unknown = only - set(agent_specs)
         if unknown:
             print(f"✗ unknown agent name(s) not in assignments.yaml: {sorted(unknown)}")
             return 2
     plans, hard_errors = [], []
-    for agent, groups in assignments.items():
+    for agent, spec in agent_specs.items():
         if only and agent not in only:
             continue
-        agent_path = agents_dir / f"{agent}.agent.md"
+        groups = spec["groups"]
+        agent_path = spec["path"]
         if not agent_path.exists():
             hard_errors.append(f"{agent}: no agent file at {agent_path}")
             continue
-        leaves = expand(toolsets, list(groups))
-        invalid = [l for l in leaves if not leaf_is_valid(l)]
+        leaves, expand_errs = expand(toolsets, list(groups))
+        hard_errors.extend(f"{agent}: {err}" for err in expand_errs)
+        invalid = [l for l in leaves if not leaf_is_valid(l, allowed_bare)]
         if invalid:
             hard_errors.append(f"{agent}: unresolved leaf/group refs (typo?): {invalid}")
         post = read_agent(agent_path)
@@ -302,7 +418,7 @@ def cmd_assign(args) -> int:
     for agent, _p, _post, leaves, current in plans:
         expected = set(leaves)
         rows = render_by_server(current, expected)
-        groups_str = ", ".join(assignments[agent])
+        groups_str = ", ".join(agent_specs[agent]["groups"])
         if rows:
             print(f"{agent}: {len(expected)} tools (was {len(current)})   [{groups_str}]")
             for r in rows:
@@ -328,7 +444,7 @@ def cmd_assign(args) -> int:
         if verify != set(leaves):
             print(f"  ✗ {agent}: POST-VERIFY FAILED (written tools != expected); aborting")
             return 3
-        save_state(states_dir, agent, leaves, assignment=assignments[agent])
+        save_state(states_dir, agent, leaves, assignment=agent_specs[agent]["groups"])
     msg, ok = commit_store(store, f"assign: {len(plans)} agent(s)")
     print("\n" + msg)
     return 0 if ok else 4
@@ -339,48 +455,55 @@ def cmd_check(args) -> int:
     differs from the committed state (BASELINE). Out-of-sync-with-intent is the primary signal;
     the fix is `assign --write`. Read-only."""
     store, toolsets_path, assignments_path, states_dir = resolve_paths(args)
-    agents_dir = Path(args.agents_dir)
     if not toolsets_path.exists():
         print(f"✗ toolsets file not found: {toolsets_path}")
         return 2
     toolsets = load_toolsets(toolsets_path)
+    allowed_bare = bare_allow_list(toolsets)
     assignments = {}
+    assigned_agents: dict[str, dict] = {}
     if assignments_path.exists():
         assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
+        errs, assigned_agents = validate_assignments(assignments, toolsets, allowed_bare)
+        if errs:
+            print("ASSIGNMENT ERRORS (fix before running):")
+            for e in errs:
+                print(f"  ✗ {e}")
+            return 2
 
-    # agents to check = everything we know about: assignments ∪ committed states ∪ files on disk
-    agents = set(assignments)
+    # agents to check = everything we know about: assignments ∪ committed states
+    agents = set(assigned_agents)
     if states_dir.exists():
         agents |= {p.stem for p in states_dir.glob("*.json")}
-    if agents_dir.exists():
-        agents |= {p.name[: -len(".agent.md")] for p in agents_dir.glob("*.agent.md")}
     if not agents:
-        print("nothing to check — no assignments, states, or agent files found")
+        print("nothing to check — no assignments or committed states found")
         return 0
 
     problems = 0
     for agent in sorted(agents):
-        groups = assignments.get(agent)
-        agent_path = agents_dir / f"{agent}.agent.md"
-        actual = agent_tools(read_agent(agent_path)) if agent_path.exists() else None
+        spec = assigned_agents.get(agent)
+        groups = spec["groups"] if spec is not None else None
+        agent_path = spec["path"] if spec is not None else None
+        actual = agent_tools(read_agent(agent_path)) if agent_path and agent_path.exists() else None
         state = load_state(states_dir, agent)
         baseline = set(state.get("tools", [])) if state else None
 
         # anomalies — the "something weird" cases
         if groups is None:
             problems += 1
-            where = "agent file" if actual is not None else "committed state"
-            print(f"{agent}: NO ASSIGNMENT (exists as {where}) — intent unknown; add it to assignments.yaml")
+            print(f"{agent}: NO ASSIGNMENT (found in committed state) — intent unknown; add it to assignments.yaml")
             continue
         if actual is None:
             problems += 1
             print(f"{agent}: assigned but NO agent file at {agent_path} — run `assign --write`")
             continue
-        if not isinstance(groups, list):
+        leaves, expand_errs = expand(toolsets, list(groups))
+        if expand_errs:
             problems += 1
-            print(f"{agent}: assignment is not a list — fix assignments.yaml")
+            print(f"{agent}: INVALID TOOLSET REFERENCES — fix the toolset before running `assign --write`")
+            for err in expand_errs:
+                print(f"    ✗ {err}")
             continue
-        leaves = expand(toolsets, list(groups))
         desired = set(leaves)
 
         # primary — does the file match intent?
@@ -404,14 +527,29 @@ def cmd_check(args) -> int:
 
 
 def cmd_restore(args) -> int:
-    store, _t, _a, states_dir = resolve_paths(args)
-    agents_dir = Path(args.agents_dir)
+    store, toolsets_path, assignments_path, states_dir = resolve_paths(args)
     agent = args.agent
+    for label, pth in (("assignments", assignments_path), ("toolsets", toolsets_path)):
+        if not pth.exists():
+            print(f"✗ {label} file not found: {pth}")
+            return 2
+    assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
+    toolsets = load_toolsets(toolsets_path)
+    errs, assigned_agents = validate_assignments(assignments, toolsets, bare_allow_list(toolsets))
+    if errs:
+        print("ASSIGNMENT ERRORS (fix before running):")
+        for e in errs:
+            print(f"  ✗ {e}")
+        return 2
     state = load_state(states_dir, agent)
     if state is None:
         print(f"{agent}: no committed state to restore from")
         return 2
-    agent_path = agents_dir / f"{agent}.agent.md"
+    spec = assigned_agents.get(agent)
+    if spec is None:
+        print(f"{agent}: no assignment record in assignments.yaml")
+        return 2
+    agent_path = spec["path"]
     if not agent_path.exists():
         print(f"{agent}: no agent file at {agent_path}")
         return 2
@@ -436,26 +574,44 @@ def cmd_restore(args) -> int:
 
 
 def cmd_save(args) -> int:
-    store, _t, assignments_path, states_dir = resolve_paths(args)
-    agents_dir = Path(args.agents_dir)
+    store, toolsets_path, assignments_path, states_dir = resolve_paths(args)
     assignments = {}
+    assigned_agents: dict[str, dict] = {}
     if assignments_path.exists():
         assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
+        if not toolsets_path.exists():
+            print(f"✗ toolsets file not found: {toolsets_path}")
+            return 2
+        toolsets = load_toolsets(toolsets_path)
+        errs, assigned_agents = validate_assignments(assignments, toolsets, bare_allow_list(toolsets))
+        if errs:
+            print("ASSIGNMENT ERRORS (fix before running):")
+            for e in errs:
+                print(f"  ✗ {e}")
+            return 2
     if not args.all and not args.agent:
         print("save: specify an agent name or --all")
         return 2
     if args.all:
-        agents = [p.stem.replace(".agent", "") for p in agents_dir.glob("*.agent.md")]
+        agents = list(assigned_agents)
     else:
         agents = [args.agent]
+    if not agents:
+        print("save: no assigned agents found in assignments.yaml")
+        return 2
     saved = 0
     for agent in agents:
-        agent_path = agents_dir / f"{agent}.agent.md"
+        spec = assigned_agents.get(agent)
+        if spec is None:
+            print(f"{agent}: no assignment record — skipped")
+            continue
+        agent_path = spec["path"]
         if not agent_path.exists():
-            print(f"{agent}: no agent file — skipped")
+            print(f"{agent}: no agent file at {agent_path} — skipped")
             continue
         tools = sorted(agent_tools(read_agent(agent_path)))
-        save_state(states_dir, agent, tools, assignment=assignments.get(agent))
+        assignment = spec.get("groups")
+        save_state(states_dir, agent, tools, assignment=assignment)
         print(f"{agent}: saved {len(tools)} tools")
         saved += 1
     msg, ok = commit_store(store, f"save: {saved} agent(s) baseline")
@@ -463,12 +619,93 @@ def cmd_save(args) -> int:
     return 0 if ok else 4
 
 
+def cmd_discover(args) -> int:
+    store, toolsets_path, assignments_path, _states_dir = resolve_paths(args)
+    assignments = {}
+    configured_dirs: list[str] = []
+    assigned_agents: dict[str, dict] = {}
+
+    if assignments_path.exists():
+        assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
+        configured_dirs, discover_dir_errs = load_discover_dirs(assignments)
+        if discover_dir_errs:
+            print("ASSIGNMENT ERRORS (fix before running):")
+            for err in discover_dir_errs:
+                print(f"  ✗ {err}")
+            return 2
+
+        if not toolsets_path.exists():
+            print(f"✗ toolsets file not found: {toolsets_path}")
+            return 2
+        toolsets = load_toolsets(toolsets_path)
+        allowed_bare = bare_allow_list(toolsets)
+        errs, assigned_agents = validate_assignments(assignments, toolsets, allowed_bare)
+        if errs:
+            print("ASSIGNMENT ERRORS (fix before running):")
+            for err in errs:
+                print(f"  ✗ {err}")
+            return 2
+
+    scan_dirs = configured_dirs + (args.dir or [])
+    seen_dirs: set[Path] = set()
+    normalized_scan_dirs: list[str] = []
+    for directory in scan_dirs:
+        expanded = Path(directory).expanduser()
+        key = expanded.resolve(strict=False)
+        if key in seen_dirs:
+            continue
+        seen_dirs.add(key)
+        normalized_scan_dirs.append(str(expanded))
+
+    if not normalized_scan_dirs:
+        print("no discover dirs configured — add `discover_dirs:` to assignments.yaml or pass --dir")
+        return 0
+
+    discovered = discover_agents(normalized_scan_dirs)
+    if not discovered:
+        print("no agent files found")
+        return 0
+
+    assigned_paths = {spec["path"].resolve(): agent for agent, spec in assigned_agents.items()}
+    assigned_stems = {agent: spec["path"].resolve() for agent, spec in assigned_agents.items()}
+    unassigned: list[Path] = []
+    collisions: list[tuple[str, Path, Path]] = []
+
+    for path in discovered:
+        resolved = path.resolve()
+        if resolved in assigned_paths:
+            continue
+        unassigned.append(path)
+        stem = agent_stem_from_path(path)
+        if stem in assigned_stems:
+            collisions.append((stem, path, assigned_stems[stem]))
+
+    if not unassigned:
+        print(f"all {len(discovered)} discovered agent file(s) are already assigned")
+        return 0
+
+    print(f"{len(unassigned)} unassigned agent file(s):")
+    print()
+    for path in sorted(unassigned):
+        print(f"  - filepath: {home_relative_path(path)}")
+        print("    groups: []")
+
+    if collisions:
+        print()
+        print("duplicate stem collisions:")
+        for stem, discovered_path, assigned_path in sorted(collisions, key=lambda item: (item[0], str(item[1]))):
+            print(
+                f"  {stem}: discovered {home_relative_path(discovered_path)} conflicts with assigned {home_relative_path(assigned_path)}"
+            )
+    return 0
+
+
 def cmd_reconcile(args) -> int:
     """Diff the live tool-picker roster against the store toolset, EXACT-CASE. Reports
     CASING (store id differs from the live tool only by case — VS Code silent-fails on it),
     then real NEW (in picker, not store) and GONE (in store, not picker), per server. The
     CLI can't see the session, so paste/pipe the Configure-Tools list via --ui <file> or
-    stdin (DrAgent, tools:['*'], can enumerate the live roster). Read-only."""
+    stdin (DrAgent runs with all tools — `tools:` omitted — so it can enumerate the live roster). Read-only."""
     store, toolsets_path, _a, _s = resolve_paths(args)
     if not toolsets_path.exists():
         print(f"✗ toolsets file not found: {toolsets_path}")
@@ -568,10 +805,8 @@ def cmd_fmt(args) -> int:
     return 0
 
 
-def _add_common(pr, need_agents_dir=True):
+def _add_common(pr):
     pr.add_argument("--store", default=str(DEFAULT_STORE), help=f"store dir (default {DEFAULT_STORE})")
-    if need_agents_dir:
-        pr.add_argument("--agents-dir", required=True, help="dir containing <agent>.agent.md files")
 
 
 def main() -> int:
@@ -601,14 +836,23 @@ def main() -> int:
     s.add_argument("--assignments")
     s.set_defaults(func=cmd_save)
 
+    d = sub.add_parser("discover", help="scan discover dirs and print unassigned assignments.yaml filepath stubs")
+    _add_common(d)
+    d.add_argument("--toolsets")
+    d.add_argument("--assignments")
+    d.add_argument("--dir", action="append", metavar="DIR",
+                   help="also scan this dir for THIS RUN; repeatable (--dir a --dir b). "
+                        "Not written back to assignments.yaml.")
+    d.set_defaults(func=cmd_discover)
+
     rc = sub.add_parser("reconcile", help="diff live picker roster (--ui/stdin) vs store toolset, per server; read-only")
     rc.add_argument("--ui", help="file with the pasted Configure-Tools roster (default: stdin)")
-    rc.add_argument("--store", default=str(DEFAULT_STORE)); rc.add_argument("--toolsets")
+    rc.add_argument("--store", default=str(DEFAULT_STORE), help=f"store dir (default {DEFAULT_STORE})"); rc.add_argument("--toolsets")
     rc.set_defaults(func=cmd_reconcile)
 
     fm = sub.add_parser("fmt", help="reflow the toolset jsonc to canonical per-group form")
     fm.add_argument("--file", help="toolset file to reflow (default: <store>/toolsets.toolsets.jsonc)")
-    fm.add_argument("--write", action="store_true"); fm.add_argument("--store", default=str(DEFAULT_STORE))
+    fm.add_argument("--write", action="store_true"); fm.add_argument("--store", default=str(DEFAULT_STORE), help=f"store dir (default {DEFAULT_STORE})")
     fm.add_argument("--toolsets")
     fm.set_defaults(func=cmd_fmt)
 
