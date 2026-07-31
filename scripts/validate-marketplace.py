@@ -49,6 +49,35 @@ def path_escapes_root(rel):
     return path.is_absolute() or ".." in path.parts
 
 
+def normalize_local_source(source):
+    if not isinstance(source, str) or path_escapes_root(source):
+        return None
+    parts = list(Path(source).parts)
+    if parts and parts[0] == ".":
+        parts = parts[1:]
+    if not parts:
+        return None
+    normalized = Path(*parts).as_posix()
+    if normalized.startswith("plugins/") or normalized.startswith("skills/"):
+        return f"./{normalized}"
+    return None
+
+
+def local_source_dirs():
+    local_sources = set()
+    for root_name in ("plugins", "skills"):
+        root_dir = ROOT / root_name
+        if not root_dir.is_dir():
+            continue
+        for entry in root_dir.iterdir():
+            if not entry.is_dir() or not (entry / "plugin.json").is_file():
+                continue
+            if root_name == "skills" and not (entry / "SKILL.md").is_file():
+                continue
+            local_sources.add(f"./{root_name}/{entry.name}")
+    return local_sources
+
+
 def validate_object_source(name, source, errors):
     if source.get("source") != "github":
         errors.append(f"{name}: object source must set `source` to 'github'")
@@ -84,6 +113,7 @@ def validate_skill_paths(plugin_name, plugin_dir, skills, errors):
 
 def main():
     errors, seen = [], set()
+    listed_local_sources = set()
     try:
         plugins = load_json(MANIFEST).get("plugins") or []
     except ValueError as exc:
@@ -108,6 +138,10 @@ def main():
         elif path_escapes_root(source):
             errors.append(f"{name}: source path escapes marketplace root: {source}")
             continue
+        else:
+            local_source = normalize_local_source(source)
+            if local_source:
+                listed_local_sources.add(local_source)
 
         entry_components = sorted(ENTRY_COMPONENT_FIELDS.intersection(plugin))
         if entry_components:
@@ -133,6 +167,9 @@ def main():
         if declared != name:
             errors.append(f"{name}: plugin.json name '{declared}' != marketplace name")
         validate_skill_paths(name, source_dir, plugin_manifest.get("skills"), errors)
+
+    for source in sorted(local_source_dirs() - listed_local_sources):
+        errors.append(f"missing marketplace entry for local source: {source}")
 
     for err in errors:
         print(f"  - {err}")
