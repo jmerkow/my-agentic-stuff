@@ -1,0 +1,10 @@
+{
+  "name": "llm-wiki",
+  "description": "Build and query citation-traced knowledge wikis from any corpus of raw sources.",
+  "version": "0.1.0",
+  "skills": [
+    "./skills/wiki-init",
+    "./skills/wiki-ingest",
+    "./skills/wiki-query"
+  ]
+}

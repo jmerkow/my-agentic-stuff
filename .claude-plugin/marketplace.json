@@ -102,6 +102,11 @@
         "path": "engflow",
         "ref": "experimental"
       }
+    },
+    {
+      "name": "llm-wiki",
+      "description": "Build and query citation-traced knowledge wikis from any corpus of raw sources.",
+      "source": "./plugins/llm-wiki"
     }
   ]
 }
