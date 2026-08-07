@@ -16,6 +16,8 @@ Verified mechanics for creating and updating OKR items via the Azure DevOps MCP 
 |---|---|
 | Weight (%) | `Microsoft.VSTS.Common.BusinessValue` |
 | Effort (weeks) | `Microsoft.VSTS.Scheduling.Effort` |
+| Acceptance criteria | `Microsoft.VSTS.Common.AcceptanceCriteria` |
+| Repro steps | `Microsoft.VSTS.TCM.ReproSteps` |
 | Quarter | `System.IterationPath`, also mirrored as a `System.Tags` tag |
 | Doc / workstream | `System.AreaPath`, else `System.Tags` |
 

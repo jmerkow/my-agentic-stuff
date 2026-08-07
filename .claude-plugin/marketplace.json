@@ -84,6 +84,11 @@
       "source": "./skills/ado-okrs"
     },
     {
+      "name": "outbound-review",
+      "description": "Sign-off and drafting conventions for anything sent, posted, or filed in the user's name.",
+      "source": "./skills/outbound-review"
+    },
+    {
       "name": "engflow",
       "description": "Engineering workflow agents and skills for GitHub Copilot.",
       "source": {
