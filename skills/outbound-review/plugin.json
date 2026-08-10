@@ -1,0 +1,7 @@
+{
+  "name": "outbound-review",
+  "description": "Sign-off and drafting conventions for anything sent, posted, or filed in the user's name.",
+  "skills": [
+    "./"
+  ]
+}
