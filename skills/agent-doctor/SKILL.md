@@ -75,6 +75,9 @@ $AD save --all --agents-dir <plugin>/agents
 # Inspect frontmatter as JSON
 $AD get path/to/eng.agent.md
 
+# Diagnose "agent X can't use tool Y" against store intent, current file, and saved state
+$AD diagnose eng breeze --agents-dir <plugin>/agents
+
 ```
 
 Paths default to the store: `--toolsets`→`<store>/toolsets.toolsets.jsonc`, `--assignments`→
@@ -127,5 +130,9 @@ one-line git diff. Comparisons are set-based, so formatting churn does not affec
   or baseline differ?) then `assign --write` (fix it).
 - `restore` is the undo if an install scrambled an agent; it writes `agent-states/<agent>.json`
   back into the agent file.
+- Use `diagnose <agent> <tool-or-capability>` when a tool is unavailable. It does not write; it
+  reports matching declared tools/groups, assignment coverage, current file coverage, and saved
+  baseline coverage. If nothing matches, the likely next step is to connect/refresh the MCP server
+  and then add explicit `server/tool` IDs to the toolset.
 - Keep optional defaults in the store when useful for your harness; this repo does not ship
   `defaults/builtins.yaml` or `defaults/tombstones.yaml`.

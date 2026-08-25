@@ -24,6 +24,7 @@ Commands:
   restore   Write an agent's committed state back into its file (undo). --write to apply.
   save      Snapshot current agent tools: into the state baseline and commit.
   get       Print an agent's frontmatter as JSON.
+  diagnose  Explain why an agent may not have a requested tool/capability.
 
 Leaf validity: a leaf is VALID if it is server/tool or is a known builtin bare
 group (defaults/builtins.yaml). Anything else is an unresolved group ref → error.
@@ -582,6 +583,124 @@ def cmd_save(args) -> int:
     return 0 if ok else 4
 
 
+def cmd_diagnose(args) -> int:
+    """Read-only tool issue diagnosis for one agent and one tool/capability query."""
+    store, toolsets_path, assignments_path, defaults_dir, states_dir = resolve_paths(args)
+    agents_dir = Path(args.agents_dir)
+    known_builtins, tombstones = load_defaults(defaults_dir)
+    registry = load_registry(defaults_dir)
+
+    if not toolsets_path.exists():
+        print(f"✗ toolsets file not found: {toolsets_path}")
+        return 2
+    toolsets = load_toolsets(toolsets_path)
+    assignments = {}
+    if assignments_path.exists():
+        assignments = yaml.safe_load(assignments_path.read_text(encoding="utf-8")) or {}
+
+    errs = validate_toolsets(toolsets, known_builtins)
+    if assignments:
+        errs += validate_assignments(assignments, toolsets, known_builtins)
+    if errs:
+        print("CONFIG ERRORS (fix before diagnosing tools):")
+        for e in errs:
+            print(f"  ✗ {e}")
+        return 2
+
+    query = args.query.lower()
+    group_leaves: dict[str, set[str]] = {}
+    leaf_groups: dict[str, list[str]] = {}
+    for group in toolsets:
+        leaves = set(expand(toolsets, [group], registry))
+        group_leaves[group] = leaves
+        for leaf in leaves:
+            leaf_groups.setdefault(leaf, []).append(group)
+
+    universe = known_leaf_universe(toolsets, registry, known_builtins)
+    matching_tools = sorted(leaf for leaf in universe if query in leaf.lower())
+    matching_groups = sorted(group for group in toolsets if query in group.lower())
+
+    print(f"diagnose {args.agent}: {args.query}")
+    if matching_tools:
+        print("declared matching tools:")
+        for leaf in matching_tools:
+            providers = ", ".join(sorted(leaf_groups.get(leaf, []))) or "(registry only)"
+            tomb = " tombstoned" if leaf in tombstones else ""
+            print(f"  {leaf} — groups: {providers}{tomb}")
+    else:
+        print("declared matching tools: none")
+
+    if matching_groups:
+        print("matching groups:")
+        for group in matching_groups:
+            print(f"  {group} — {len(group_leaves.get(group, set()))} expanded tools")
+
+    groups = assignments.get(args.agent)
+    assignment_missing: set[str] = set()
+    if groups is None:
+        print(f"assignment: {args.agent} is not in assignments.yaml")
+        assigned = set()
+    else:
+        assigned = set(expand(toolsets, list(groups), registry))
+        print(f"assignment: {', '.join(groups)}")
+        if matching_tools:
+            assignment_missing = set(matching_tools) - assigned
+            missing = sorted(assignment_missing)
+            present = sorted(set(matching_tools) & assigned)
+            print(f"assignment coverage: {len(present)}/{len(matching_tools)} matching tools")
+            for leaf in present:
+                print(f"  has {leaf}")
+            for leaf in missing:
+                print(f"  missing {leaf}")
+
+    agent_path = agents_dir / f"{args.agent}.agent.md"
+    file_missing: set[str] | None = None
+    if agent_path.exists():
+        current = agent_tools(read_agent(agent_path))
+        print(f"agent file: {agent_path}")
+        if matching_tools:
+            present = sorted(set(matching_tools) & current)
+            file_missing = set(matching_tools) - current
+            missing = sorted(file_missing)
+            print(f"agent file coverage: {len(present)}/{len(matching_tools)} matching tools")
+            for leaf in present:
+                print(f"  has {leaf}")
+            for leaf in missing:
+                print(f"  missing {leaf}")
+    else:
+        print(f"agent file: missing at {agent_path}")
+
+    state = load_state(states_dir, args.agent)
+    if state is None:
+        print("saved baseline: none")
+    elif matching_tools:
+        baseline = set(state.get("tools", []))
+        present = sorted(set(matching_tools) & baseline)
+        missing = sorted(set(matching_tools) - baseline)
+        print(f"saved baseline coverage: {len(present)}/{len(matching_tools)} matching tools")
+        for leaf in present:
+            print(f"  has {leaf}")
+        for leaf in missing:
+            print(f"  missing {leaf}")
+    else:
+        print("saved baseline: exists")
+
+    if not matching_tools and not matching_groups:
+        print("diagnosis: no declared tool or group matches; if this is an MCP tool, connect/refresh the server, then add explicit server/tool IDs to the toolset.")
+        return 1
+    if matching_tools and groups is None:
+        print("diagnosis: the tool is declared, but this agent has no assignment entry; add the right group to assignments.yaml, then run assign --write.")
+    elif matching_tools and assignment_missing:
+        print("diagnosis: assignment intent is missing at least one matching tool; add an explicit group/tool assignment, then run assign --write.")
+    elif matching_tools and file_missing:
+        print("diagnosis: assignment intent includes the matching tools, but the agent file is stale; run assign --write.")
+    elif matching_tools:
+        print("diagnosis: assignment and agent file include the matching tools; if the agent still cannot call them, check the live MCP/server connection for this session.")
+    else:
+        print("diagnosis: group names match, but no declared leaf tool matched the query.")
+    return 0
+
+
 def _add_common(pr, need_agents_dir=True):
     pr.add_argument("--store", default=str(DEFAULT_STORE), help=f"store dir (default {DEFAULT_STORE})")
     if need_agents_dir:
@@ -619,6 +738,13 @@ def main() -> int:
     g = sub.add_parser("get", help="print an agent's frontmatter as JSON")
     g.add_argument("agent")
     g.set_defaults(func=cmd_get)
+
+    d = sub.add_parser("diagnose", help="explain why an agent may not have a tool")
+    _add_common(d)
+    d.add_argument("agent")
+    d.add_argument("query", help="substring of a tool id or group name")
+    d.add_argument("--toolsets"); d.add_argument("--assignments"); d.add_argument("--defaults")
+    d.set_defaults(func=cmd_diagnose)
 
     args = p.parse_args()
     return args.func(args)
