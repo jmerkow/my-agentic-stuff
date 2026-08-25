@@ -1,0 +1,7 @@
+{
+  "name": "agent-doctor",
+  "description": "Keep agent tool-lists correct as plugins install and MCP servers change — group→agent assignments, mechanical expansion, drift warnings.",
+  "skills": [
+    "./"
+  ]
+}
