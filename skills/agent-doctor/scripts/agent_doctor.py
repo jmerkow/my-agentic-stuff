@@ -22,7 +22,7 @@ Commands:
   assign    Reconcile agents to assignments. Preview by default; --write to apply + commit.
   check     Dry-run assignments and compare them to current tools: and committed state.
   restore   Write an agent's committed state back into its file (undo). --write to apply.
-  save      Snapshot current agent tools: into the state baseline and commit.
+  save      Snapshot current agent tools: into the state baseline. --write to apply.
   get       Print an agent's frontmatter as JSON.
   diagnose  Explain why an agent may not have a requested tool/capability.
 
@@ -45,6 +45,7 @@ import json5
 import yaml
 
 DEFAULT_STORE = Path.home() / ".copilot" / "agent-doctor"
+DEFAULT_BUILTINS = {"read", "edit", "agent", "todo"}
 
 
 # ── frontmatter round-trip (python-frontmatter parse; block tools, compact agents) ──
@@ -94,6 +95,7 @@ def expand(toolsets: dict, start_keys: list[str], registry: dict) -> list[str]:
     Returns ordered deduped leaves. Cycle-guarded."""
     builtins = registry.get("builtins", {})
     seen_sets: set[str] = set()
+    seen_builtins: set[str] = set()
     seen_leaves: set[str] = set()
     leaves: list[str] = []
     queue = deque(start_keys)
@@ -105,6 +107,9 @@ def expand(toolsets: dict, start_keys: list[str], registry: dict) -> list[str]:
             seen_sets.add(item)
             queue.extend(toolsets[item].get("tools", []))
         elif item in builtins:
+            if item in seen_builtins:
+                continue
+            seen_builtins.add(item)
             queue.extend(builtins[item])
         elif item not in seen_leaves:
             seen_leaves.add(item)
@@ -115,12 +120,12 @@ def expand(toolsets: dict, start_keys: list[str], registry: dict) -> list[str]:
 # ── defaults (builtins allow-list + tombstones) ──────────────────────────────
 
 def load_defaults(defaults_dir: Path) -> tuple[set[str], dict]:
-    builtins: set[str] = set()
+    builtins: set[str] = set(DEFAULT_BUILTINS)
     tombstones: dict = {}
     b = defaults_dir / "builtins.yaml"
     if b.exists():
         data = yaml.safe_load(b.read_text(encoding="utf-8")) or {}
-        builtins = set(data.get("vscode_bare_groups", [])) | set(data.get("copilot_bare_groups", []))
+        builtins |= set(data.get("vscode_bare_groups", [])) | set(data.get("copilot_bare_groups", []))
     t = defaults_dir / "tombstones.yaml"
     if t.exists():
         data = yaml.safe_load(t.read_text(encoding="utf-8")) or {}
@@ -246,6 +251,10 @@ def git(store: Path, *args: str) -> subprocess.CompletedProcess:
 def commit_store(store: Path, message: str) -> tuple[str, bool]:
     if not (store / ".git").exists():
         git(store, "init", "-q")
+    if git(store, "config", "user.name").returncode != 0:
+        git(store, "config", "user.name", "Agent Doctor")
+    if git(store, "config", "user.email").returncode != 0:
+        git(store, "config", "user.email", "agent-doctor@users.noreply.github.com")
     git(store, "add", "-A")
     status = git(store, "status", "--porcelain")
     if not status.stdout.strip():
@@ -454,10 +463,10 @@ def cmd_check(args) -> int:
                 print(f"  ✗ {e}")
             return 2
     elif not states:
-        print("no assignments/toolsets or committed states found — run `assign --write` or `save` first")
+        print("no assignments/toolsets or committed states found — run `assign --write` or `save --write` first")
         return 0
 
-    drift = 0
+    drifted: set[str] = set()
     hard_errors: list[str] = []
     advisories: list[str] = []
     known_leaves = known_leaf_universe(toolsets, registry, known_builtins)
@@ -469,7 +478,7 @@ def cmd_check(args) -> int:
         if not agent_path.exists():
             source = "assigned in assignments.yaml" if agent in assignments else "state exists"
             print(f"{agent}: MISSING agent file at {agent_path} ({source})")
-            drift += 1
+            drifted.add(agent)
             continue
         current = agent_tools(read_agent(agent_path))
 
@@ -486,21 +495,22 @@ def cmd_check(args) -> int:
             changed = False
             if current != expected:
                 changed = True
-                drift += 1
+                drifted.add(agent)
                 print(f"{agent}: file differs from assignment")
                 print(f"  groups: {groups_str}")
                 print(f"  tools: {len(current)} current -> {len(expected)} assigned")
                 for line in render_by_server(current, expected):
                     print(line)
-            if states and baseline != expected:
+            if agent in states and baseline != expected:
                 changed = True
-                drift += 1
+                drifted.add(agent)
                 print(f"{agent}: saved baseline differs from assignment")
                 print(f"  tools: {len(baseline)} saved -> {len(expected)} assigned")
                 for line in render_by_server(baseline, expected):
                     print(line)
-            elif not states:
-                print(f"{agent}: no saved baseline   [{groups_str}]")
+            elif agent not in states:
+                print(f"{agent}: no saved baseline")
+                print(f"  groups: {groups_str}")
             if not changed:
                 print(f"{agent}: clean")
                 print(f"  groups: {groups_str}")
@@ -508,7 +518,7 @@ def cmd_check(args) -> int:
         else:
             added, removed = diff_line(agent, current, baseline)  # current vs baseline
             if added or removed:
-                drift += 1
+                drifted.add(agent)
                 print(f"{agent}: FILE != BASELINE +{len(added)} / -{len(removed)}")
                 for line in render_delta(added, removed):
                     print(line)
@@ -522,8 +532,8 @@ def cmd_check(args) -> int:
         for e in hard_errors:
             print(f"  ✗ {e}")
         return 2
-    print(f"\n{drift} drift point(s)")
-    return 1 if drift else 0
+    print(f"\n{len(drifted)} agent(s) drifted")
+    return 1 if drifted else 0
 
 
 def cmd_restore(args) -> int:
@@ -567,14 +577,35 @@ def cmd_save(args) -> int:
     if args.all:
         agents = [p.stem.replace(".agent", "") for p in agents_dir.glob("*.agent.md")]
     else:
+        if not args.agent:
+            print("save requires an agent name or --all")
+            return 2
         agents = [args.agent]
-    saved = 0
+    plans = []
     for agent in agents:
         agent_path = agents_dir / f"{agent}.agent.md"
         if not agent_path.exists():
             print(f"{agent}: no agent file — skipped")
             continue
         tools = sorted(agent_tools(read_agent(agent_path)))
+        state = load_state(states_dir, agent)
+        baseline = set(state.get("tools", [])) if state else set()
+        added, removed = diff_line(agent, set(tools), baseline)
+        if added or removed:
+            print(f"{agent}: baseline would change")
+            print(f"  tools: {len(baseline)} saved -> {len(tools)} current")
+            for line in render_delta(added, removed):
+                print(line)
+        else:
+            print(f"{agent}: baseline already current ({len(tools)} tools)")
+        plans.append((agent, tools))
+
+    if not args.write:
+        print("\npreview only — rerun with --write to save baseline")
+        return 0
+
+    saved = 0
+    for agent, tools in plans:
         save_state(states_dir, agent, tools, assignment=assignments.get(agent))
         print(f"{agent}: saved {len(tools)} tools")
         saved += 1
@@ -655,7 +686,8 @@ def cmd_diagnose(args) -> int:
 
     agent_path = agents_dir / f"{args.agent}.agent.md"
     file_missing: set[str] | None = None
-    if agent_path.exists():
+    agent_file_exists = agent_path.exists()
+    if agent_file_exists:
         current = agent_tools(read_agent(agent_path))
         print(f"agent file: {agent_path}")
         if matching_tools:
@@ -692,6 +724,8 @@ def cmd_diagnose(args) -> int:
         print("diagnosis: the tool is declared, but this agent has no assignment entry; add the right group to assignments.yaml, then run assign --write.")
     elif matching_tools and assignment_missing:
         print("diagnosis: assignment intent is missing at least one matching tool; add an explicit group/tool assignment, then run assign --write.")
+    elif matching_tools and not agent_file_exists:
+        print("diagnosis: assignment intent includes the matching tools, but the agent file is missing; run assign --write.")
     elif matching_tools and file_missing:
         print("diagnosis: assignment intent includes the matching tools, but the agent file is stale; run assign --write.")
     elif matching_tools:
@@ -729,9 +763,10 @@ def main() -> int:
     r.add_argument("--write", action="store_true")
     r.set_defaults(func=cmd_restore)
 
-    s = sub.add_parser("save", help="snapshot current agent tools into the baseline + commit")
+    s = sub.add_parser("save", help="snapshot current agent tools into the baseline (preview; --write to apply)")
     _add_common(s)
     s.add_argument("agent", nargs="?"); s.add_argument("--all", action="store_true")
+    s.add_argument("--write", action="store_true", help="actually save baseline + commit")
     s.add_argument("--assignments")
     s.set_defaults(func=cmd_save)
 

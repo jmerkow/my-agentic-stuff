@@ -50,7 +50,7 @@ tool descriptions); the win is human maintainability + following drift when a gr
 ## Commands
 
 Run with `uv` (deps declared inline). Default store is `~/.copilot/agent-doctor/` (a git repo);
-override with `--store`. `assign` and `restore` preview added/removed tools first and need
+override with `--store`. `assign`, `restore`, and `save` preview added/removed tools first and need
 `--write` to change files.
 
 ```bash
@@ -69,8 +69,9 @@ $AD check --agents-dir <plugin>/agents
 $AD restore eng --agents-dir <plugin>/agents
 $AD restore eng --agents-dir <plugin>/agents --write
 
-# Establish/update the baseline from the current files
+# Establish/update the baseline from the current files (preview, then --write)
 $AD save --all --agents-dir <plugin>/agents
+$AD save --all --agents-dir <plugin>/agents --write
 
 # Inspect frontmatter as JSON
 $AD get path/to/eng.agent.md
@@ -87,7 +88,9 @@ Paths default to the store: `--toolsets`→`<store>/toolsets.toolsets.jsonc`, `-
 
 `assign` and `check` **pre-validate** the toolset shape and assignments before expanding:
 each toolset entry must be an object with a `tools` list of strings; each assignment must be
-`agent → [groups]`; and each bare token must be a defined group or known builtin. Raw leaves
+`agent → [groups]`; and each bare token must be a defined group or known builtin. The standard
+bare builtins `read`, `edit`, `agent`, and `todo` are known by default; add harness-specific
+builtins in optional `defaults/builtins.yaml`. Raw leaves
 are still allowed (`server/tool`) because this is groups-first, not groups-only.
 
 - **Hard error → nothing is written** (fix the config): malformed toolset entries; a bare token
