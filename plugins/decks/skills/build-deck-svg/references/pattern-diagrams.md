@@ -62,7 +62,24 @@ If you're drawing more than ~10 boxes or need swimlanes/groups, consider whether
 - **7–12 boxes:** consider whether you can simplify; if not, build it.
 - **>12 boxes:** the diagram is probably overloaded. Either split across two slides or use a different visual (timeline, table, layered architecture).
 
-For complex diagrams the `diagram` skill (separate, for one-off non-deck diagrams) may be a better fit.
+## Importing Mermaid diagrams
+
+Prefer direct SVG for the finished slide. When `deck-report.md` contains a Mermaid diagram worth reusing, render it with HTML labels disabled so the generated SVG uses portable text instead of `<foreignObject>`:
+
+```json
+{
+  "flowchart": {
+    "htmlLabels": false
+  }
+}
+```
+
+```bash
+mmdc -i diagram.mmd -o diagram.svg --configFile mermaid-config.json
+rsvg-convert diagram.svg -o diagram.png
+```
+
+Treat generated SVG as a build artifact. Change the Mermaid source or rebuild the diagram as direct SVG rather than hand-editing generated internals. Inspect the `rsvg-convert` output before placing the diagram on a slide; browser rendering does not prove PowerPoint or librsvg compatibility.
 
 ## Worked example
 

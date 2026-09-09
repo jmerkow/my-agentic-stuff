@@ -1,6 +1,6 @@
 # Slide spec — <deck name>
 
-One H2 per slide. See `build-deck/references/slide-spec-format.md` for the field meanings.
+One H2 per slide. See `build-deck-svg/references/slide-spec-format.md` for the field meanings. Derive this working plan from the complete `deck-report.md`; do not replace or shorten the report itself.
 
 ---
 

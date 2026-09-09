@@ -1,0 +1,8 @@
+# Generated only when this bundled template is exercised locally
+node_modules/
+output.pptx
+renders/
+
+# Python bytecode from QA scripts
+__pycache__/
+*.pyc

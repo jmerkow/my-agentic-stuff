@@ -9,7 +9,7 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 | `authoring` | agent-refiner, skill-creator, plugin-creator | Create, review, and troubleshoot Copilot agents, skills, and plugins |
 | `eng-ops` | engdirs-status, worktree-setup | Audit `.eng/` repo state and set up isolated git worktrees |
 | `sessions` | collect | Inspect and query Copilot session history |
-| `decks` | build-deck | Build presentation decks as SVG slides packaged into `.pptx` |
+| `decks` | plan-deck, build-deck-svg, build-deck-pptx | Create standalone deck reports, then build SVG-first or native editable PowerPoint decks |
 | `code-review` | code-review | Local dual sub-agent code review, no PR |
 | `diagram-help` | diagram-help | Mermaid and SVG diagram rendering reference |
 | `msoffice` | docx, pandocx | Read/edit/troubleshoot Word docs in OneDrive/SharePoint; markdown→`.docx` |
@@ -19,7 +19,7 @@ Personal collection of skills I've built for AI coding agents, packaged as a plu
 | `llm-council` | llm-council | Pose a question to multiple orthogonal models in parallel and synthesize their independent responses |
 | `engflow` | External GitHub plugin | Engineering workflow agents and skills |
 
-`build-deck` uses `visual-design` and `slop-check` if they're installed, but doesn't require them.
+The deck skills use `visual-design` and `slop-check` when available, but do not require them.
 
 ## Install
 
