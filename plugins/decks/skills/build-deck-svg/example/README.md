@@ -1,6 +1,6 @@
-# build-deck example deck
+# build-deck-svg example deck
 
-Smoke-test deck for the `build-deck` skill. It builds itself as a `.pptx` and serves as a copy-paste reference for new decks.
+Smoke-test deck for the `build-deck-svg` skill. It builds itself as a `.pptx` and serves as a copy-paste reference for new decks.
 
 ## Build
 
@@ -27,7 +27,7 @@ Each slide demonstrates one feature. Title = what it is. Subtitle = how it works
 | 6 | `slide-06-svg-diagram.svg` | flow diagram in native SVG primitives (no chart pipeline) |
 | 7 | `slide-07-table-and-bullets.svg` | table + bullets combo on one slide (numeric table + takeaways) |
 
-`slide-spec.md` is the source of truth for the deck content; SVGs follow it.
+`deck-report.md` is the standalone source report. `slide-spec.md` is the SVG builder's derived presentation plan; the SVGs follow that working plan.
 
 ## Regenerate the chart
 

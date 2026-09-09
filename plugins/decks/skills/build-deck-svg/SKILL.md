@@ -1,13 +1,17 @@
 ---
-name: build-deck
-description: Build a presentation deck as standalone 1920×1080 SVG slides, themed via shared CSS, rendered with `rsvg-convert` for preview, and packaged into a self-contained `.pptx` for delivery. Use when authoring team updates, design reviews, conference talks, or any deck where diffable source matters. Keywords presentation, deck, slides, SVG, pptx, slide-spec.
+name: build-deck-svg
+description: Build a presentation from a standalone deck report as 1920x1080 SVG slides, render them for visual QA, and package them into a self-contained PPTX. Use only after the user explicitly chooses SVG output for exact visual control and diffable slide source. Keywords SVG deck builder, SVG slides, deck-report.
 ---
 
-# build-deck
+# build-deck-svg
 
-Build a presentation as a folder of standalone 1920×1080 SVG slides. Each slide is one file, themed via shared CSS, rendered with `rsvg-convert` for preview, then imported into PowerPoint as a PNG (or SVG) per slide.
+Build a presentation as a folder of standalone 1920x1080 SVG slides. Each slide is one file, themed via shared CSS, rendered with `rsvg-convert` for preview, then imported into PowerPoint as a PNG or SVG per slide.
 
-This skill replaces the legacy JS / pptxgenjs approach. SVG-first is faster to iterate, easier to diff, and trivially importable to PPT one slide at a time.
+Start from the standalone `deck-report.md` produced by `plan-deck`. The report supplies facts, narrative, evidence, tables, and diagrams; this skill decides slide count, sequence, titles, layouts, and audience-facing copy.
+
+Do not select this builder by inference. If the user has not explicitly chosen SVG output, ask them to choose between `build-deck-svg` and `build-deck-pptx` before constructing slides.
+
+SVG-first is fast to iterate, easy to diff, and straightforward to import into PowerPoint one slide at a time. Choose `build-deck-pptx` instead when native PowerPoint editability matters more.
 
 ## When to use
 
@@ -19,7 +23,6 @@ This skill replaces the legacy JS / pptxgenjs approach. SVG-first is faster to i
 
 - Live, interactive presentations needing animations or transitions
 - Decks templated from corp branding that requires editing in PPT directly
-- Single-slide quick visuals — use the `diagram` skill instead
 
 ## Prerequisites
 
@@ -35,16 +38,17 @@ Python packages:
 - install `uv` if needed: `curl -LsSf https://astral.sh/uv/install.sh | sh` (or see <https://docs.astral.sh/uv/>)
 - `matplotlib` — `pip install matplotlib` (only needed if you generate matplotlib charts)
 
-Throughout this skill, `<skill>` refers to the skill's install directory — typically `~/.copilot/skills/build-deck/` after global install, or wherever you have it checked out during development.
+Throughout this skill, `<skill>` means the directory containing this `SKILL.md`. Resolve it from the active skill at runtime; do not assume a harness-specific install path.
 
 ## Workflow
 
-1. **Write the spec first** — `slide-spec.md` with one section per slide. See `references/slide-spec-format.md`. The spec is what `parse-spec.py` reads to drive notes and ordering; skip it and you lose those.
-2. **Scaffold** — create `<slides-root>/` with the structure below. If you intend to swap themes via `apply-theme.sh`, copy `<skill>/themes/*.css` into `<slides-root>/themes/` and copy `<skill>/scripts/apply-theme.sh` into `<slides-root>/scripts/`. Otherwise the inline theme block in each slide is sufficient and `themes/` can be omitted.
-3. **For each slide** — copy `templates/slide-base.svg` (or a layout from `templates/layouts/`) to `<slides-root>/slide-NN-name.svg`, then fill in content using the right pattern reference.
-4. **Render and *look*** — `rsvg-convert -w 1920 -h 1080 slide-NN-name.svg -o renders/slide-NN-name.png` after every edit, then **open the PNG and review it**. Visual checks the build can't do: text wraps, alignment, density, contrast. Non-negotiable; the build verifier doesn't catch layout bugs.
-5. **Iterate** — fix layout, re-render, repeat. If `slop-check` is available, run it on text content before declaring done.
-6. **Build the deck** — run `uv run <skill>/scripts/parse-spec.py [--lint-only]` to lint the spec and write `deck.yaml` (inline speaker notes included); then run `uv run <skill>/scripts/build-pptx.py <slides-root>`. Use `--lint-only` for a fast validation pass without writing. Pre-existing `deck.yaml` `output`/`template` values are preserved. See `references/pptx-export.md`.
+1. **Read the report** — read all of `deck-report.md`, including diagrams, evidence, qualifications, and sources.
+2. **Derive the working slide spec** — decide the audience argument, sequence, omissions, titles, and slide copy in `slide-spec.md`. This is builder working state, not the standalone report. See `references/slide-spec-format.md`.
+3. **Scaffold** — create `<slides-root>/` with the structure below. If you intend to swap themes via `apply-theme.sh`, copy `<skill>/themes/*.css` into `<slides-root>/themes/` and copy `<skill>/scripts/apply-theme.sh` into `<slides-root>/scripts/`. Otherwise the inline theme block in each slide is sufficient and `themes/` can be omitted.
+4. **For each slide** — copy `templates/slide-base.svg` (or a layout from `templates/layouts/`) to `<slides-root>/slide-NN-name.svg`, then fill in content using the right pattern reference.
+5. **Render and *look*** — `rsvg-convert -w 1920 -h 1080 slide-NN-name.svg -o renders/slide-NN-name.png` after every edit, then **open the PNG and review it**. Visual checks the build can't do: text wraps, alignment, density, contrast. Non-negotiable; the build verifier doesn't catch layout bugs.
+6. **Iterate** — fix layout, re-render, repeat. If `slop-check` is available, run it on text content before declaring done.
+7. **Build the deck** — run `uv run <skill>/scripts/parse-spec.py [--lint-only]` to lint the working spec and write `deck.yaml` (inline speaker notes included); then run `uv run <skill>/scripts/build-pptx.py <slides-root>`. Use `--lint-only` for a fast validation pass without writing. Pre-existing `deck.yaml` `output`/`template` values are preserved. See `references/pptx-export.md`.
 
 ## Directory structure
 
@@ -66,7 +70,8 @@ Throughout this skill, `<skill>` refers to the skill's install directory — typ
 │   ├── <chart>.png            # matplotlib outputs, embedded via <image>
 │   └── <photo>.png            # photos, copied here from source dirs
 ├── renders/                   # rsvg-convert PNG previews; throwaway
-├── slide-spec.md              # source of truth for slide content
+├── deck-report.md             # standalone source report from plan-deck
+├── slide-spec.md              # SVG builder's derived working plan
 └── deck.yaml                  # build manifest (template, output, slides)
 ```
 
@@ -94,7 +99,7 @@ Paths are relative to the deck dir. `--output PATH` on the CLI overrides whateve
 - **Bullets use the `dx`/`dy` pattern, never one `<text>` per row.** (Tables are different — see `references/pattern-tables.md`.) See `references/pattern-bullets.md`.
 - **Tables stay as positioned `<text>` rows.** They're not lists. See `references/pattern-tables.md`.
 - **Never edit the `<style>` block by hand.** Use `scripts/apply-theme.sh` to swap themes. The `/* THEME-START */` and `/* THEME-END */` markers must be preserved exactly — the script keys off them.
-- **One spec → one deck.** `slide-spec.md` is the source of truth; SVGs follow it.
+- **Report first, working spec second.** `deck-report.md` preserves the complete source; `slide-spec.md` records the SVG builder's presentation decisions.
 - **All slides validate as XML.** `xmllint --noout slide-*.svg` should be quiet.
 
 ## Anti-patterns (learned the hard way)
@@ -139,4 +144,3 @@ Paths are relative to the deck dir. `--output PATH` on the CLI overrides whateve
 
 - **`slop-check`** (if available) — run on `slide-spec.md` and on each slide's text before declaring done. Cliché filler reads worse on a slide than in prose.
 - **`visual-design`** (if available) — run on slide layout and visual choices before declaring done. The visual counterpart to `slop-check`'s prose pass; flags defaults and templated patterns.
-- **`diagram`** — use for one-off diagrams that aren't part of a deck.

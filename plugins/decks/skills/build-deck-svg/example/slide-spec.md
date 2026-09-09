@@ -1,6 +1,8 @@
-# build-deck example deck
+# build-deck-svg example deck
 
 Each slide demonstrates one feature of the skill. Title = what it is. Subtitle = how it works. Body = the demo.
+
+This working slide plan is derived from `deck-report.md`; it does not replace the standalone report.
 
 ---
 
@@ -8,7 +10,7 @@ Each slide demonstrates one feature of the skill. Title = what it is. Subtitle =
 - **Layout:** centered title, italic subtitle, accent band, optional footer credit
 - **Headline:** Title card
 - **Subtitle:** The title-card layout — centered title, italic subtitle, accent band.
-- **Footer:** "Example deck for `build-deck`"
+- **Footer:** "Example deck for `build-deck-svg`"
 - **Status:** ✅
 
 ## Slide 2 — Bullet lists
