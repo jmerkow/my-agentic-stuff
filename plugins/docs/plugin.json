@@ -1,0 +1,8 @@
+{
+  "name": "docs",
+  "description": "Create and maintain structured Markdown documents, including stable-ID ledgers.",
+  "version": "0.1.0",
+  "skills": [
+    "./skills/ledger"
+  ]
+}
