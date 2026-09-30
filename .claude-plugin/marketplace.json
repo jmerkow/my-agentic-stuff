@@ -79,6 +79,11 @@
       "source": "./skills/llm-council"
     },
     {
+      "name": "docs",
+      "description": "Create and maintain structured Markdown documents, including stable-ID ledgers.",
+      "source": "./plugins/docs"
+    },
+    {
       "name": "ado-okrs",
       "description": "Layout and authoring conventions for tracking quarterly OKRs on an Azure DevOps board.",
       "source": "./skills/ado-okrs"
