@@ -36,7 +36,13 @@ Run [collect.sh](./scripts/collect.sh) with optional SSH host args:
 bash ~/.copilot/skills/collect/scripts/collect.sh my-host
 ```
 
-Output goes to `/tmp/chronicle/<host>/<source>/session-store.db*`.
+Output goes to `$CHRONICLE_DEST/<host>/<source>/session-store.db*`. `CHRONICLE_DEST` defaults to `/tmp/chronicle`; set it to choose where the copies go:
+
+```bash
+CHRONICLE_DEST=~/chronicle bash ~/.copilot/skills/collect/scripts/collect.sh my-host
+```
+
+The examples below use the default `/tmp/chronicle`.
 
 **Private hosts:** if `~/.copilot/sessions/hosts.md` exists, use the SSH host names listed there as the collect.sh args instead of the placeholder above.
 
@@ -65,6 +71,12 @@ sqlite3 -header -column "$DB" \
    WHERE t.user_message LIKE '%KEYWORD%'
    ORDER BY s.updated_at DESC LIMIT 20;"
 ```
+
+### 4. Missing sessions
+
+`session-store.db` only holds sessions that Chronicle has indexed. Each session's raw log stays in `~/.copilot/session-state/<session-id>/events.jsonl` on its host, and some sessions never get indexed. If a session the user expects is missing, ask them to run `/chronicle reindex` in an interactive Copilot CLI session on that host, then collect again. It indexes the `session-state` logs into that host's `~/.copilot/session-store.db`, including the `search_index` full-text table.
+
+`/chronicle reindex` is a slash command, so the agent can't run it. Tell the user that when they're signed in with cloud session indexing enabled, it also uploads that host's sessions to their GitHub cloud session history.
 
 ## Notes
 
