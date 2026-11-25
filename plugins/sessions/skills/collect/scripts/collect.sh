@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Collect Chronicle session-store DBs from local + given SSH hosts into /tmp/chronicle/.
-# Usage: collect.sh [ssh-host ...]
+# Collect Chronicle session-store DBs from local + given SSH hosts.
+# Usage: [CHRONICLE_DEST=dir] collect.sh [ssh-host ...]   (default dir: /tmp/chronicle)
 set -uo pipefail
 
 DEST="${CHRONICLE_DEST:-/tmp/chronicle}"
